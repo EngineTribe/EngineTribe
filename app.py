@@ -30,9 +30,12 @@ class Level(BaseModel):
     date = TextField()  # Upload date "DD/MM/YYYY"
     author = TextField()  # Level maker
     archivo = TextField()  # Level file in storage backend
-    id = TextField()  # Level ID
+    level_id = TextField()  # Level ID
     # description = TextField()  # Unimplemented in original server "Sin Descripción"
     # comments = IntegerField()  # Unimplemented in original server
+
+    class Meta:
+        table_name = 'level'
 
 
 app = Flask(__name__)
