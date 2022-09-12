@@ -40,7 +40,7 @@ class Level(BaseModel):
 
 app = Flask(__name__)
 
-Level.create_table()
+Level.create_table()  # auto create table
 
 
 @app.route('/', methods=['GET'])
@@ -72,9 +72,9 @@ def stages_upload_handler():
     level = Level(name=data['name'][0], likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                   apariencia=data['aparience'][0], entorno=data['entorno'][0], etiquetas=data['tags'][0],
                   date=datetime.datetime.now().strftime("%m/%d/%Y"), author=data['auth_code'][0],
-                  id=level_id, archivo=STORAGE_URL + quote(data['name'][0] + '.swe'))
+                  level_id=level_id, archivo=STORAGE_URL + quote(data['name'][0] + '.swe'))
     level.save()
-    return json.dumps({'message': level_id, 'error_type': '200'})
+    return json.dumps({'message': 'Upload completed.', 'error_type': level_id})
 
 
 app.run(host='0.0.0.0', port=PORT, debug=True)
