@@ -30,9 +30,12 @@ class Level(BaseModel):
     date = TextField()  # Upload date "DD/MM/YYYY"
     author = TextField()  # Level maker
     archivo = TextField()  # Level file in storage backend
-    id = TextField()  # Level ID
+    level_id = TextField()  # Level ID
+
     # description = TextField()  # Unimplemented in original server "Sin Descripción"
     # comments = IntegerField()  # Unimplemented in original server
+    class Meta:
+        table_name = 'level'
 
 
 app = Flask(__name__)
@@ -64,14 +67,14 @@ def stages_upload_handler():
     level_id = gen_level_id(data_swe)
     if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return json.dumps({'error_type': '028', 'message': 'File is larger than 4MB.'})
-    requests.post(url=STORAGE_URL, params={'upload': data['name'][0] + '.swe', 'key': STORAGE_AUTH_KEY},
-                  data=data_swe)  # Upload to storage backend
-    level = Level(name=data['name'][0], likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
-                  apariencia=data['aparience'][0], entorno=data['entorno'][0], etiquetas=data['tags'][0],
-                  date=datetime.datetime.now().strftime("%m/%d/%Y"), author=data['auth_code'][0],
-                  id=level_id, archivo=STORAGE_URL + quote(data['name'][0] + '.swe'))
-    level.save()
-    return json.dumps({'message': level_id, 'error_type': '200'})
+    requests.post(url=STORAGE_URL, params={'upload': data['name'][0] + '.swe', 'key': STORAGE_AUTH_KEY}, data=data_swe)  # Upload to storage backend
+    print("Writing level meta to database...")
+    level_to_save = Level(name=data['name'][0], likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
+                          apariencia=data['aparience'][0], entorno=data['entorno'][0], etiquetas=data['tags'][0],
+                          date=datetime.datetime.now().strftime("%m/%d/%Y"), author=data['auth_code'][0],
+                          level_id=level_id, archivo=STORAGE_URL + quote(data['name'][0] + '.swe'))
+    level_to_save.save()
+    return json.dumps({'message': 'Upload completed.', 'error_type': level_id})
 
 
 app.run(host='0.0.0.0', port=PORT, debug=True)

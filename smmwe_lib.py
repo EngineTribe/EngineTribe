@@ -10,7 +10,7 @@ def level_class_to_dict(level_data):
             'entorno': level_data.entorno, 'etiquetas': level_data.etiquetas, 'featured': '0',
             'user_data': {'completed': 'no', 'liked': '0'}, 'record': {'record': 'no'}, 'date': level_data.date,
             'author': level_data.author, 'description': 'Sin Descripción', 'archivo': level_data.archivo,
-            'id': level_data.id}
+            'id': level_data.level_id}
 
 
 def user_login(data):
