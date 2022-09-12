@@ -1,26 +1,9 @@
 from dataclasses import dataclass
 from peewee import *
+import hashlib
 
 
-class Level(Model):
-    name = TextField()
-    likes = IntegerField()
-    dislikes = IntegerField()
-    intentos = IntegerField()  # Play count
-    muertes = IntegerField()  # Death count
-    victorias = IntegerField()  # Clear count
-    apariencia = TextField()  # Game style
-    entorno = TextField()  # Level environment
-    etiquetas = TextField()  # The two tags "Tradicional,Puzles"
-    date = TextField()  # Upload date "DD/MM/YYYY"
-    author = TextField()  # Level maker
-    archivo = TextField()  # Level file in storage backend
-    id = TextField()  # Level ID
-    # description = TextField()  # Unimplemented in original server "Sin Descripción"
-    # comments = IntegerField()  # Unimplemented in original server
-
-
-def level_class_to_dict(level_data: Level):
+def level_class_to_dict(level_data):
     return {'name': level_data.name, 'likes': str(level_data.likes), 'dislikes': str(level_data.dislikes),
             'comments': '0', 'intentos': str(level_data.intentos), 'muertes': str(level_data.muertes),
             'victorias': str(level_data.victorias), 'apariencia': level_data.apariencia,
@@ -31,15 +14,23 @@ def level_class_to_dict(level_data: Level):
 
 
 def user_login(data):
-    login_user = {'username': 'Engine', 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
+    login_user = {'username': data['alias'][0], 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
                   'alias': data['alias'][0],
                   'id': '0000000000', 'uploads': '0',
-                  'auth_code': 'ENGINE'}
+                  'auth_code': data['alias'][0]}
     if data['token'][0] == Tokens.PC_323:
         login_user['mobile'] = False
     else:
         login_user['mobile'] = True
     return login_user
+
+
+def gen_level_id(data_swe: str):
+    return prettify_level_id(hashlib.md5(data_swe.encode()).hexdigest().upper()[8:24])
+
+
+def prettify_level_id(level_id: str):
+    return level_id[0:4] + '-' + level_id[4:8] + '-' + level_id[8:12] + '-' + level_id[12:16]
 
 
 @dataclass

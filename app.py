@@ -2,8 +2,11 @@ from flask import Flask, request
 from config import *
 from peewee import *
 import json
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 from smmwe_lib import *
+import requests
+import datetime
+from time import strftime
 
 db = MySQLDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
 db.connect()
@@ -14,7 +17,7 @@ class BaseModel(Model):
         database = db
 
 
-class LevelTable(BaseModel):
+class Level(BaseModel):
     name = TextField()
     likes = IntegerField()
     dislikes = IntegerField()
@@ -34,7 +37,7 @@ class LevelTable(BaseModel):
 
 app = Flask(__name__)
 
-LevelTable.create_table()
+Level.create_table()
 
 
 @app.route('/', methods=['GET'])
@@ -51,6 +54,24 @@ def user_login_handler():
 @app.route('/stages/detailed_search', methods=['POST'])
 def stages_detailed_search_handler():
     print('qwq')
+
+
+@app.route('/stage/upload', methods=['POST'])
+def stages_upload_handler():
+    data = parse_qs(request.get_data().decode('utf-8'))
+    print("Uploading level to storage backend...")
+    data_swe = data['swe'][0]
+    level_id = gen_level_id(data_swe)
+    if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
+        return json.dumps({'error_type': '028', 'message': 'File is larger than 4MB.'})
+    requests.post(url=STORAGE_URL, params={'upload': data['name'][0] + '.swe', 'key': STORAGE_AUTH_KEY},
+                  data=data_swe)  # Upload to storage backend
+    level = Level(name=data['name'][0], likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
+                  apariencia=data['aparience'][0], entorno=data['entorno'][0], etiquetas=data['tags'][0],
+                  date=datetime.datetime.now().strftime("%m/%d/%Y"), author=data['auth_code'][0],
+                  id=level_id, archivo=STORAGE_URL + quote(data['name'][0] + '.swe'))
+    level.save()
+    return json.dumps({'message': level_id, 'error_type': '200'})
 
 
 app.run(host='0.0.0.0', port=PORT, debug=True)
