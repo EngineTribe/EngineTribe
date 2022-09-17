@@ -1,80 +1,55 @@
-from flask import Flask, request
-from config import *
-from peewee import *
 import json
-from urllib.parse import parse_qs, quote
-from smmwe_lib import *
+
 import requests
-import datetime
-from time import strftime
+from aiohttp import web
 
-db = MySQLDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
-db.connect()
-
-
-class BaseModel(Model):
-    class Meta:
-        database = db
+from config import *
+from database import SMMWEDatabase
+from smmwe_lib import *
 
 
-class Level(BaseModel):
-    name = TextField()
-    likes = IntegerField()
-    dislikes = IntegerField()
-    intentos = IntegerField()  # Play count
-    muertes = IntegerField()  # Death count
-    victorias = IntegerField()  # Clear count
-    apariencia = TextField()  # Game style
-    entorno = TextField()  # Level environment
-    etiquetas = TextField()  # The two tags "Tradicional,Puzles"
-    date = TextField()  # Upload date "DD/MM/YYYY"
-    author = TextField()  # Level maker
-    archivo = TextField()  # Level file in storage backend
-    level_id = TextField()  # Level ID
-    # description = TextField()  # Unimplemented in original server "Sin Descripción"
-    # comments = IntegerField()  # Unimplemented in original server
-
-    class Meta:
-        table_name = 'level'
+async def readme_handler(request):
+    return web.Response(
+        text=open('website/index.html', 'r').read().replace("${{Markdown}}", open('README.md', 'r').read()),
+        content_type='text/html')
 
 
-app = Flask(__name__)
-
-Level.create_table()  # auto create table
-
-
-@app.route('/', methods=['GET'])
-def website_index():
-    return open('website/index.html', 'r').read().replace("${{Markdown}}", open('README.md', 'r').read())
-
-
-@app.route('/user/login', methods=['POST'])
-def user_login_handler():
-    data = parse_qs(request.get_data().decode('utf-8'))
-    return json.dumps(user_login(data))
+async def user_login_handler(request):
+    data = await request.args.to_dict()
+    login_user = {'username': data['alias'], 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
+                  'alias': data['alias'],
+                  'id': '0000000000', 'uploads': '0',
+                  'auth_code': data['alias']}
+    if data['token'][0] == Tokens.PC_323:
+        login_user['mobile'] = False
+    else:
+        login_user['mobile'] = True
+    return web.json_response(login_user)
 
 
-@app.route('/stages/detailed_search', methods=['POST'])
-def stages_detailed_search_handler():
-    print('qwq')
+async def stages_detailed_search_handler(request):
+    return web.Response(text='qwq')
 
 
-@app.route('/stage/upload', methods=['POST'])
-def stages_upload_handler():
-    data = parse_qs(request.get_data().decode('utf-8'))
+async def stages_upload_handler(request):
+    data = request.args.to_dict()
     print("Uploading level to storage backend...")
-    data_swe = data['swe'][0]
+    data_swe = data['swe']
     level_id = gen_level_id(data_swe)
     if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return json.dumps({'error_type': '028', 'message': 'File is larger than 4MB.'})
-    requests.post(url=STORAGE_URL, params={'upload': data['name'][0] + '.swe', 'key': STORAGE_AUTH_KEY},
+    requests.post(url=STORAGE_URL, params={'upload': data['name'] + '.swe', 'key': STORAGE_AUTH_KEY},
                   data=data_swe)  # Upload to storage backend
-    level = Level(name=data['name'][0], likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
-                  apariencia=data['aparience'][0], entorno=data['entorno'][0], etiquetas=data['tags'][0],
-                  date=datetime.datetime.now().strftime("%m/%d/%Y"), author=data['auth_code'][0],
-                  level_id=level_id, archivo=STORAGE_URL + quote(data['name'][0] + '.swe'))
-    level.save()
-    return json.dumps({'message': 'Upload completed.', 'error_type': level_id})
+    db.add_level(data['name'], data['aparience'], data['entorno'], data['tags'], data['auth_code'], level_id)
+    return web.json_response({'message': 'Upload completed.', 'error_type': level_id})
 
 
-app.run(host='0.0.0.0', port=PORT, debug=True)
+if __name__ == '__main__':
+    db = SMMWEDatabase()
+    db.Level.create_table()  # auto create table
+    app = web.Application()
+    app.add_routes([web.get('/', readme_handler),
+                    web.post('/user/login', user_login_handler),
+                    web.post('/stages/detailed_search', stages_detailed_search_handler),
+                    web.post('/stage/upload', stages_upload_handler)])
+    web.run_app(app, host=HOST, port=PORT)

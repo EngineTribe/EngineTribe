@@ -1,4 +1,4 @@
-HOST = 'enginetribe.gq'  # Engine Tribe Central Server
+HOST = '0.0.0.0'  # Engine Tribe Central Server
 PORT = 25019  # Default port that SMM_WE uses
 
 DB_TYPE = 'mysql'  # Only MySQL is supported now

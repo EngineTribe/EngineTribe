@@ -13,18 +13,6 @@ def level_class_to_dict(level_data):
             'id': level_data.level_id}
 
 
-def user_login(data):
-    login_user = {'username': data['alias'][0], 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
-                  'alias': data['alias'][0],
-                  'id': '0000000000', 'uploads': '0',
-                  'auth_code': data['alias'][0]}
-    if data['token'][0] == Tokens.PC_323:
-        login_user['mobile'] = False
-    else:
-        login_user['mobile'] = True
-    return login_user
-
-
 def gen_level_id(data_swe: str):
     return prettify_level_id(hashlib.md5(data_swe.encode()).hexdigest().upper()[8:24])
 
