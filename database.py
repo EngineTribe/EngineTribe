@@ -28,16 +28,17 @@ class SMMWEDatabase:
         author = TextField()  # Level maker
         archivo = TextField()  # Level file in storage backend
         level_id = TextField()  # Level ID
+        non_ascii = BooleanField()  # Whether the level name contains non-ASCII characters
 
         # description = TextField()  # Unimplemented in original server "Sin Descripción"
         # comments = IntegerField()  # Unimplemented in original server
 
         class Meta:
-            table_name = 'level'
+            table_name = 'level_table'
 
-    def add_level(self, name, apariencia, entorno, etiquetas, author, level_id):
+    def add_level(self, name, apariencia, entorno, etiquetas, author, level_id, non_ascii):
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            apariencia=apariencia, entorno=entorno, etiquetas=etiquetas,
                            date=datetime.datetime.now().strftime("%m/%d/%Y"), author=author,
-                           level_id=level_id, archivo=STORAGE_URL + quote(name + '.swe'))
+                           level_id=level_id, archivo=STORAGE_URL + quote(name + '.swe'), non_ascii=non_ascii)
         level.save()
