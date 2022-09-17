@@ -8,9 +8,10 @@ This program is in very early **Work In Progress** state, maybe not full-functio
 
 ## Features
 
-- Login (without authenticate)
+- Login (without authenticate now)
 - OneDrive storage backend
 - Uploading level
+- Browse level
 
 ---
 
