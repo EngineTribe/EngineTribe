@@ -1,14 +1,11 @@
-import json
 import re
 
-import requests
 from flask import Flask, request, jsonify
-from urllib.parse import parse_qs
 
 from config import *
 from database import SMMWEDatabase
 from smmwe_lib import *
-from locales import *
+from locales import en_US, es_ES, zh_CN, convert_tags
 from storage_adapter import StorageAdapterOneDriveCF
 
 from math import ceil
@@ -23,33 +20,32 @@ async def readme_handler():
 
 @app.route('/user/login', methods=['POST'])
 async def user_login_handler():
-    data = parse_qs(request.get_data().decode('utf-8'))
-    login_user = {'username': data['alias'][0], 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
-                  'alias': data['alias'][0],
-                  'id': '0000000000', 'uploads': '0'}
-    if data['token'][0] == Tokens.PC_CN:
-        login_user['mobile'] = False
-        login_user['auth_code'] = data['alias'][0] + '|PC|CN'
-    elif data['token'][0] == Tokens.PC_ES:
-        login_user['mobile'] = False
-        login_user['auth_code'] = data['alias'][0] + '|PC|ES'
+    data = parse_data(request)
+    login_user_profile = {'username': data['alias'], 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
+                          'alias': data['alias'],
+                          'id': '0000000000', 'uploads': '0'}
+    tokens_auth_code_match = {Tokens.PC_CN: data['alias'] + '|PC|CN', Tokens.PC_ES: data['alias'] + '|PC|ES',
+                              Tokens.PC_EN: data['alias'] + '|PC|EN', Tokens.Mobile_CN: data['alias'] + '|MB|CN',
+                              Tokens.Mobile_ES: data['alias'] + '|MB|ES', Tokens.Mobile_EN: data['alias'] + '|MB|EN'}
+    login_user_profile['auth_code'] = tokens_auth_code_match[login_user_profile['token']]
+    if 'SMMWEMB' in login_user_profile['token']:
+        login_user_profile['mobile'] = True
     else:
-        login_user['mobile'] = True
-        login_user['auth_code'] = data['alias'][0] + '|Mobile'
-    return jsonify(login_user)
+        login_user_profile['mobile'] = False
+    return jsonify(login_user_profile)
 
 
 @app.route('/stages/detailed_search', methods=['POST'])
 async def stages_detailed_search_handler():
-    data = parse_qs(request.get_data().decode('utf-8'))
-    locale = data['auth_code'][0].split('|')[2]
+    data = parse_data(request)
+    auth_data = parse_auth_code(data['auth_code'])
 
     results = []
     levels = db.Level.select()
 
     try:
-        if data['featured'][0] == 'notpromising':  # moderator recommend not implemented
-            if data['sort'][0] == 'popular':
+        if data['featured'] == 'notpromising':  # moderator recommend not implemented
+            if data['sort'] == 'popular':
                 levels = levels.order_by(db.Level.likes.desc())  # likes
         else:
             levels = levels.order_by(db.Level.id.desc())  # "promising"
@@ -73,7 +69,7 @@ async def stages_detailed_search_handler():
         skip = 0
     for level in range(0 + skip, rows_perpage + skip - 1):
         try:
-            results.append(level_class_to_dict(levels[level], locale=locale, proxied=storage.proxied,
+            results.append(level_class_to_dict(levels[level], locale=auth_data.locale, proxied=storage.proxied,
                                                convert_url_function=storage.convert_url))
         except Exception as e:
             print(Exception)
@@ -86,57 +82,58 @@ async def stages_detailed_search_handler():
 
 @app.route('/stage/upload', methods=['POST'])
 async def stages_upload_handler():
-    data = parse_qs(request.get_data().decode('utf-8'))
-    locale = data['auth_code'][0].split('|')[2]
-    data_swe = data['swe'][0]
-    level_id = gen_level_id_md5(data_swe)
+    data = parse_data(request)
+    auth_data = parse_auth_code(data['auth_code'])
+    data_swe = data['swe']
+
+    print('Uploading level ' + data['name'])
 
     # check non-ASCII
     non_ascii = False
-    print((re.sub('[ -~]', '', data['name'][0])))
-    if (re.sub('[ -~]', '', data['name'][0])) != "":
+    print((re.sub(r'[ -~]', '', data['name'])))
+    if (re.sub(r'[ -~]', '', data['name'])) != "":
         non_ascii = True
+
+    # generate level id
+    level_id = gen_level_id_md5(data_swe)
 
     # check duplicated level ID
     not_duplicated = False
     try:
         db.Level.get(db.Level.level_id == level_id)
     except Exception as e:
-        print('Not duplicated')
+        print('md5: Not duplicated')
         not_duplicated = True
-
-    if not_duplicated:
+    if not not_duplicated:
+        print('md5: duplicated, fallback to sha1')
         level_id = gen_level_id_sha1(data_swe)
+
+    # if duplicated again then use sha256
+    not_duplicated = False
+    try:
+        db.Level.get(db.Level.level_id == level_id)
+    except Exception as e:
+        print('sha1: Not duplicated')
+        not_duplicated = True
+    if not not_duplicated:
+        print('sha1: duplicated, fallback to sha256')
+        level_id = gen_level_id_sha256(data_swe)
 
     print("Uploading level to storage backend...")
     if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
-        if locale == "ES":
-            return json.dumps({'error_type': '025', 'message': es_ES.FILE_TOO_LARGE})
-        else:
-            return json.dumps({'error_type': '025', 'message': zh_CN.FILE_TOO_LARGE})
+        return jsonify({'error_type': '025', 'message': data.locale_item.FILE_TOO_LARGE})
 
-    storage.upload_file(file_name=data['name'][0] + '.swe', file_data=data_swe)  # Upload to storage backend
+    storage.upload_file(file_name=data['name'] + '.swe', file_data=data_swe)  # Upload to storage backend
 
-    if locale == 'ES':
-        for item in tags_es_to_cn:
-            data['tags'][0] = data['tags'][0].replace(item, tags_es_to_cn[item])  # replace ES tags to CN version
+    data['tags'] = convert_tags('ES', 'CN', data['tags'])
+    data['tags'] = convert_tags('EN', 'CN', data['tags'])
 
-    if data['auth_code'][0].split('|')[2] == 'CN':
-        data['tags'][0] = data['tags'][0].replace(' ', '')  # Delete the extra spaces in the CN version
-
-    db.add_level(data['name'][0], data['aparience'][0], data['entorno'][0], data['tags'][0],
-                 data['auth_code'][0].split('|')[0],
-                 level_id, non_ascii)
+    db.add_level(data['name'], data['aparience'], data['entorno'], data['tags'], auth_data.username, level_id,
+                 non_ascii)
     if non_ascii:
-        if locale == "ES":
-            return jsonify({'success': es_ES.UPLOAD_COMPLETE_NON_ASCII, 'id': level_id, 'type': 'upload'})
-        else:
-            return jsonify({'success': zh_CN.UPLOAD_COMPLETE_NON_ASCII, 'id': level_id, 'type': 'upload'})
+        return jsonify({'success': data.locale_item.UPLOAD_COMPLETE_NON_ASCII, 'id': level_id, 'type': 'upload'})
     else:
-        if locale == "ES":
-            return jsonify({'success': es_ES.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'})
-        else:
-            return jsonify({'success': zh_CN.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'})
+        return jsonify({'success': data.locale_item.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'})
 
 
 if __name__ == '__main__':

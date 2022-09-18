@@ -1,6 +1,7 @@
 HOST = '0.0.0.0'  # Engine Tribe Central Server
 PORT = 25019  # Default port that SMM_WE uses
 API_KEY = "enginetribe"  # Engine-bot 's API key
+MULTILINGUAL = True  # Multilingual support
 
 DB_TYPE = 'mysql'  # Database to use, mysql, postgres and sqlite is supported
 DB_HOST = 'localhost'  # Database host (or file name when using sqlite)

@@ -11,7 +11,7 @@ class StorageAdapterOneDriveCF:
 
     def upload_file(self, file_name: str, file_data: str):
         print(requests.post(url=self.url, params={'upload': quote(file_name), 'key': self.auth_key},
-                      data=file_data))
+                            data=file_data))
 
     def convert_url(self, url: str):
         if self.proxied:
