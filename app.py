@@ -3,9 +3,9 @@ import re
 from flask import Flask, request, jsonify
 
 from config import *
-from database import SMMWEDatabase
 from smmwe_lib import *
-from locales import en_US, es_ES, zh_CN, convert_tags
+from locales import *
+from database import SMMWEDatabase
 from storage_adapter import StorageAdapterOneDriveCF
 
 from math import ceil
@@ -138,7 +138,9 @@ async def stages_upload_handler():
 
 if __name__ == '__main__':
     db = SMMWEDatabase()
-    db.Level.create_table()  # auto create table
+    # auto create table
+    db.Level.create_table()
+    db.Account.create_table()
     if STORAGE_ADAPTER == 'onedrive-cf':
         storage = StorageAdapterOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED)
     app.run(host=HOST, port=PORT, debug=True)

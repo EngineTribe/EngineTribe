@@ -41,6 +41,19 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'level_table'
 
+    class Account(BaseModel):
+        name = TextField()  # User name
+        qq_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID
+        uploads = IntegerField()  # Upload levels count
+        password_hash = TextField()  # Password hash
+        is_admin = BooleanField()  # Is administrator
+        is_mod = BooleanField()  # Is moderator
+        is_booster = BooleanField()  # Is booster (not implemented now but planned)
+        is_valid = BooleanField()  # Is account valid (Engine-bot determines whether account is still in the QQ group)
+
+        class Meta:
+            table_name = 'account_table'
+
     def add_level(self, name, apariencia, entorno, etiquetas, author, level_id, non_ascii):
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            apariencia=apariencia, entorno=entorno, etiquetas=etiquetas,
