@@ -1,12 +1,13 @@
 HOST = '0.0.0.0'  # Engine Tribe Central Server
 PORT = 25019  # Default port that SMM_WE uses
+API_KEY = "enginetribe"  # Engine-bot 's API key
 
-DB_TYPE = 'mysql'  # Only MySQL is supported now
-DB_HOST = 'localhost'  # MySQL host
-DB_PORT = 3306  # MySQL port
-DB_USER = 'enginetribe'  # MySQL user (not UNIX user)
-DB_PASS = 'enginetribe'  # MySQL password (not UNIX password)
-DB_NAME = 'enginetribe'  # MySQL database name
+DB_TYPE = 'mysql'  # Database to use, mysql, postgres and sqlite is supported
+DB_HOST = 'localhost'  # Database host (or file name when using sqlite)
+DB_PORT = 3306  # Database port
+DB_USER = 'enginetribe'  # Database user (not UNIX user)
+DB_PASS = 'enginetribe'  # Database password (not UNIX password)
+DB_NAME = 'enginetribe'  # Database name
 
 STORAGE_BACKEND = 'onedrive-cf-index'  # Only onedrive-cf-index is supported now
 # https://github.com/spencerwooo/onedrive-cf-index

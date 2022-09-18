@@ -3,7 +3,12 @@ from config import *
 import datetime
 from urllib.parse import quote
 
-db = MySQLDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
+if DB_TYPE == 'mysql':
+    db = MySQLDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
+elif DB_TYPE == 'postgres':
+    db = PostgresqlDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
+elif DB_TYPE == 'sqlite':
+    db = SqliteDatabase(DB_HOST, user=DB_USER, passwd=DB_PASS)
 
 
 class SMMWEDatabase:
