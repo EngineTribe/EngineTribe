@@ -111,7 +111,10 @@ async def stages_upload_handler():
 
     print("Uploading level to storage backend...")
     if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
-        return json.dumps({'error_type': '028', 'message': zh_CN.FILE_TOO_LARGE})
+        if locale == "ES":
+            return json.dumps({'error_type': '025', 'message': es_ES.FILE_TOO_LARGE})
+        else:
+            return json.dumps({'error_type': '025', 'message': zh_CN.FILE_TOO_LARGE})
 
     requests.post(url=STORAGE_URL, params={'upload': data['name'][0] + '.swe', 'key': STORAGE_AUTH_KEY},
                   data=data_swe)  # Upload to storage backend
