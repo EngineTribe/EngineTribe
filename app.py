@@ -8,8 +8,8 @@ from urllib.parse import parse_qs
 from config import *
 from database import SMMWEDatabase
 from smmwe_lib import *
-
 from locales import *
+from storage_adapter import StorageAdapterOneDriveCF
 
 from math import ceil
 
@@ -73,7 +73,8 @@ async def stages_detailed_search_handler():
         skip = 0
     for level in range(0 + skip, rows_perpage + skip - 1):
         try:
-            results.append(level_class_to_dict(levels[level], locale))
+            results.append(level_class_to_dict(levels[level], locale=locale, proxied=storage.proxied,
+                                               convert_url_function=storage.convert_url))
         except Exception as e:
             print(Exception)
         finally:
@@ -103,8 +104,6 @@ async def stages_upload_handler():
     except Exception as e:
         print('Not duplicated')
         not_duplicated = True
-    finally:
-        print('Duplicated, use new ID')
 
     if not_duplicated:
         level_id = gen_level_id_sha1(data_swe)
@@ -116,8 +115,7 @@ async def stages_upload_handler():
         else:
             return json.dumps({'error_type': '025', 'message': zh_CN.FILE_TOO_LARGE})
 
-    requests.post(url=STORAGE_URL, params={'upload': data['name'][0] + '.swe', 'key': STORAGE_AUTH_KEY},
-                  data=data_swe)  # Upload to storage backend
+    storage.upload_file(file_name=data['name'][0] + '.swe', file_data=data_swe)  # Upload to storage backend
 
     if locale == 'ES':
         for item in tags_es_to_cn:
@@ -144,4 +142,6 @@ async def stages_upload_handler():
 if __name__ == '__main__':
     db = SMMWEDatabase()
     db.Level.create_table()  # auto create table
+    if STORAGE_ADAPTER == 'onedrive-cf':
+        storage = StorageAdapterOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED)
     app.run(host=HOST, port=PORT, debug=True)
