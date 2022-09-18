@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from locales import *
-import hashlib
+import hashlib, base64
 from urllib.parse import parse_qs
 
 
@@ -54,6 +54,10 @@ def parse_auth_code(raw_auth_code: str):
     else:
         locale_item = es_ES
     return AuthCodeData(username=auth_code_arr[0], platform=auth_code_arr[1], locale=locale, locale_item=locale_item)
+
+
+def calculate_password_hash(password: str):
+    return hashlib.sha256(base64.b64encode(password.encode('utf-8'))).hexdigest()
 
 
 @dataclass

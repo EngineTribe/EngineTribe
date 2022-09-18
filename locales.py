@@ -7,6 +7,12 @@ class zh_CN:
     UPLOAD_COMPLETE = '上传完成。'
     UPLOAD_COMPLETE_NON_ASCII = '上传完成，但关卡中含有特殊字符，仅对电脑版可见。'
     FILE_TOO_LARGE = '文件大于 4MB。'
+    ACCOUNT_NOT_FOUND = '帐号错误或不存在。'
+    ACCOUNT_IS_NOT_VALID = '请重新加群。'
+    ACCOUNT_BANNED = '玩家已被封禁。'
+    ACCOUNT_ERROR_PASSWORD = '密码错误。'
+    ILLEGAL_CLIENT = '无效客户端。'
+    UPLOAD_LIMIT_REACHED = '关卡数量发布已达上限。'
 
 
 @dataclass
@@ -14,6 +20,12 @@ class es_ES:
     UPLOAD_COMPLETE = 'Publicar completado.'
     UPLOAD_COMPLETE_NON_ASCII = 'Publicar completo, pero con caracteres especiales, solo será visible para PC.'
     FILE_TOO_LARGE = 'El archivo tiene más de 4 MB.'
+    ACCOUNT_NOT_FOUND = 'Usuario incorrecto o no encontrado.'
+    ACCOUNT_IS_NOT_VALID = 'No autorizado, vuelve a unirte al grupo.'
+    ACCOUNT_BANNED = 'Te han prohibido.'
+    ACCOUNT_ERROR_PASSWORD = 'Contraseña incorrecta.'
+    ILLEGAL_CLIENT = 'Cliente ilegal.'
+    UPLOAD_LIMIT_REACHED = 'Se alcanzó el máximo de niveles posible para publicar.'
 
 
 @dataclass
@@ -21,6 +33,12 @@ class en_US:
     UPLOAD_COMPLETE = 'Upload completed.'
     UPLOAD_COMPLETE_NON_ASCII = 'Upload completed, but name with special characters, will only be visible on PC.'
     FILE_TOO_LARGE = 'File is bigger than 4MB.'
+    ACCOUNT_NOT_FOUND = 'User incorrect or not exists.'
+    ACCOUNT_IS_NOT_VALID = 'Not authorized, please rejoin the group'
+    ACCOUNT_BANNED = 'User has been banned.'
+    ACCOUNT_ERROR_PASSWORD = 'Password incorrect.'
+    ILLEGAL_CLIENT = 'Illegal client.'
+    UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
 
 
 def convert_tags(locale_from: str, locale_to: str, tags):

@@ -1,3 +1,4 @@
+import base64
 import re
 
 from flask import Flask, request, jsonify
@@ -21,13 +22,26 @@ async def readme_handler():
 @app.route('/user/login', methods=['POST'])
 async def user_login_handler():
     data = parse_data(request)
-    login_user_profile = {'username': data['alias'], 'admin': False, 'mod': False, 'booster': False, 'goomba': True,
-                          'alias': data['alias'],
-                          'id': '0000000000', 'uploads': '0'}
+    try:
+        account = db.Account.get(db.Account.name == data['alias'])
+    except Exception as e:
+        return jsonify({'error_type': '006', 'message': data.locale_item.ACCOUNT_NOT_FOUND})
+    if not account.is_valid:
+        return jsonify({'error_type': '011', 'message': data.locale_item.ACCOUNT_IS_NOT_VALID})
+    if account.is_banned:
+        return jsonify({'error_type': '005', 'message': data.locale_item.ACCOUNT_BANNED})
+    if account.password_hash != calculate_password_hash(data['password']):
+        return jsonify({'error_type': '007', 'message': data.locale_item.ACCOUNT_ERROR_PASSWORD})
+    login_user_profile = {'username': data['alias'], 'admin': account.is_admin, 'mod': account.is_mod,
+                          'booster': account.is_booster, 'goomba': True, 'alias': data['alias'],
+                          'id': account.qq_id, 'uploads': str(account.uploads)}
     tokens_auth_code_match = {Tokens.PC_CN: data['alias'] + '|PC|CN', Tokens.PC_ES: data['alias'] + '|PC|ES',
                               Tokens.PC_EN: data['alias'] + '|PC|EN', Tokens.Mobile_CN: data['alias'] + '|MB|CN',
                               Tokens.Mobile_ES: data['alias'] + '|MB|ES', Tokens.Mobile_EN: data['alias'] + '|MB|EN'}
-    login_user_profile['auth_code'] = tokens_auth_code_match[login_user_profile['token']]
+    try:
+        login_user_profile['auth_code'] = tokens_auth_code_match[login_user_profile['token']]
+    except KeyError as e:
+        return jsonify({'error_type': '005', 'message': data.locale_item.ILLEGAL_CLIENT})
     if 'SMMWEMB' in login_user_profile['token']:
         login_user_profile['mobile'] = True
     else:
@@ -84,6 +98,9 @@ async def stages_detailed_search_handler():
 async def stages_upload_handler():
     data = parse_data(request)
     auth_data = parse_auth_code(data['auth_code'])
+    account = db.Account.get(db.Account.name == auth_data.username)
+    if account.uploads == UPLOAD_LIMIT:
+        return jsonify({'error_type': '025', 'message': data.locale_item.UPLOAD_LIMIT_REACHED+f"({UPLOAD_LIMIT})"})
     data_swe = data['swe']
 
     print('Uploading level ' + data['name'])
@@ -130,6 +147,8 @@ async def stages_upload_handler():
 
     db.add_level(data['name'], data['aparience'], data['entorno'], data['tags'], auth_data.username, level_id,
                  non_ascii)
+    account.uploads+=1
+    account.save()
     if non_ascii:
         return jsonify({'success': data.locale_item.UPLOAD_COMPLETE_NON_ASCII, 'id': level_id, 'type': 'upload'})
     else:

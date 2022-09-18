@@ -50,6 +50,7 @@ class SMMWEDatabase:
         is_mod = BooleanField()  # Is moderator
         is_booster = BooleanField()  # Is booster (not implemented now but planned)
         is_valid = BooleanField()  # Is account valid (Engine-bot determines whether account is still in the QQ group)
+        is_banned = BooleanField()  # Is account banned
 
         class Meta:
             table_name = 'account_table'
