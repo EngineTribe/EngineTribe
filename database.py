@@ -3,12 +3,13 @@ from config import *
 import datetime
 from urllib.parse import quote
 
-if DB_TYPE == 'mysql':
-    db = MySQLDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
-elif DB_TYPE == 'postgres':
-    db = PostgresqlDatabase(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS)
-elif DB_TYPE == 'sqlite':
-    db = SqliteDatabase(DB_HOST, user=DB_USER, passwd=DB_PASS)
+if DATABASE_ADAPTER == 'mysql':
+    db = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER, passwd=DATABASE_PASS)
+elif DATABASE_ADAPTER == 'postgres':
+    db = PostgresqlDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
+                            passwd=DATABASE_PASS)
+elif DATABASE_ADAPTER == 'sqlite':
+    db = SqliteDatabase(DATABASE_HOST, user=DATABASE_USER, passwd=DATABASE_PASS)
 
 
 class SMMWEDatabase:
@@ -42,8 +43,8 @@ class SMMWEDatabase:
             table_name = 'level_table'
 
     class Account(BaseModel):
-        name = TextField()  # User name
-        qq_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID
+        username = TextField()  # User name
+        user_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID
         uploads = IntegerField()  # Upload levels count
         password_hash = TextField()  # Password hash
         is_admin = BooleanField()  # Is administrator
@@ -61,3 +62,8 @@ class SMMWEDatabase:
                            date=datetime.datetime.now().strftime("%m/%d/%Y"), author=author,
                            level_id=level_id, archivo=STORAGE_URL + quote(name + '.swe'), non_ascii=non_ascii)
         level.save()
+
+    def add_user(self, username, password_hash, user_id):
+        user = self.Account(username=username, password_hash=password_hash, user_id=user_id, uploads=0,
+                            is_admin=False, is_mod=False, is_booster=False, is_valid=True, is_banned=False)
+        user.save()

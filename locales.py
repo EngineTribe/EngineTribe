@@ -11,7 +11,6 @@ class zh_CN:
     ACCOUNT_IS_NOT_VALID = '请重新加群。'
     ACCOUNT_BANNED = '玩家已被封禁。'
     ACCOUNT_ERROR_PASSWORD = '密码错误。'
-    ILLEGAL_CLIENT = '无效客户端。'
     UPLOAD_LIMIT_REACHED = '关卡数量发布已达上限。'
 
 
@@ -24,7 +23,6 @@ class es_ES:
     ACCOUNT_IS_NOT_VALID = 'No autorizado, vuelve a unirte al grupo.'
     ACCOUNT_BANNED = 'Te han prohibido.'
     ACCOUNT_ERROR_PASSWORD = 'Contraseña incorrecta.'
-    ILLEGAL_CLIENT = 'Cliente ilegal.'
     UPLOAD_LIMIT_REACHED = 'Se alcanzó el máximo de niveles posible para publicar.'
 
 
@@ -37,7 +35,6 @@ class en_US:
     ACCOUNT_IS_NOT_VALID = 'Not authorized, please rejoin the group'
     ACCOUNT_BANNED = 'User has been banned.'
     ACCOUNT_ERROR_PASSWORD = 'Password incorrect.'
-    ILLEGAL_CLIENT = 'Illegal client.'
     UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
 
 
