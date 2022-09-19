@@ -35,6 +35,7 @@ class SMMWEDatabase:
         archivo = TextField()  # Level file in storage backend
         level_id = TextField()  # Level ID
         non_ascii = BooleanField()  # Whether the level name contains non-ASCII characters
+        promising = BooleanField()  # Whether the level is in promising levels
 
         # description = TextField()  # Unimplemented in original server "Sin Descripción"
         # comments = IntegerField()  # Unimplemented in original server

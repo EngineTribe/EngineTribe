@@ -49,37 +49,40 @@ async def user_login_handler():
 
 @app.route('/stages/detailed_search', methods=['POST'])
 async def stages_detailed_search_handler():
+    print('Loading course world...')
     data = parse_data(request)
     auth_data = parse_auth_code(data['auth_code'])
 
     results = []
     levels = db.Level.select()
 
-    try:
-        if data['featured'] == 'notpromising':  # moderator recommend not implemented
+    if 'featured' in data:
+        if data['featured'] == 'promising':
+            levels = levels.where(db.Level.promising == True)  # "promising"
+            print("Searching promising levels")
+        else:
             if data['sort'] == 'popular':
                 levels = levels.order_by(db.Level.likes.desc())  # likes
-        else:
-            levels = levels.order_by(db.Level.id.desc())  # "promising"
-    except KeyError as e:
+    else:
         levels = levels.order_by(db.Level.id.desc())  # latest levels
-    finally:
-        print('Loading course world...')
 
     # calculate numbers
     num_rows = len(levels)
+    print(num_rows)
     if num_rows > ROWS_PERPAGE:
         rows_perpage = ROWS_PERPAGE + 1
         pages = ceil(num_rows / ROWS_PERPAGE)
+        minus = 1
     else:
         rows_perpage = num_rows
         pages = 1
+        minus = 0
 
     if 'page' in data:
         skip = (int(data['page'][0]) - 1) * ROWS_PERPAGE
     else:
         skip = 0
-    for level in range(0 + skip, rows_perpage + skip - 1):
+    for level in range(0 + skip, rows_perpage + skip - minus):
         try:
             results.append(level_class_to_dict(levels[level], locale=auth_data.locale, proxied=storage.proxied,
                                                convert_url_function=storage.convert_url))
@@ -90,6 +93,14 @@ async def stages_detailed_search_handler():
     return jsonify(
         {'type': 'detailed_search', 'num_rows': str(num_rows), 'rows_perpage': str(rows_perpage), 'pages': str(pages),
          'result': results})
+
+
+@app.route('/stage/<level_id>/switch/promising', methods=['POST'])
+async def switch_promising_handler(level_id):
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.promising = True
+    level.save()
+    return jsonify({'success': 'success', 'id': level_id, 'type': 'stage'})
 
 
 @app.route('/stage/upload', methods=['POST'])
