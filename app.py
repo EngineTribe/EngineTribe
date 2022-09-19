@@ -66,6 +66,8 @@ async def stages_detailed_search_handler():
     else:
         levels = levels.order_by(db.Level.id.desc())  # latest levels
 
+    if auth_data.platform == 'MB':
+        levels = levels.where(db.Level.non_ascii == False)  # Mobile fixess
     # calculate numbers
     num_rows = len(levels)
     print(num_rows)
