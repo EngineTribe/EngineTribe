@@ -47,10 +47,27 @@ async def user_login_handler():
     return jsonify(login_user_profile)
 
 
+@app.route('/stage/<level_id>', methods=['POST'])
+async def stage_id_search_handler(level_id):
+    print('Search course ' + level_id + ' ...')
+    data = parse_data(request)
+    print(data)
+    auth_data = parse_auth_code(data['auth_code'])
+    try:
+        level = db.Level.get(db.Level.level_id == level_id)
+        return jsonify(
+            {'type': 'id', 'result': level_class_to_dict(level, locale=auth_data.locale, proxied=storage.proxied,
+                                                         convert_url_function=storage.convert_url)})
+    except Exception as e:
+        print(e)
+        return jsonify({'error_type': '022', 'message': auth_data.locale_item.LEVEL_NOT_FOUND + str(e)})
+
+
 @app.route('/stages/detailed_search', methods=['POST'])
 async def stages_detailed_search_handler():
     print('Loading course world...')
     data = parse_data(request)
+    print(data)
     auth_data = parse_auth_code(data['auth_code'])
 
     results = []

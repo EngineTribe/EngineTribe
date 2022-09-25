@@ -12,6 +12,7 @@ class zh_CN:
     ACCOUNT_BANNED = '玩家已被封禁。'
     ACCOUNT_ERROR_PASSWORD = '密码错误。'
     UPLOAD_LIMIT_REACHED = '关卡数量发布已达上限。'
+    LEVEL_NOT_FOUND = '找不到关卡。'
 
 
 @dataclass
@@ -24,6 +25,7 @@ class es_ES:
     ACCOUNT_BANNED = 'Te han prohibido.'
     ACCOUNT_ERROR_PASSWORD = 'Contraseña incorrecta.'
     UPLOAD_LIMIT_REACHED = 'Se alcanzó el máximo de niveles posible para publicar.'
+    LEVEL_NOT_FOUND = 'Nivel no encontrado.'
 
 
 @dataclass
@@ -36,6 +38,7 @@ class en_US:
     ACCOUNT_BANNED = 'User has been banned.'
     ACCOUNT_ERROR_PASSWORD = 'Password incorrect.'
     UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
+    LEVEL_NOT_FOUND = 'Level not found.'
 
 
 def convert_tags(locale_from: str, locale_to: str, tags):
