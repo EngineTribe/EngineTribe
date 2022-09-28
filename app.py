@@ -1,3 +1,5 @@
+import datetime
+
 import dateutil.utils
 from flask import Flask, request, jsonify
 
@@ -52,7 +54,6 @@ async def user_login_handler():
 async def stage_id_search_handler(level_id):
     print('Search course ' + level_id + ' ...')
     data = parse_data(request)
-    print(data)
     auth_data = parse_auth_code(data['auth_code'])
     try:
         if auth_data.platform == 'MB':
@@ -114,7 +115,7 @@ async def stages_detailed_search_handler():
         levels = levels.where(db.Level.environment == data['entorno'])
     if 'last' in data:
         days = int(data['last'].strip('d'))
-        levels = levels.where((db.Level.date.day - dateutil.utils.today().day) <= days)
+        levels = levels.where((db.Level.date.day - datetime.date.today().day) <= days)
     if 'sort' in data:
         if data['sort'] == 'antiguos':
             levels = levels.order_by(db.Level.id.asc())
