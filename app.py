@@ -4,7 +4,7 @@ from config import *
 from smmwe_lib import *
 from locales import *
 from database import SMMWEDatabase
-from storage_adapter import StorageAdapterOneDriveCF
+from storage_adapter import *
 
 from math import ceil
 
@@ -54,10 +54,16 @@ async def stage_id_search_handler(level_id):
     print(data)
     auth_data = parse_auth_code(data['auth_code'])
     try:
+        if auth_data.platform == 'MB':
+            mobile = True  # Mobile fixes
+        else:
+            mobile = False
         level = db.Level.get(db.Level.level_id == level_id)
         return jsonify(
-            {'type': 'id', 'result': level_class_to_dict(level, locale=auth_data.locale, proxied=storage.proxied,
-                                                         convert_url_function=storage.convert_url)})
+            {'type': 'id',
+             'result':
+                 level_db_to_dict(level_data=level, locale=auth_data.locale, generate_url_function=storage.generate_url,
+                                  mobile=mobile)})
     except Exception as e:
         print(e)
         return jsonify({'error_type': '022', 'message': auth_data.locale_item.LEVEL_NOT_FOUND + str(e)})
@@ -73,9 +79,11 @@ async def stages_detailed_search_handler():
     results = []
     levels = db.Level.select()
 
+    # Filter and search
+
     if 'featured' in data:
         if data['featured'] == 'promising':
-            levels = levels.where(db.Level.promising == True)  # "promising"
+            levels = levels.where(db.Level.featured == True)  # "promising"
             print("Searching promising levels")
         else:
             if data['sort'] == 'popular':
@@ -84,31 +92,35 @@ async def stages_detailed_search_handler():
         levels = levels.order_by(db.Level.id.desc())  # latest levels
 
     if auth_data.platform == 'MB':
-        levels = levels.where(db.Level.non_ascii == False)  # Mobile fixess
+        mobile = True  # Mobile fixes
+    else:
+        mobile = False
+
+    if 'page' in data:
+        page = int(data['page'])
+    else:
+        page = 1
+
+    # detailed search
+
+    if 'title' in data:
+        levels = levels.where(db.Level.name.contains(data['title']))
+
     # calculate numbers
     num_rows = len(levels)
-    print(num_rows)
     if num_rows > ROWS_PERPAGE:
-        rows_perpage = ROWS_PERPAGE + 1
+        rows_perpage = ROWS_PERPAGE
         pages = ceil(num_rows / ROWS_PERPAGE)
-        minus = 1
     else:
         rows_perpage = num_rows
         pages = 1
-        minus = 0
-
-    if 'page' in data:
-        skip = (int(data['page'][0]) - 1) * ROWS_PERPAGE
-    else:
-        skip = 0
-    for level in range(0 + skip, rows_perpage + skip - minus):
+    for level in levels.paginate(page, rows_perpage):
         try:
-            results.append(level_class_to_dict(levels[level], locale=auth_data.locale, proxied=storage.proxied,
-                                               convert_url_function=storage.convert_url))
+            results.append(
+                level_db_to_dict(level_data=level, locale=auth_data.locale, generate_url_function=storage.generate_url,
+                                 mobile=mobile))
         except Exception as e:
-            print(Exception)
-        finally:
-            print(level)
+            print(e)
     return jsonify(
         {'type': 'detailed_search', 'num_rows': str(num_rows), 'rows_perpage': str(rows_perpage), 'pages': str(pages),
          'result': results})
@@ -117,7 +129,7 @@ async def stages_detailed_search_handler():
 @app.route('/stage/<level_id>/switch/promising', methods=['POST'])
 async def switch_promising_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
-    level.promising = True
+    level.featured = True
     level.save()
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stage'})
 
@@ -168,11 +180,11 @@ async def stages_upload_handler():
     print("Uploading level to storage backend...")
     if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return jsonify({'error_type': '025', 'message': auth_data.locale_item.FILE_TOO_LARGE})
-
-    storage.upload_file(file_name=data['name'] + '.swe', file_data=data_swe)  # Upload to storage backend
-
-    data['tags'] = convert_tags('ES', 'CN', data['tags'])
-    data['tags'] = convert_tags('EN', 'CN', data['tags'])
+    try:
+        storage.upload_file(level_name=data['name'], level_data=data_swe,
+                            level_id=level_id)  # Upload to storage backend
+    except ConnectionError as e:
+        return jsonify({'error_type': '009', 'message': auth_data.locale_item.UPLOAD_CONNECT_ERROR})
 
     db.add_level(data['name'], data['aparience'], data['entorno'], data['tags'], auth_data.username, level_id,
                  non_ascii)

@@ -1,20 +1,25 @@
-from dataclasses import dataclass
+import base64
+import hashlib
+from urllib.parse import parse_qs, quote
+from xpinyin import Pinyin
+
 from locales import *
-import hashlib, base64
-from urllib.parse import parse_qs
 
 
-def level_class_to_dict(level_data, locale: str, proxied: bool, convert_url_function):
-    tags = convert_tags('CN', locale, level_data.etiquetas)
-    if proxied:
-        url = convert_url_function(level_data.archivo)
+def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool):
+    url = generate_url_function(level_data.name, level_data.level_id)
+    if mobile:
+        name = quote(Pinyin().get_pinyin(level_data.name).replace('-', ' '), safe='"!@#$%^&*()-_=+[{]}\'\\|:;,<.>/?`~ ')
     else:
-        url = level_data.archivo
-    return {'name': level_data.name, 'likes': str(level_data.likes), 'dislikes': str(level_data.dislikes),
-            'comments': '0', 'intentos': str(level_data.intentos), 'muertes': str(level_data.muertes),
-            'victorias': str(level_data.victorias), 'apariencia': level_data.apariencia,
-            'entorno': level_data.entorno, 'etiquetas': tags, 'featured': '0',
-            'user_data': {'completed': 'no', 'liked': '1'}, 'record': {'record': 'no'}, 'date': level_data.date,
+        name = level_data.name
+    return {'name': name, 'likes': str(level_data.likes), 'dislikes': str(level_data.dislikes),
+            'comments': '0', 'intentos': str(level_data.plays), 'muertes': str(level_data.deaths),
+            'victorias': str(level_data.clears), 'apariencia': level_data.style,
+            'entorno': level_data.environment,
+            'etiquetas': get_tag_name(level_data.tag_1, locale) + ',' + get_tag_name(level_data.tag_2, locale),
+            'featured': int(level_data.featured),
+            'user_data': {'completed': 'no', 'liked': '1'}, 'record': {'record': 'no'},
+            'date': level_data.date.strftime("%m/%d/%Y"),
             'author': level_data.author, 'description': 'Sin Descripción', 'archivo': url,
             'id': level_data.level_id}
 

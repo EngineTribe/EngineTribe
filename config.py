@@ -16,6 +16,6 @@ DATABASE_NAME = 'enginetribe'  # Database name
 
 STORAGE_ADAPTER = 'onedrive-cf'  # Storage adapter to use, only onedrive-cf is supported now
 # onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
-STORAGE_URL = 'https://enginetribe-central.sydzy.workers.dev/'  # Storage url (with path)
+STORAGE_URL = 'https://storage.enginetribe.gq/'  # Storage url (with path)
 STORAGE_AUTH_KEY = 'enginetribesA7EKiqBxY6QeH'  # Storage auth key
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only

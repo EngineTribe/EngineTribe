@@ -1,6 +1,14 @@
 import re
 from dataclasses import dataclass
 
+tags_cn = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术", "技巧",
+           "射击", "BOSS战", "单人", "Link"]
+tags_en = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short and Sweet",
+           "Multiplayer", "Themed", "Music", "Art", "Technical", "Shooter", "Boss battle", "Singleplayer", "Link"]
+tags_es = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
+           "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
+           "En solitario", "Link"]
+
 
 @dataclass
 class zh_CN:
@@ -13,6 +21,7 @@ class zh_CN:
     ACCOUNT_ERROR_PASSWORD = '密码错误。'
     UPLOAD_LIMIT_REACHED = '关卡数量发布已达上限。'
     LEVEL_NOT_FOUND = '找不到关卡。'
+    UPLOAD_CONNECT_ERROR = '连接关卡存储后端失败。'
 
 
 @dataclass
@@ -26,6 +35,7 @@ class es_ES:
     ACCOUNT_ERROR_PASSWORD = 'Contraseña incorrecta.'
     UPLOAD_LIMIT_REACHED = 'Se alcanzó el máximo de niveles posible para publicar.'
     LEVEL_NOT_FOUND = 'Nivel no encontrado.'
+    UPLOAD_CONNECT_ERROR = 'No se pudo conectar al backend de nivel.'
 
 
 @dataclass
@@ -39,58 +49,26 @@ class en_US:
     ACCOUNT_ERROR_PASSWORD = 'Password incorrect.'
     UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
     LEVEL_NOT_FOUND = 'Level not found.'
+    UPLOAD_CONNECT_ERROR = 'Could not connect to storage backend.'
 
 
-def convert_tags(locale_from: str, locale_to: str, tags):
+def parse_tag_names(tag_names: str):
+    tags = tag_names.split(',')
+    tag_1 = tags[0]
+    tag_2 = tags[1]
+    for i in range(0, 15):
+        if tags_es[i] == tag_1 or tags_en[i] == tag_1 or tags_cn[i] == tag_1:
+            tag_1 = i
+        if tags_es[i] == tag_2 or tags_en[i] == tag_2 or tags_cn[i] == tag_2:
+            tag_2 = i
+    return [tag_1, tag_2]
+
+
+def get_tag_name(tag_id: int, locale_to: str):
     # The server stores Chinese tag names, so it needs to be converted
-    tags_es_to_cn = {
-        "Tradicional": "标准",
-        "Puzles": "解谜",
-        "Contrarreloj": "计时挑战",
-        "Autoavance": "自卷轴",
-        "Automatismos": "自动图",
-        "Corto pero intenso": "一次通过",
-        "Competitivo": "对战",
-        "Tematico": "机关",
-        "Música": "音乐",
-        "Artístico": "美术",
-        "Habilidad": "技巧",
-        "Disparos": "射击",
-        "Contra jefes": "BOSS战",
-        "En solitario": "单人"
-    }
-    tags_en_to_cn = {
-        "Standard": "标准",
-        "Puzzle": "解谜",
-        "Speedrun": "计时挑战",
-        "Autoscroll": "自卷轴",
-        "Auto-mario": "自动图",
-        "Short and Sweet": "一次通过",
-        "Multiplayer": "对战",
-        "Themed": "机关",
-        "Music": "音乐",
-        "Art": "美术",
-        "Technical": "技巧",
-        "Shooter": "射击",
-        "Boss battle": "BOSS战",
-        "Singleplayer": "单人"
-    }
-
-    # Because the translation script fills in extra characters with spaces, they need to be dealt here with regex
-    if locale_from == 'ES' and locale_to == 'CN':
-        for item in tags_es_to_cn:
-            tags = tags.replace(item, tags_es_to_cn[item])
-    elif locale_from == 'CN' and locale_to == 'ES':
-        tags = re.sub(r'/ +,/', ',', tags).rstrip(' ')
-        for item in tags_es_to_cn:
-            tags = tags.replace(tags_es_to_cn[item], item)
-    elif locale_from == 'EN' and locale_to == 'CN':
-        tags = re.sub(r'/ +,/', ',', tags).rstrip(' ')
-        for item in tags_en_to_cn:
-            tags = tags.replace(item, tags_en_to_cn[item])
-    elif locale_from == 'CN' and locale_to == 'EN':
-        tags = re.sub(r'/ +,/', ',', tags).rstrip(' ')
-        for item in tags_en_to_cn:
-            tags = tags.replace(tags_en_to_cn[item], item)
-
-    return tags
+    if locale_to == "ES":
+        return tags_es[tag_id]
+    elif locale_to == "EN":
+        return tags_en[tag_id]
+    elif locale_to == "CN":
+        return tags_cn[tag_id]

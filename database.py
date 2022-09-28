@@ -1,7 +1,7 @@
 from peewee import *
 from config import *
+from locales import *
 import datetime
-from urllib.parse import quote
 
 if DATABASE_ADAPTER == 'mysql':
     db = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER, passwd=DATABASE_PASS)
@@ -24,18 +24,19 @@ class SMMWEDatabase:
         name = TextField()
         likes = IntegerField()
         dislikes = IntegerField()
-        intentos = IntegerField()  # Play count
-        muertes = IntegerField()  # Death count
-        victorias = IntegerField()  # Clear count
-        apariencia = TextField()  # Game style
-        entorno = TextField()  # Level environment
-        etiquetas = TextField()  # The two tags "Tradicional,Puzles"
-        date = TextField()  # Upload date "DD/MM/YYYY"
+        plays = IntegerField()  # Play count
+        deaths = IntegerField()  # Death count
+        clears = IntegerField()  # Clear count
+        style = TextField()  # Game style
+        environment = TextField()  # Level environment
+        tag_1 = IntegerField()  # Tag 1
+        tag_2 = IntegerField()  # Tag 2
+        date = DateField()  # Upload date
         author = TextField()  # Level maker
-        archivo = TextField()  # Level file in storage backend
+        # archivo = TextField()  # Level file in storage backend   # deprecated
         level_id = TextField()  # Level ID
         non_ascii = BooleanField()  # Whether the level name contains non-ASCII characters
-        promising = BooleanField()  # Whether the level is in promising levels
+        featured = BooleanField()  # Whether the level is in promising levels
 
         # description = TextField()  # Unimplemented in original server "Sin Descripción"
         # comments = IntegerField()  # Unimplemented in original server
@@ -57,11 +58,12 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'account_table'
 
-    def add_level(self, name, apariencia, entorno, etiquetas, author, level_id, non_ascii):
+    def add_level(self, name, style, environment, tags, author, level_id, non_ascii):
+        tags_id = parse_tag_names(tags)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
-                           apariencia=apariencia, entorno=entorno, etiquetas=etiquetas,
-                           date=datetime.datetime.now().strftime("%m/%d/%Y"), author=author,
-                           level_id=level_id, archivo=STORAGE_URL + quote(name + '.swe'), non_ascii=non_ascii)
+                           style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
+                           date=datetime.date.today(), author=author,
+                           level_id=level_id, non_ascii=non_ascii)
         level.save()
 
     def add_user(self, username, password_hash, user_id):
