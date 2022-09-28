@@ -44,6 +44,14 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'level_table'
 
+    class Stats(BaseModel):
+        level_id = TextField()
+        likes_users = TextField()  # Users that liked this level
+        dislikes_users = TextField()  # Users that disliked this level
+
+        class Meta:
+            table_name = 'stats_table'
+
     class Account(BaseModel):
         username = TextField()  # User name
         user_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID

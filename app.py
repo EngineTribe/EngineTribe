@@ -61,11 +61,24 @@ async def stage_id_search_handler(level_id):
         else:
             mobile = False
         level = db.Level.get(db.Level.level_id == level_id)
+
+        # get like type from database
+        try:
+            stat = db.Stats.get(db.Stats.level_id == level.level_id)  # get like data
+            if auth_data.username + ',' in stat.likes_users:
+                like_type = '0'  # like
+            elif auth_data.username + ',' in stat.dislikes_users:
+                like_type = '1'  # dislike
+            else:
+                like_type = '0'
+        except Exception as e1:
+            like_type = '2'
+
         return jsonify(
             {'type': 'id',
              'result':
                  level_db_to_dict(level_data=level, locale=auth_data.locale, generate_url_function=storage.generate_url,
-                                  mobile=mobile)})
+                                  mobile=mobile, like_type=like_type)})
     except Exception as e:
         print(e)
         return jsonify({'error_type': '028', 'message': auth_data.locale_item.LEVEL_NOT_FOUND + str(e)})
@@ -75,7 +88,6 @@ async def stage_id_search_handler(level_id):
 async def stages_detailed_search_handler():
     print('Loading course world...')
     data = parse_data(request)
-    print(data)
     auth_data = parse_auth_code(data['auth_code'])
 
     results = []
@@ -130,9 +142,21 @@ async def stages_detailed_search_handler():
         pages = 1
     for level in levels.paginate(page, rows_perpage):
         try:
+            # get like type from database
+            try:
+                stat = db.Stats.get(db.Stats.level_id == level.level_id)  # get like data
+                if auth_data.username + ',' in stat.likes_users:
+                    like_type = '0'  # like
+                elif auth_data.username + ',' in stat.dislikes_users:
+                    like_type = '1'  # dislike
+                else:
+                    like_type = '0'
+            except Exception as e1:
+                like_type = '2'
+
             results.append(
                 level_db_to_dict(level_data=level, locale=auth_data.locale, generate_url_function=storage.generate_url,
-                                 mobile=mobile))
+                                 mobile=mobile, like_type=like_type))
         except Exception as e:
             print(e)
     if len(results) == 0:
@@ -149,6 +173,64 @@ async def switch_promising_handler(level_id):
     level.featured = True
     level.save()
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stage'})
+
+
+@app.route('/stage/<level_id>/stats/intentos', methods=['POST'])
+async def stats_intentos_handler(level_id):
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.plays += 1
+    level.save()
+    return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
+
+
+@app.route('/stage/<level_id>/stats/victorias', methods=['POST'])
+async def stats_victorias_handler(level_id):
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.clears += 1
+    level.save()
+    return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
+
+
+@app.route('/stage/<level_id>/stats/muertes', methods=['POST'])
+async def stats_muertes_handler(level_id):
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.deaths += 1
+    level.save()
+    return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
+
+
+@app.route('/stage/<level_id>/stats/likes', methods=['POST'])
+async def stats_likes_handler(level_id):
+    data = parse_data(request)
+    auth_data = parse_auth_code(data['auth_code'])
+    username = auth_data.username
+    try:
+        stat = db.Stats.get(db.Stats.level_id == level_id)
+    except Exception as e:
+        stat = db.Stats(level_id=level_id, likes_users='', dislikes_users='')
+    stat.likes_users += username + ','
+    stat.save()
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.likes += 1
+    level.save()
+    return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
+
+
+@app.route('/stage/<level_id>/stats/dislikes', methods=['POST'])
+async def stats_dislikes_handler(level_id):
+    data = parse_data(request)
+    auth_data = parse_auth_code(data['auth_code'])
+    username = auth_data.username
+    try:
+        stat = db.Stats.get(db.Stats.level_id == level_id)
+    except Exception as e:
+        stat = db.Stats(level_id=level_id, likes_users='', dislikes_users='')
+    stat.dislikes_users += username + ','
+    stat.save()
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.dislikes += 1
+    level.save()
+    return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
 
 
 @app.route('/stage/upload', methods=['POST'])
@@ -263,6 +345,7 @@ if __name__ == '__main__':
     # auto create table
     db.Level.create_table()
     db.Account.create_table()
+    db.Stats.create_table()
     if STORAGE_ADAPTER == 'onedrive-cf':
         storage = StorageAdapterOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED)
     app.run(host=HOST, port=PORT, debug=FLASK_DEBUG_MODE)

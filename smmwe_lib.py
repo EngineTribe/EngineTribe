@@ -6,19 +6,23 @@ from xpinyin import Pinyin
 from locales import *
 
 
-def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool):
+def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
     url = generate_url_function(level_data.name, level_data.level_id)
     if mobile:
         name = quote(Pinyin().get_pinyin(level_data.name).replace('-', ' '), safe='"!@#$%^&*()-_=+[{]}\'\\|:;,<.>/?`~ ')
     else:
         name = level_data.name
+    if level_data.plays > 0:
+        record = {'record': 'yes', 'alias': 'EngineTribe', 'id': '0', 'time': 0}
+    else:
+        record = {'record': 'no'}
     return {'name': name, 'likes': str(level_data.likes), 'dislikes': str(level_data.dislikes),
             'comments': '0', 'intentos': str(level_data.plays), 'muertes': str(level_data.deaths),
             'victorias': str(level_data.clears), 'apariencia': level_data.style,
             'entorno': level_data.environment,
             'etiquetas': get_tag_name(level_data.tag_1, locale) + ',' + get_tag_name(level_data.tag_2, locale),
             'featured': int(level_data.featured),
-            'user_data': {'completed': 'no', 'liked': '1'}, 'record': {'record': 'no'},
+            'user_data': {'completed': 'no', 'liked': like_type}, 'record': record,
             'date': level_data.date.strftime("%m/%d/%Y"),
             'author': level_data.author, 'description': 'Sin Descripción', 'archivo': url,
             'id': level_data.level_id}

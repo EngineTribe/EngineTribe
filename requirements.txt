@@ -1,4 +1,4 @@
-Flask
+flask[async]
 peewee
 xpinyin
 requests

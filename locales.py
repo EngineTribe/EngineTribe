@@ -65,7 +65,6 @@ def parse_tag_names(tag_names: str):
 
 
 def get_tag_name(tag_id: int, locale_to: str):
-    # The server stores Chinese tag names, so it needs to be converted
     if locale_to == "ES":
         return tags_es[tag_id]
     elif locale_to == "EN":
