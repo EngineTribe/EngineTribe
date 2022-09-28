@@ -1,3 +1,5 @@
+import datetime
+
 from flask import Flask, request, jsonify
 
 from config import *
@@ -154,9 +156,15 @@ async def stages_upload_handler():
     data = parse_data(request)
     auth_data = parse_auth_code(data['auth_code'])
     account = db.Account.get(db.Account.username == auth_data.username)
-    if account.uploads == UPLOAD_LIMIT:
+    if account.is_booster:
+        upload_limit = UPLOAD_LIMIT + 10
+    elif account.is_mod or account.is_admin:
+        upload_limit = 999
+    else:
+        upload_limit = UPLOAD_LIMIT
+    if account.uploads >= upload_limit:
         return jsonify(
-            {'error_type': '025', 'message': auth_data.locale_item.UPLOAD_LIMIT_REACHED + f"({UPLOAD_LIMIT})"})
+            {'error_type': '025', 'message': auth_data.locale_item.UPLOAD_LIMIT_REACHED + f"({upload_limit})"})
     data_swe = data['swe']
 
     print('Uploading level ' + data['name'])
