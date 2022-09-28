@@ -12,6 +12,8 @@ This program is in very early **Work In Progress** state, maybe not full-functio
 - OneDrive storage backend
 - Uploading level
 - Browse level
+- Detailed search
+- Likes and dislikes
 
 ---
 
