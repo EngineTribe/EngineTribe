@@ -1,3 +1,4 @@
+import dateutil.utils
 from flask import Flask, request, jsonify
 
 from config import *
@@ -66,7 +67,7 @@ async def stage_id_search_handler(level_id):
                                   mobile=mobile)})
     except Exception as e:
         print(e)
-        return jsonify({'error_type': '022', 'message': auth_data.locale_item.LEVEL_NOT_FOUND + str(e)})
+        return jsonify({'error_type': '028', 'message': auth_data.locale_item.LEVEL_NOT_FOUND + str(e)})
 
 
 @app.route('/stages/detailed_search', methods=['POST'])
@@ -105,6 +106,18 @@ async def stages_detailed_search_handler():
 
     if 'title' in data:
         levels = levels.where(db.Level.name.contains(data['title']))
+    if 'author' in data:
+        levels = levels.where(db.Level.author == data['author'])
+    if 'aparience' in data:
+        levels = levels.where(db.Level.style == data['aparience'])
+    if 'entorno' in data:
+        levels = levels.where(db.Level.environment == data['entorno'])
+    if 'last' in data:
+        days = int(data['last'].strip('d'))
+        levels = levels.where((db.Level.date.day - dateutil.utils.today().day) <= days)
+    if 'sort' in data:
+        if data['sort'] == 'antiguos':
+            levels = levels.order_by(db.Level.id.asc())
 
     # calculate numbers
     num_rows = len(levels)
@@ -121,9 +134,12 @@ async def stages_detailed_search_handler():
                                  mobile=mobile))
         except Exception as e:
             print(e)
-    return jsonify(
-        {'type': 'detailed_search', 'num_rows': str(num_rows), 'rows_perpage': str(rows_perpage), 'pages': str(pages),
-         'result': results})
+    if len(results) == 0:
+        return jsonify({'error_type': '029', 'message': auth_data.locale_item.LEVEL_NOT_FOUND})  # No level found
+    else:
+        return jsonify(
+            {'type': 'detailed_search', 'num_rows': str(num_rows), 'rows_perpage': str(rows_perpage),
+             'pages': str(pages), 'result': results})
 
 
 @app.route('/stage/<level_id>/switch/promising', methods=['POST'])
