@@ -378,10 +378,15 @@ async def user_register_handler():
 
 @app.route('/user/update_permission', methods=['POST'])  # Update permission
 async def user_set_permission_handler():
-    data = request.get_json()  # username, permission, value
+    data = request.get_json()  # username/user_id, permission, value
     print('Update permission')
     print(data)
-    user = db.User.get(db.User.username == data['username'])
+    if 'username' in data:
+        user = db.User.get(db.User.username == data['username'])
+    elif 'user_id' in data:
+        user = db.User.get(db.User.user_id == data['user_id'])
+    else:
+        return jsonify({'error_type': '255', 'message': 'API error.'})
     if data['permission'] == 'mod':
         user.is_mod = data['value']
     elif data['permission'] == 'admin':
@@ -393,7 +398,7 @@ async def user_set_permission_handler():
     elif data['permission'] == 'banned':
         user.is_banned = data['value']
     user.save()
-    return jsonify({'success': '权限已经更新', 'type': 'update'})
+    return jsonify({'success': 'Update success', 'type': 'update'})
 
 
 if __name__ == '__main__':
