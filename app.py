@@ -170,11 +170,14 @@ async def stages_detailed_search_handler():
 @app.route('/stage/<level_id>/switch/promising', methods=['POST'])
 async def switch_promising_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
-    level.featured = True
+    if not level.featured:
+        level.featured = True
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': 'new_featured', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})  # Send new featured info to Engine-bot
+    else:
+        level.featured = False
     level.save()
-    requests.post(url=ENGINE_BOT_WEBHOOK_URL,
-                  json={'type': 'new_featured', 'level_id': level_id, 'level_name': level.name,
-                        'author': level.author})  # Send new featured info to Engine-bot
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stage'})
 
 

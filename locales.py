@@ -2,12 +2,12 @@ import re
 from dataclasses import dataclass
 
 tags_cn = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术", "技巧",
-           "射击", "BOSS战", "单人", "Link"]
-tags_en = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short and Sweet",
-           "Multiplayer", "Themed", "Music", "Art", "Technical", "Shooter", "Boss battle", "Singleplayer", "Link"]
+           "射击", "BOSS战", "单人", "Link", "---"]
+tags_en = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short and Sweet", "Multiplayer",
+           "Themed", "Music", "Art", "Technical", "Shooter", "Boss battle", "Singleplayer", "Link", "---"]
 tags_es = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
            "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
-           "En solitario", "Link"]
+           "En solitario", "Link", "---"]
 
 
 @dataclass
@@ -56,7 +56,7 @@ def parse_tag_names(tag_names: str):
     tags = tag_names.split(',')
     tag_1 = tags[0]
     tag_2 = tags[1]
-    for i in range(0, 15):
+    for i in range(0, 16):
         if tags_es[i] == tag_1 or tags_en[i] == tag_1 or tags_cn[i] == tag_1:
             tag_1 = i
         if tags_es[i] == tag_2 or tags_en[i] == tag_2 or tags_cn[i] == tag_2:
