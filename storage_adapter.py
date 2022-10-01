@@ -26,3 +26,7 @@ class StorageAdapterOneDriveCF:
             return self.url + quote(name) + ' ' + level_id + '.swe' + '?proxied'
         else:
             return self.url + quote(name) + ' ' + level_id + '.swe'
+
+    def delete_level(self, name: str, level_id: str):
+        print(f'Delete level {name} {level_id}: stubbed')
+        return

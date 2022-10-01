@@ -21,4 +21,5 @@ STORAGE_AUTH_KEY = 'enginetribesA7EKiqBxY6QeH'  # Storage auth key
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
 
 
+ENABLE_ENGINE_BOT_WEBHOOK = False
 ENGINE_BOT_WEBHOOK_URL = 'http://bot.enginetribe.gq/enginetribe'
