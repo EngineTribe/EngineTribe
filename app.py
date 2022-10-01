@@ -172,6 +172,9 @@ async def switch_promising_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
     level.featured = True
     level.save()
+    requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                  json={'type': 'new_featured', 'level_id': level_id, 'level_name': level.name,
+                        'author': level.author})  # Send new featured info to Engine-bot
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stage'})
 
 
@@ -180,6 +183,14 @@ async def stats_intentos_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
     level.plays += 1
     level.save()
+    if level.plays == 100:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '100_plays', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})
+    if level.plays == 1000:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '1000_plays', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})  # Send plays info to Engine-bot
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
 
 
@@ -188,6 +199,14 @@ async def stats_victorias_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
     level.clears += 1
     level.save()
+    if level.clears == 100:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '100_clears', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})
+    if level.clears == 1000:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '1000_clears', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})  # Send clears info to Engine-bot
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
 
 
@@ -196,6 +215,14 @@ async def stats_muertes_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
     level.deaths += 1
     level.save()
+    if level.deaths == 100:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '100_deaths', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})
+    if level.deaths == 1000:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '1000_deaths', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})  # Send deaths info to Engine-bot
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
 
 
@@ -213,6 +240,18 @@ async def stats_likes_handler(level_id):
     level = db.Level.get(db.Level.level_id == level_id)
     level.likes += 1
     level.save()
+    if level.likes == 10:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '10_likes', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})
+    if level.likes == 100:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '100_likes', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})
+    if level.likes == 1000:
+        requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                      json={'type': '1000_likes', 'level_id': level_id, 'level_name': level.name,
+                            'author': level.author})  # Send likes info to Engine-bot
     return jsonify({'success': 'success', 'id': level_id, 'type': 'stats'})
 
 
