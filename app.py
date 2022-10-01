@@ -398,7 +398,7 @@ async def user_set_permission_handler():
     elif data['permission'] == 'banned':
         user.is_banned = data['value']
     user.save()
-    return jsonify({'success': 'Update success', 'type': 'update'})
+    return jsonify({'success': 'Update success', 'type': 'update', 'user_id': user.user_id, 'username': user.username})
 
 
 if __name__ == '__main__':
