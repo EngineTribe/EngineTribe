@@ -19,3 +19,6 @@ STORAGE_ADAPTER = 'onedrive-cf'  # Storage adapter to use, only onedrive-cf is s
 STORAGE_URL = 'https://storage.enginetribe.gq/'  # Storage url (with path)
 STORAGE_AUTH_KEY = 'enginetribesA7EKiqBxY6QeH'  # Storage auth key
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
+
+
+ENGINE_BOT_WEBHOOK_URL = 'http://bot.enginetribe.gq/enginetribe'

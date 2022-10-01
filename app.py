@@ -295,6 +295,9 @@ async def stages_upload_handler():
                  non_ascii)
     account.uploads += 1
     account.save()
+    requests.post(url=ENGINE_BOT_WEBHOOK_URL,
+                  json={'type': 'new_arrival', 'level_id': level_id, 'level_name': data['name'],
+                        'author': auth_data.username})  # Send new level info to Engine-bot
     if non_ascii:
         return jsonify({'success': auth_data.locale_item.UPLOAD_COMPLETE_NON_ASCII, 'id': level_id, 'type': 'upload'})
     else:
