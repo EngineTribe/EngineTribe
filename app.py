@@ -311,14 +311,25 @@ async def user_register_handler():
     print(data)
     if data['api_key'] != API_KEY:
         return jsonify({'error_type': '004', 'message': 'Invalid API key.', 'api_key': data['api_key']})
-    if db.User.get(db.User.user_id == data['user_id']):
+    user_exist = True
+    try:
+        db.User.get(db.User.user_id == data['user_id'])
+    except Exception as e:
+        user_exist = False
+    if user_exist:
         return jsonify({'error_type': '035', 'message': 'User ID already exists.', 'user_id': data['user_id']})
-    if db.User.get(db.User.username == data['username']):
+    user_exist = True
+    try:
+        db.User.get(db.User.username == data['username'])
+    except Exception as e:
+        user_exist = False
+    if user_exist:
         return jsonify({'error_type': '036', 'message': 'Username already exists.', 'username': data['username']})
     try:
         db.add_user(username=data['username'], user_id=data['user_id'], password_hash=data['password_hash'])
         return jsonify(
-            {'success': 'Registration success.', 'username': data['username'],'user_id': data['user_id'], 'type': 'register'})
+            {'success': 'Registration success.', 'username': data['username'], 'user_id': data['user_id'],
+             'type': 'register'})
     except Exception as e:
         return jsonify({'error_type': '255', 'message': str(e)})
 
