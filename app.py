@@ -381,12 +381,15 @@ async def user_set_permission_handler():
     data = request.get_json()  # username/user_id, permission, value
     print('Update permission')
     print(data)
-    if 'username' in data:
-        user = db.User.get(db.User.username == data['username'])
-    elif 'user_id' in data:
-        user = db.User.get(db.User.user_id == data['user_id'])
-    else:
-        return jsonify({'error_type': '255', 'message': 'API error.'})
+    try:
+        if 'username' in data:
+            user = db.User.get(db.User.username == data['username'])
+        elif 'user_id' in data:
+            user = db.User.get(db.User.user_id == data['user_id'])
+        else:
+            return jsonify({'error_type': '255', 'message': 'API error.'})
+    except Exception as e:
+        return jsonify({'error_type': '006', 'message': 'Account not found.'})
     if data['permission'] == 'mod':
         user.is_mod = data['value']
     elif data['permission'] == 'admin':
