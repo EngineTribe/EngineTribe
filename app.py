@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 async def readme_handler():
-    return open('website/index.html', 'r').read().replace("${{Markdown}}", open('README.md', 'r').read())
+    return open('pages/index.html', 'r').read().replace("${{Markdown}}", open('README.md', 'r').read())
 
 
 @app.route('/user/login', methods=['POST'])
@@ -34,7 +34,7 @@ async def user_login_handler():
     else:
         mobile = False
     try:
-        account = db.Account.get(db.Account.username == data['alias'])
+        account = db.User.get(db.User.username == data['alias'])
     except Exception as e:
         return jsonify({'error_type': '006', 'message': auth_data.locale_item.ACCOUNT_NOT_FOUND})
     if not account.is_valid:
@@ -237,7 +237,7 @@ async def stats_dislikes_handler(level_id):
 async def stages_upload_handler():
     data = parse_data(request)
     auth_data = parse_auth_code(data['auth_code'])
-    account = db.Account.get(db.Account.username == auth_data.username)
+    account = db.User.get(db.User.username == auth_data.username)
     if account.is_booster:
         upload_limit = UPLOAD_LIMIT + 10
     elif account.is_mod or account.is_admin:
@@ -310,12 +310,15 @@ async def user_register_handler():
     print('User register')
     print(data)
     if data['api_key'] != API_KEY:
-        return jsonify({'error_type': '004', 'message': '引擎 bot 设置中填写的 API Key 无效。'})
-        # Bot currently only supports Chinese, so it only returns Chinese
+        return jsonify({'error_type': '004', 'message': 'Invalid API key.'})
+    if db.User.get(db.User.user_id == data['user_id']):
+        return jsonify({'error_type': '035', 'message': 'User ID already exists.'})
+    if db.User.get(db.User.username == data['username']):
+        return jsonify({'error_type': '036', 'message': 'Username already exists.'})
     try:
         db.add_user(username=data['username'], user_id=data['user_id'], password_hash=data['password_hash'])
         return jsonify(
-            {'success': '🎉 注册成功，现在可以使用 ' + data['username'] + ' 在游戏中登录了。', 'type': 'register'})
+            {'success': 'Registration success.', 'username': data['username'], 'type': 'register'})
     except Exception as e:
         return jsonify({'error_type': '255', 'message': str(e)})
 
@@ -325,7 +328,7 @@ async def user_set_permission_handler():
     data = request.get_json()  # username, permission, value
     print('Update permission')
     print(data)
-    user = db.Account.get(db.Account.username == data['username'])
+    user = db.User.get(db.User.username == data['username'])
     if data['permission'] == 'mod':
         user.is_mod = data['value']
     elif data['permission'] == 'admin':
@@ -344,7 +347,7 @@ if __name__ == '__main__':
     db = SMMWEDatabase()
     # auto create table
     db.Level.create_table()
-    db.Account.create_table()
+    db.User.create_table()
     db.Stats.create_table()
     if STORAGE_ADAPTER == 'onedrive-cf':
         storage = StorageAdapterOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED)

@@ -52,7 +52,7 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'stats_table'
 
-    class Account(BaseModel):
+    class User(BaseModel):
         username = TextField()  # User name
         user_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID
         uploads = IntegerField()  # Upload levels count
@@ -64,7 +64,7 @@ class SMMWEDatabase:
         is_banned = BooleanField()  # Is account banned
 
         class Meta:
-            table_name = 'account_table'
+            table_name = 'user_table'
 
     def add_level(self, name, style, environment, tags, author, level_id, non_ascii):
         tags_id = parse_tag_names(tags)
@@ -75,6 +75,6 @@ class SMMWEDatabase:
         level.save()
 
     def add_user(self, username, password_hash, user_id):
-        user = self.Account(username=username, password_hash=password_hash, user_id=user_id, uploads=0,
+        user = self.User(username=username, password_hash=password_hash, user_id=user_id, uploads=0,
                             is_admin=False, is_mod=False, is_booster=False, is_valid=True, is_banned=False)
         user.save()
