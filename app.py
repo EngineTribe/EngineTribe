@@ -98,10 +98,10 @@ async def stages_detailed_search_handler():
     if 'featured' in data:
         if data['featured'] == 'promising':
             levels = levels.where(db.Level.featured == True)  # "promising"
-            print("Searching promising levels")
-        else:
-            if data['sort'] == 'popular':
-                levels = levels.order_by(db.Level.likes.desc())  # likes
+            print("Searching featured levels")
+        elif data['sort'] == 'popular':
+            levels = levels.order_by(db.Level.likes.desc())  # likes
+            print("Searching popular levels")
     else:
         levels = levels.order_by(db.Level.id.desc())  # latest levels
 
@@ -150,7 +150,7 @@ async def stages_detailed_search_handler():
                 elif auth_data.username + ',' in stat.dislikes_users:
                     like_type = '1'  # dislike
                 else:
-                    like_type = '0'
+                    like_type = '2'  # none
             except Exception as e1:
                 like_type = '2'
 
