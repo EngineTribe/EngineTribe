@@ -21,4 +21,8 @@ This program is in very early **Work In Progress** state, maybe not full-functio
 
 ---
 
+### Chat
+
+![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?style=flat&logo=tencentqq) [![DiscordChat](https://img.shields.io/badge/Discord-Chat-5865f2?style=flat&logo=discord)](https://discord.gg/u8rymAtnRf)
+
 2022 YidaozhanYa
