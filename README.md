@@ -7,32 +7,31 @@
 
 ---
 
-### ⚠️ WIP
+<!--### ⚠️ WIP-->
 
-This program is in very early **Work In Progress** state, maybe not full-functionally work.
+<!--This program is in **Work In Progress** state, maybe not full-functionally work.-->
 
-### Features
+### ✅ Features
 
-- User system, registration and logging in
-- OneDrive storage backend
-- MySQL, PostgreSQL or SQLite database
-- Uploading level
-- Browsing level
-- Detailed search
-- Likes and dislikes
+- 👥 User system, registration and logging in
+- ☁️ OneDrive storage backend
+- 🗄️ MySQL, PostgreSQL or SQLite database
+- 📤 Uploading and deleting level
+- 🔍 Browsing level and detailed searching
+- ❤️ Likes and dislikes
 
-### Roadmap
+### 🚵‍♀️ Roadmap
 
-- Records
-- Name & password modification
-- Difficulty search
-- Denying duplicate levels to upload
-- Engine-bot for Discord
+- 🕰️ Records
+- 🖋️ Name & password modification
+- 📊 Difficulty search
+- ❎ Denying duplicate levels to upload
+- 🤖 Engine-bot for Discord
 
 ---
 
-### Chat
+### 🫂 Join the Community
 
 ![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?style=flat&logo=tencentqq) [![DiscordChat](https://img.shields.io/badge/Discord-Chat-5865f2?style=flat&logo=discord)](https://discord.gg/u8rymAtnRf)
 
-<div align="center">2022 YidaozhanYa with Engine Tribe Team</div>
+<div align="center">2022 YidaozhanYa and Engine Tribe Team with 💗</div>
