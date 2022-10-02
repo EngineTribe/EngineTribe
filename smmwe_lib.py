@@ -9,7 +9,7 @@ from locales import *
 def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
     url = generate_url_function(level_data.name, level_data.level_id)
     if mobile:
-        name = quote(Pinyin().get_pinyin(level_data.name).replace('-', ' '), safe='"!@#$%^&*()-_=+[{]}\'\\|:;,<.>/?`~ ')
+        name = string_asciify(level_data.name)
     else:
         name = level_data.name
     if level_data.plays > 0:
@@ -67,6 +67,18 @@ def parse_auth_code(raw_auth_code: str):
 
 def calculate_password_hash(password: str):
     return hashlib.sha256(base64.b64encode(password.encode('utf-8'))).hexdigest()
+
+
+def string_asciify(t):
+    table = {ord(f): ord(t) for f, t in zip(u'，。！？【】（）％＃＠＆－—〔〕：；〇﹒—﹙﹚、—', u',.!?[]()%#@&--():;0.—(),-')}
+
+    try:
+        t2 = t.translate(table)
+    except:
+        t2 = t
+    t2 = Pinyin().get_pinyin(t2).replace('-', ' ')
+    t2 = quote(t2, safe='"!@#$%^&*()-_=+[{]}\'\\|:;,<.>/?`~ ')
+    return t2
 
 
 @dataclass

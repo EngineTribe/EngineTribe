@@ -27,7 +27,7 @@ async def user_login_handler():
     try:
         auth_code = tokens_auth_code_match[data['token']]
         auth_data = parse_auth_code(auth_code)
-    except KeyError as e:
+    except KeyError:
         return jsonify({'error_type': '005', 'message': 'Illegal client.'})
     if 'SMMWEMB' in data['token']:
         mobile = True
@@ -255,7 +255,7 @@ async def stats_likes_handler(level_id):
     username = auth_data.username
     try:
         stat = db.Stats.get(db.Stats.level_id == level_id)
-    except Exception as e:
+    except:
         stat = db.Stats(level_id=level_id, likes_users='', dislikes_users='')
     stat.likes_users += username + ','
     stat.save()
@@ -285,7 +285,7 @@ async def stats_dislikes_handler(level_id):
     username = auth_data.username
     try:
         stat = db.Stats.get(db.Stats.level_id == level_id)
-    except Exception as e:
+    except:
         stat = db.Stats(level_id=level_id, likes_users='', dislikes_users='')
     stat.dislikes_users += username + ','
     stat.save()
@@ -326,7 +326,7 @@ async def stages_upload_handler():
     not_duplicated = False
     try:
         db.Level.get(db.Level.level_id == level_id)
-    except Exception as e:
+    except:
         print('md5: Not duplicated')
         not_duplicated = True
     if not not_duplicated:
@@ -337,7 +337,7 @@ async def stages_upload_handler():
     not_duplicated = False
     try:
         db.Level.get(db.Level.level_id == level_id)
-    except Exception as e:
+    except:
         print('sha1: Not duplicated')
         not_duplicated = True
     if not not_duplicated:
@@ -361,10 +361,7 @@ async def stages_upload_handler():
         requests.post(url=ENGINE_BOT_WEBHOOK_URL,
                       json={'type': 'new_arrival', 'level_id': level_id, 'level_name': data['name'],
                             'author': auth_data.username})  # Send new level info to Engine-bot
-    if non_ascii:
-        return jsonify({'success': auth_data.locale_item.UPLOAD_COMPLETE_NON_ASCII, 'id': level_id, 'type': 'upload'})
-    else:
-        return jsonify({'success': auth_data.locale_item.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'})
+    return jsonify({'success': auth_data.locale_item.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'})
 
 
 # These are APIs exclusive to Engine Tribe
@@ -380,14 +377,14 @@ async def user_register_handler():
     user_exist = True
     try:
         db.User.get(db.User.user_id == data['user_id'])
-    except Exception as e:
+    except:
         user_exist = False
     if user_exist:
         return jsonify({'error_type': '035', 'message': 'User ID already exists.', 'user_id': data['user_id']})
     user_exist = True
     try:
         db.User.get(db.User.username == data['username'])
-    except Exception as e:
+    except:
         user_exist = False
     if user_exist:
         return jsonify({'error_type': '036', 'message': 'Username already exists.', 'username': data['username']})

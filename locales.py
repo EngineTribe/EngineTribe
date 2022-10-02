@@ -13,7 +13,6 @@ tags_es = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos"
 @dataclass
 class zh_CN:
     UPLOAD_COMPLETE = '上传完成。'
-    UPLOAD_COMPLETE_NON_ASCII = '上传完成，但关卡中含有特殊字符，仅对电脑版可见。'
     FILE_TOO_LARGE = '文件大于 4MB。'
     ACCOUNT_NOT_FOUND = '帐号错误或不存在。'
     ACCOUNT_IS_NOT_VALID = '请重新加群。'
@@ -27,7 +26,6 @@ class zh_CN:
 @dataclass
 class es_ES:
     UPLOAD_COMPLETE = 'Publicar completado.'
-    UPLOAD_COMPLETE_NON_ASCII = 'Publicar completo, pero con caracteres especiales, solo será visible para PC.'
     FILE_TOO_LARGE = 'El archivo tiene más de 4 MB.'
     ACCOUNT_NOT_FOUND = 'Usuario incorrecto o no encontrado.'
     ACCOUNT_IS_NOT_VALID = 'No autorizado, vuelve a unirte al grupo.'
@@ -41,7 +39,6 @@ class es_ES:
 @dataclass
 class en_US:
     UPLOAD_COMPLETE = 'Upload completed.'
-    UPLOAD_COMPLETE_NON_ASCII = 'Upload completed, but name with special characters, will only be visible on PC.'
     FILE_TOO_LARGE = 'File is bigger than 4MB.'
     ACCOUNT_NOT_FOUND = 'User incorrect or doesn\'t exist'
     ACCOUNT_IS_NOT_VALID = 'Not authorized, please rejoin the group'
