@@ -43,13 +43,13 @@ class en_US:
     UPLOAD_COMPLETE = 'Upload completed.'
     UPLOAD_COMPLETE_NON_ASCII = 'Upload completed, but name with special characters, will only be visible on PC.'
     FILE_TOO_LARGE = 'File is bigger than 4MB.'
-    ACCOUNT_NOT_FOUND = 'User incorrect or not exists.'
+    ACCOUNT_NOT_FOUND = 'User incorrect or doesn\'t exist'
     ACCOUNT_IS_NOT_VALID = 'Not authorized, please rejoin the group'
     ACCOUNT_BANNED = 'User has been banned.'
     ACCOUNT_ERROR_PASSWORD = 'Password incorrect.'
     UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
     LEVEL_NOT_FOUND = 'Level not found.'
-    UPLOAD_CONNECT_ERROR = 'Could not connect to storage backend.'
+    UPLOAD_CONNECT_ERROR = 'Could not connect to the storage backend.'
 
 
 def parse_tag_names(tag_names: str):
