@@ -54,8 +54,8 @@ class en_US:
 
 def parse_tag_names(tag_names: str):
     tags = tag_names.split(',')
-    tag_1 = tags[0]
-    tag_2 = tags[1]
+    tag_1 = tags[0].strip()
+    tag_2 = tags[1].strip()
     for i in range(0, 16):
         if tags_es[i] == tag_1 or tags_en[i] == tag_1 or tags_cn[i] == tag_1:
             tag_1 = i
