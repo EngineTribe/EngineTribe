@@ -365,8 +365,8 @@ async def stages_upload_handler():
 
 
 # These are APIs exclusive to Engine Tribe
-# Since in Engine Kingdom, the game backend and Engine-bot are integrated, so you can directly register in Engine-bot
-# In Engine Tribe, they are separated, so need to add these APIs
+# Since in Engine Kingdom, the game backend and Engine Bot are integrated, so you can directly register in Engine Bot
+# In Engine Tribe, they are separated, so need to use these APIs
 @app.route('/user/register', methods=['POST'])  # Register account
 async def user_register_handler():
     data = request.get_json()  # api_key, username, password_hash, user_id
