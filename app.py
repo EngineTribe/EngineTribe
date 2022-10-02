@@ -413,7 +413,7 @@ async def user_set_permission_handler():
         else:
             return jsonify({'error_type': '255', 'message': 'API error.'})
     except Exception as e:
-        return jsonify({'error_type': '006', 'message': 'Account not found.'})
+        return jsonify({'error_type': '006', 'message': 'User not found.'})
     if data['permission'] == 'mod':
         user.is_mod = data['value']
     elif data['permission'] == 'admin':
@@ -426,6 +426,24 @@ async def user_set_permission_handler():
         user.is_banned = data['value']
     user.save()
     return jsonify({'success': 'Update success', 'type': 'update', 'user_id': user.user_id, 'username': user.username})
+
+
+@app.route('/user/info', methods=['POST'])  # get user info
+async def user_info_handler():
+    data = request.get_json()  # username/user_id
+    try:
+        if 'username' in data:
+            user = db.User.get(db.User.username == data['username'])
+        elif 'user_id' in data:
+            user = db.User.get(db.User.user_id == data['user_id'])
+        else:
+            return jsonify({'error_type': '255', 'message': 'API error.'})
+    except Exception as e:
+        return jsonify({'error_type': '006', 'message': 'User not found.'})
+    return jsonify(
+        {'type': 'user', 'result': {'user_id': user.user_id, 'username': user.username, 'uploads': int(user.uploads),
+                                    'is_admin': user.is_admin, 'is_mod': user.is_mod, 'is_booster': user.is_booster,
+                                    'is_valid': user.is_valid, 'is_banned': user.is_banned}})
 
 
 if __name__ == '__main__':
