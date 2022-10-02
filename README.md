@@ -3,7 +3,7 @@
   <h2>Engine Tribe</h2>
 </div>
 
-📡 **Engine Tribe** project is an open source reimplementation for SMM_WE Online server **"Engine Kingdom"** v3.2.3. 
+📡 **Engine Tribe** project is an open source reimplementation for SMM_WE online server **Engine Kingdom** v3.2.3. 
 
 ---
 
