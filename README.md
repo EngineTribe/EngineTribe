@@ -32,6 +32,6 @@ The Discord bot has not yet been completed. If you want to join the Engine Tribe
 
 ### 🫂 Join the Community
 
-![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?style=flat&logo=tencentqq) [![DiscordChat](https://img.shields.io/badge/Discord-Chat-5865f2?style=flat&logo=discord)](https://discord.gg/u8rymAtnRf)
+![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?style=flat&logo=tencentqq) [![DiscordChat](https://img.shields.io/badge/Discord-Chat-5865f2?style=flat&logo=discord)](https://discord.gg/Phe7v26Y89)
 
 <div align="center">2022 YidaozhanYa and Engine Tribe Team with 💗</div>
