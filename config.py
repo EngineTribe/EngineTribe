@@ -19,4 +19,7 @@ STORAGE_AUTH_KEY = 'enginetribesA7EKiqBxY6QeH'  # Storage auth key
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
 
 ENABLE_ENGINE_BOT_WEBHOOK = False
-ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe', 'http://bot-discord.enginetribe.gq/enginetribe']
+ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe']
+
+ENABLE_DISCORD_WEBHOOK = True
+DISCORD_WEBHOOK_URL = 'WEBHOOK_URL'
