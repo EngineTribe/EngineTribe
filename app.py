@@ -176,7 +176,6 @@ async def stage_delete_handler(level_id):
     if ENABLE_DISCORD_WEBHOOK:
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
         message = '🗑️ **' + level.author + '** borró el nivel: **' + level.name + '**\n'
-        message += 'ID: `' + level_id + '`'
         webhook.send(message, username='Engine Bot',
                      avatar_url='https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine'
                                 '-bot.png')
