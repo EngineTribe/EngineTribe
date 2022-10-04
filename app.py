@@ -271,15 +271,6 @@ async def stage_id_search_handler(level_id: str, auth_code: str = Form('EngineBo
 @app.post('/stage/{level_id}/delete')
 async def stage_delete_handler(level_id: str):  # Delete level
     level = db.Level.get(db.Level.level_id == level_id)
-    if ENABLE_DISCORD_WEBHOOK:
-        webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-        message = '🗑️ **' + level.author + '** borró el nivel: **' + level.name + '**'
-        webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
-    if ENABLE_ENGINE_BOT_WEBHOOK:
-        for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-            requests.post(url=webhook_url,
-                          json={'type': 'new_deleted', 'level_id': level_id, 'level_name': level.name,
-                                'author': level.author})  # Send new deleted info to Engine-bot
     db.Level.delete().where(db.Level.level_id == level_id).execute()
     return {'success': 'success', 'id': level_id, 'type': 'stage'}
 
