@@ -21,6 +21,11 @@ class UpdatePermissionRequestBody(PydanticModel):
     value: Optional[str]
 
 
+class UpdatePasswordRequestBody(PydanticModel):
+    username: str
+    password_hash: str
+
+
 class UserInfoRequestBody(PydanticModel):
     username: Optional[str]
     user_id: Optional[str]

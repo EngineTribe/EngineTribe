@@ -488,6 +488,18 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     return {'success': 'Update success', 'type': 'update', 'user_id': user.user_id, 'username': user.username}
 
 
+@app.post('/user/update_password')  # Update password
+async def user_update_password_handler(request: UpdatePasswordRequestBody):
+    # username, password_hash
+    try:
+        user = db.User.get(db.User.username == request.username)
+    except peewee.DoesNotExist:
+        return ErrorMessage(error_type='006', message='User not found.')
+    user.password_hash = request.password_hash
+    user.save()
+    return {'success': 'Update success', 'type': 'update', 'username': user.username}
+
+
 @app.post('/user/info')  # Get user info
 async def user_info_handler(request: UserInfoRequestBody):
     try:
