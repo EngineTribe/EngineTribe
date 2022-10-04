@@ -29,7 +29,14 @@ if OFFENSIVE_WORDS_FILTER:
     for url in OFFENSIVE_WORDS_LIST:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
-            dfa_filter.add(word)
+            if len(word) > 1:
+                dfa_filter.add(word)
+    for url in OFFENSIVE_WORDS_LIST_CN_ONLY:
+        wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
+        for word in wordlist:
+            if len(re.findall(re.compile(r'[A-Za-z]', re.S), word)) != 0:
+                if len(word) > 1:
+                    dfa_filter.add(word)
 
 
 @app.get('/')

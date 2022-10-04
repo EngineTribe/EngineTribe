@@ -27,3 +27,5 @@ DISCORD_AVATAR_URL = 'https://raw.githubusercontent.com/EngineTribe/EngineBotDis
 OFFENSIVE_WORDS_FILTER = True
 OFFENSIVE_WORDS_LIST = [
     'https://raw.githubusercontent.com/coffee-and-fun/google-profanity-words/main/data/list.txt']
+OFFENSIVE_WORDS_LIST_CN_ONLY = [
+    '']
