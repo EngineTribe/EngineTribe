@@ -241,7 +241,7 @@ async def stats_victorias_handler(level_id):
     if ENABLE_DISCORD_WEBHOOK:
         if level.clears == 100 or level.clears == 1000:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = '🎉 Felicidades, el **' + leve.name + '** de **' + level.author + '** ha salido victorioso **' +\
+            message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** ha salido victorioso **' +\
                       level.clears + '** veces!\n'
             message += 'ID: `' + level_id + '`'
             webhook.send(message, username='Engine Bot',
@@ -364,6 +364,7 @@ async def stages_upload_handler():
         non_ascii = True
 
     # generate level id
+    data_swe = gen_level_id_base64(data_swe)
     level_id = gen_level_id_md5(data_swe)
 
     # check duplicated level ID
@@ -387,6 +388,9 @@ async def stages_upload_handler():
     if not not_duplicated:
         print('sha1: duplicated, fallback to sha256')
         level_id = gen_level_id_sha256(data_swe)
+
+    if not_duplicated:
+        jsonify({'error_type': '009', 'message': auth_data.locale_item.LEVEL_ID_REPEAT})
 
     print("Uploading level to storage backend...")
     if len(data_swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
