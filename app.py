@@ -156,7 +156,8 @@ async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'
                                          entorno: Optional[str] = Form(None), last: Optional[str] = Form(None),
                                          sort: Optional[str] = Form(None)):  # Detailed search (level list)
 
-    title = title.encode('latin1').decode('utf-8')
+    if title:
+        title = title.encode('latin1').decode('utf-8')
     # Fixes for Starlette
     # https://github.com/encode/starlette/issues/425
 
