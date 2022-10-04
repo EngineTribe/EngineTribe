@@ -26,6 +26,6 @@ DISCORD_AVATAR_URL = 'https://raw.githubusercontent.com/EngineTribe/EngineBotDis
 
 OFFENSIVE_WORDS_FILTER = True
 OFFENSIVE_WORDS_LIST = [
-    'https://raw.githubusercontent.com/coffee-and-fun/google-profanity-words/main/data/list.txt']
-OFFENSIVE_WORDS_LIST_CN_ONLY = [
-    '']
+            'https://raw.githubusercontent.com/coffee-and-fun/google-profanity-words/main/data/list.txt',
+                    'https://raw.githubusercontent.com/fighting41love/funNLP/5da5ac5a5e665902d538ff9faf461186356afac4/data/%E6%95%8F%E6%84%9F%E8%AF%8D%E5%BA%93/%E6%94%BF%E6%B2%BB%E7%B1%BB.txt']
+OFFENSIVE_WORDS_LIST_CN_ONLY = ['https://raw.githubusercontent.com/fighting41love/funNLP/5da5ac5a5e665902d538ff9faf461186356afac4/data/%E6%95%8F%E6%84%9F%E8%AF%8D%E5%BA%93/%E6%95%8F%E6%84%9F%E8%AF%8D.txt']
