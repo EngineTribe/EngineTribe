@@ -8,7 +8,7 @@ from locales import *
 
 
 def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
-    url = generate_url_function(level_data.name, level_data.level_id)
+    url = generate_url_function(level_data.level_id)
     if mobile:
         name = string_asciify(level_data.name)
     else:
@@ -42,7 +42,7 @@ def gen_level_id_sha256(data_swe: str):
 
 
 def strip_level(data_swe: str):
-    result = base64.b64decode(data_swe)[:-30].decode("UTF-8");
+    result = base64.b64decode(data_swe)[:-30].decode("UTF-8")
     regex_time = re.compile('"time": ".*?"')
     regex_date = re.compile('"date": ".*?"')
     result = regex_date.sub('"date": ""', regex_time.sub('"time": ""', result))

@@ -111,8 +111,6 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
     else:
         offensive = False
 
-    name = name.replace('/', '').replace('?', '？').replace('*', '').replace(':', '：').replace('"', '“').replace('#', '')
-
     # check non-ASCII
     non_ascii = False
     if (re.sub(r'[ -~]', '', name)) != "":
@@ -157,8 +155,7 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
     if len(swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return ErrorMessage(error_type='025', message=auth_data.locale_item.FILE_TOO_LARGE)
     try:
-        storage.upload_file(level_name=name, level_data=swe,
-                            level_id=level_id)  # Upload to storage backend
+        storage.upload_file(level_data=swe, level_id=level_id)  # Upload to storage backend
     except ConnectionError:
         return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
 
@@ -169,7 +166,7 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
         message = '📤 **' + auth_data.username + '** subió un nuevo nivel: **' + name + '**\n'
         message += 'ID: `' + level_id + '`\n'
-        message += 'Descargar: ' + storage.generate_download_url(name=name, level_id=level_id)
+        message += 'Descargar: ' + storage.generate_download_url(level_id=level_id)
         webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
         for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
