@@ -21,6 +21,7 @@ class zh_CN:
     UPLOAD_LIMIT_REACHED = '关卡数量发布已达上限。'
     LEVEL_NOT_FOUND = '找不到关卡。'
     UPLOAD_CONNECT_ERROR = '连接关卡存储后端失败。'
+    LEVEL_ID_REPEAT = '关卡已存在'
 
 
 @dataclass
@@ -34,6 +35,7 @@ class es_ES:
     UPLOAD_LIMIT_REACHED = 'Se alcanzó el máximo de niveles posible para publicar.'
     LEVEL_NOT_FOUND = 'Nivel no encontrado.'
     UPLOAD_CONNECT_ERROR = 'No se pudo conectar al backend de nivel.'
+    LEVEL_ID_REPEAT = 'El nivel ya existe'
 
 
 @dataclass
@@ -47,6 +49,7 @@ class en_US:
     UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
     LEVEL_NOT_FOUND = 'Level not found.'
     UPLOAD_CONNECT_ERROR = 'Could not connect to the storage backend.'
+    LEVEL_ID_REPEAT = 'Level already exists'
 
 
 def parse_tag_names(tag_names: str):

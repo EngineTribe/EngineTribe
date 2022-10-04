@@ -40,6 +40,14 @@ def gen_level_id_sha256(data_swe: str):
     return prettify_level_id(hashlib.sha256(data_swe.encode()).hexdigest().upper()[8:24])
 
 
+def gen_level_id_base64(data_swe: str):
+    result = base64.b64decode(data_swe)[:-30].decode("UTF-8");
+    regex_time = re.compile('"time": ".*?"')
+    regex_date = re.compile('"date": ".*?"')
+    result = regex_date.sub('"date": ""', regex_time.sub('"time": ""', result))
+    return result
+
+
 def prettify_level_id(level_id: str):
     return level_id[0:4] + '-' + level_id[4:8] + '-' + level_id[8:12] + '-' + level_id[12:16]
 
