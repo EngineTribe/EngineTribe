@@ -15,6 +15,7 @@ class RegisterRequestBody(PydanticModel):
 
 
 class UpdatePermissionRequestBody(PydanticModel):
+    api_key: str
     username: Optional[str]
     user_id: Optional[str]
     permission: Optional[str]
@@ -22,6 +23,7 @@ class UpdatePermissionRequestBody(PydanticModel):
 
 
 class UpdatePasswordRequestBody(PydanticModel):
+    api_key: str
     username: str
     password_hash: str
 

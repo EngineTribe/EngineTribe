@@ -464,7 +464,9 @@ async def user_register_handler(request: RegisterRequestBody):
 
 @app.post('/user/update_permission')  # Update permission
 async def user_set_permission_handler(request: UpdatePermissionRequestBody):
-    # username/user_id, permission, value
+    # username/user_id, permission, value, api_key
+    if request.api_key != API_KEY:
+        return {'error_type': '004', 'message': 'Invalid API key.', 'api_key': request.api_key}
     try:
         if request.username:
             user = db.User.get(db.User.username == request.username)
@@ -490,7 +492,9 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
 
 @app.post('/user/update_password')  # Update password
 async def user_update_password_handler(request: UpdatePasswordRequestBody):
-    # username, password_hash
+    # username, password_hash, api_key
+    if request.api_key != API_KEY:
+        return {'error_type': '004', 'message': 'Invalid API key.', 'api_key': request.api_key}
     try:
         user = db.User.get(db.User.username == request.username)
     except peewee.DoesNotExist:
