@@ -389,7 +389,7 @@ async def stages_upload_handler():
         print('sha1: duplicated, fallback to sha256')
         level_id = gen_level_id_sha256(data_swe)
 
-    if not_duplicated:
+    if not not_duplicated:
         jsonify({'error_type': '009', 'message': auth_data.locale_item.LEVEL_ID_REPEAT})
 
     print("Uploading level to storage backend...")
