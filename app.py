@@ -30,13 +30,13 @@ if OFFENSIVE_WORDS_FILTER:
     for url in OFFENSIVE_WORDS_LIST:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
-            if len(word) > 1:
+            if len(word) > 1 and len(word.encode('utf-8')) > 2:
                 dfa_filter.add(word)
     for url in OFFENSIVE_WORDS_LIST_CN_ONLY:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
             if len(re.findall(re.compile(r'[A-Za-z]', re.S), word)) == 0:
-                if len(word) > 1:
+                if len(word) > 1 and len(word.encode('utf-8')) > 2:
                     dfa_filter.add(word)
 
 
