@@ -40,7 +40,7 @@ class SMMWEDatabase:
         featured = BooleanField()  # Whether the level is in promising levels
         record_user = TextField()  # Record user
         record = IntegerField()  # Record
-        sensitive = BooleanField()  # Not sending notifications on QQ
+        offensive = BooleanField()  # Word filtering
 
         # description = TextField()  # Unimplemented in original server "Sin Descripción"
         # comments = IntegerField()  # Unimplemented in original server
@@ -70,13 +70,13 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'user_table'
 
-    def add_level(self, name, style, environment, tags, author, level_id, non_ascii):
+    def add_level(self, name, style, environment, tags, author, level_id, non_ascii, offensive):
         # add level metadata into database
         tags_id = parse_tag_names(tags)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
                            date=datetime.date.today(), author=author,
-                           level_id=level_id, non_ascii=non_ascii)
+                           level_id=level_id, non_ascii=non_ascii, record_user='', record=0, offensive=offensive)
         level.save()
 
     def add_user(self, username: str, password_hash: str, user_id):

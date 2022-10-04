@@ -12,6 +12,7 @@ from database import SMMWEDatabase
 from models import *
 from smmwe_lib import *
 from storage_adapter import *
+from dfa_filter import DFAFilter
 
 app = FastAPI()
 db = SMMWEDatabase()
@@ -21,6 +22,14 @@ db.User.create_table()
 db.Stats.create_table()
 if STORAGE_ADAPTER == 'onedrive-cf':
     storage = StorageAdapterOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED)
+
+if OFFENSIVE_WORDS_FILTER:
+    # Load DFA filter
+    dfa_filter = DFAFilter()
+    for url in OFFENSIVE_WORDS_LIST:
+        wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
+        for word in wordlist:
+            dfa_filter.add(word)
 
 
 @app.get('/')
@@ -84,6 +93,16 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
 
     print('Uploading level ' + name)
 
+    if OFFENSIVE_WORDS_FILTER:
+        name_filtered = dfa_filter.filter(name)
+        if name_filtered != name:
+            name = name_filtered
+            offensive = True
+        else:
+            offensive = False
+    else:
+        offensive = False
+
     # check non-ASCII
     non_ascii = False
     if (re.sub(r'[ -~]', '', name)) != "":
@@ -133,7 +152,7 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
     except ConnectionError:
         return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
 
-    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_ascii)
+    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_ascii, offensive)
     account.uploads += 1
     account.save()
     if ENABLE_DISCORD_WEBHOOK:

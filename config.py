@@ -23,3 +23,7 @@ ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe']
 ENABLE_DISCORD_WEBHOOK = True
 DISCORD_WEBHOOK_URL = 'WEBHOOK_URL'
 DISCORD_AVATAR_URL = 'https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine-bot.png'
+
+OFFENSIVE_WORDS_FILTER = True
+OFFENSIVE_WORDS_LIST = [
+    'https://raw.githubusercontent.com/coffee-and-fun/google-profanity-words/main/data/list.txt']
