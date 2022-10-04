@@ -164,8 +164,8 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
     account.save()
     if ENABLE_DISCORD_WEBHOOK:
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-        message = '📤 **' + auth_data.username + '** subió un nuevo nivel: **' + name + '**\n'
-        message += 'ID: `' + level_id + '`\n'
+        message = f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n'
+        message += f'ID: `{level_id}`  Tags: `{tags}`\n'
         message += 'Descargar: ' + storage.generate_download_url(level_id=level_id)
         webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
