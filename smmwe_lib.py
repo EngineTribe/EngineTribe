@@ -1,6 +1,7 @@
 import base64
 import hashlib
-from urllib.parse import parse_qs, quote
+from urllib.parse import quote
+
 from xpinyin import Pinyin
 
 from locales import *
@@ -40,7 +41,7 @@ def gen_level_id_sha256(data_swe: str):
     return prettify_level_id(hashlib.sha256(data_swe.encode()).hexdigest().upper()[8:24])
 
 
-def gen_level_id_base64(data_swe: str):
+def strip_level(data_swe: str):
     result = base64.b64decode(data_swe)[:-30].decode("UTF-8");
     regex_time = re.compile('"time": ".*?"')
     regex_date = re.compile('"date": ".*?"')
@@ -50,13 +51,6 @@ def gen_level_id_base64(data_swe: str):
 
 def prettify_level_id(level_id: str):
     return level_id[0:4] + '-' + level_id[4:8] + '-' + level_id[8:12] + '-' + level_id[12:16]
-
-
-def parse_data(request):
-    data = parse_qs(request.get_data().decode('utf-8'))
-    for item in data:
-        data[item] = data[item][0]
-    return data
 
 
 def parse_auth_code(raw_auth_code: str):
@@ -70,7 +64,12 @@ def parse_auth_code(raw_auth_code: str):
         locale_item = en_US
     else:
         locale_item = es_ES
-    return AuthCodeData(username=auth_code_arr[0], platform=auth_code_arr[1], locale=locale, locale_item=locale_item)
+    return_data = AuthCodeData()
+    return_data.username = auth_code_arr[0]
+    return_data.platform = auth_code_arr[1]
+    return_data.locale = locale
+    return_data.locale_item = locale_item
+    return return_data
 
 
 def calculate_password_hash(password: str):
@@ -89,7 +88,6 @@ def string_asciify(t):
     return t2
 
 
-@dataclass
 class Tokens:
     PC_CN: str = 'SMMWEPCCN'
     PC_ES: str = 'SMMWEPCES'
@@ -99,9 +97,8 @@ class Tokens:
     Mobile_EN: str = 'SMMWEMBEN'
 
 
-@dataclass
 class AuthCodeData:
     username: str
     platform: str
     locale: str
-    locale_item: any
+    locale_item: LocaleModel

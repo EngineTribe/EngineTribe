@@ -1,6 +1,5 @@
 HOST = '0.0.0.0'  # Engine Tribe Central Server
 PORT = 25019  # Default port that SMM_WE uses
-FLASK_DEBUG_MODE = True  # Whether to enable Flask's debug mode
 API_KEY = "enginetribe"  # Engine-bot 's API key
 ROWS_PERPAGE = 5  # Levels per page
 UPLOAD_LIMIT = 25  # Max levels per account
@@ -23,3 +22,4 @@ ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe']
 
 ENABLE_DISCORD_WEBHOOK = True
 DISCORD_WEBHOOK_URL = 'WEBHOOK_URL'
+DISCORD_AVATAR_URL = 'https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine-bot.png'

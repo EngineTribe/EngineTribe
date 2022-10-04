@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from pydantic import BaseModel as PydanticModel
 
 tags_cn = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术", "技巧",
            "射击", "BOSS战", "单人", "Link", "---"]
@@ -10,46 +10,56 @@ tags_es = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos"
            "En solitario", "Link", "---"]
 
 
-@dataclass
-class zh_CN:
-    UPLOAD_COMPLETE = '上传完成。'
-    FILE_TOO_LARGE = '文件大于 4MB。'
-    ACCOUNT_NOT_FOUND = '帐号错误或不存在。'
-    ACCOUNT_IS_NOT_VALID = '请重新加群。'
-    ACCOUNT_BANNED = '玩家已被封禁。'
-    ACCOUNT_ERROR_PASSWORD = '密码错误。'
-    UPLOAD_LIMIT_REACHED = '关卡数量发布已达上限。'
-    LEVEL_NOT_FOUND = '找不到关卡。'
-    UPLOAD_CONNECT_ERROR = '连接关卡存储后端失败。'
-    LEVEL_ID_REPEAT = '关卡已存在'
+class LocaleModel:
+    UPLOAD_COMPLETE: str
+    FILE_TOO_LARGE: str
+    ACCOUNT_NOT_FOUND: str
+    ACCOUNT_IS_NOT_VALID: str
+    ACCOUNT_BANNED: str
+    ACCOUNT_ERROR_PASSWORD: str
+    UPLOAD_LIMIT_REACHED: str
+    LEVEL_NOT_FOUND: str
+    UPLOAD_CONNECT_ERROR: str
+    LEVEL_ID_REPEAT: str
 
 
-@dataclass
-class es_ES:
-    UPLOAD_COMPLETE = 'Publicar completado.'
-    FILE_TOO_LARGE = 'El archivo tiene más de 4 MB.'
-    ACCOUNT_NOT_FOUND = 'Usuario incorrecto o no encontrado.'
-    ACCOUNT_IS_NOT_VALID = 'No autorizado, vuelve a unirte al grupo.'
-    ACCOUNT_BANNED = 'Te han prohibido.'
-    ACCOUNT_ERROR_PASSWORD = 'Contraseña incorrecta.'
-    UPLOAD_LIMIT_REACHED = 'Se alcanzó el máximo de niveles posible para publicar.'
-    LEVEL_NOT_FOUND = 'Nivel no encontrado.'
-    UPLOAD_CONNECT_ERROR = 'No se pudo conectar al backend de nivel.'
-    LEVEL_ID_REPEAT = 'El nivel ya existe'
+class zh_CN(LocaleModel):
+    UPLOAD_COMPLETE: str = '上传完成。'
+    FILE_TOO_LARGE: str = '文件大于 4MB。'
+    ACCOUNT_NOT_FOUND: str = '帐号错误或不存在。'
+    ACCOUNT_IS_NOT_VALID: str = '请重新加群。'
+    ACCOUNT_BANNED: str = '玩家已被封禁。'
+    ACCOUNT_ERROR_PASSWORD: str = '密码错误。'
+    UPLOAD_LIMIT_REACHED: str = '关卡数量发布已达上限。'
+    LEVEL_NOT_FOUND: str = '找不到关卡。'
+    UPLOAD_CONNECT_ERROR: str = '连接关卡存储后端失败。'
+    LEVEL_ID_REPEAT: str = '关卡已存在'
 
 
-@dataclass
-class en_US:
-    UPLOAD_COMPLETE = 'Upload completed.'
-    FILE_TOO_LARGE = 'File is bigger than 4MB.'
-    ACCOUNT_NOT_FOUND = 'User incorrect or doesn\'t exist'
-    ACCOUNT_IS_NOT_VALID = 'Not authorized, please rejoin the group'
-    ACCOUNT_BANNED = 'User has been banned.'
-    ACCOUNT_ERROR_PASSWORD = 'Password incorrect.'
-    UPLOAD_LIMIT_REACHED = 'You have reached the upload limit.'
-    LEVEL_NOT_FOUND = 'Level not found.'
-    UPLOAD_CONNECT_ERROR = 'Could not connect to the storage backend.'
-    LEVEL_ID_REPEAT = 'Level already exists'
+class es_ES(LocaleModel):
+    UPLOAD_COMPLETE: str = 'Publicar completado.'
+    FILE_TOO_LARGE: str = 'El archivo tiene más de 4 MB.'
+    ACCOUNT_NOT_FOUND: str = 'Usuario incorrecto o no encontrado.'
+    ACCOUNT_IS_NOT_VALID: str = 'No autorizado, vuelve a unirte al grupo.'
+    ACCOUNT_BANNED: str = 'Te han prohibido.'
+    ACCOUNT_ERROR_PASSWORD: str = 'Contraseña incorrecta.'
+    UPLOAD_LIMIT_REACHED: str = 'Se alcanzó el máximo de niveles posible para publicar.'
+    LEVEL_NOT_FOUND: str = 'Nivel no encontrado.'
+    UPLOAD_CONNECT_ERROR: str = 'No se pudo conectar al backend de nivel.'
+    LEVEL_ID_REPEAT: str = 'El nivel ya existe'
+
+
+class en_US(LocaleModel):
+    UPLOAD_COMPLETE: str = 'Upload completed.'
+    FILE_TOO_LARGE: str = 'File is bigger than 4MB.'
+    ACCOUNT_NOT_FOUND: str = 'User incorrect or doesn\'t exist'
+    ACCOUNT_IS_NOT_VALID: str = 'Not authorized, please rejoin the group'
+    ACCOUNT_BANNED: str = 'User has been banned.'
+    ACCOUNT_ERROR_PASSWORD: str = 'Password incorrect.'
+    UPLOAD_LIMIT_REACHED: str = 'You have reached the upload limit.'
+    LEVEL_NOT_FOUND: str = 'Level not found.'
+    UPLOAD_CONNECT_ERROR: str = 'Could not connect to the storage backend.'
+    LEVEL_ID_REPEAT: str = 'Level already exists'
 
 
 def parse_tag_names(tag_names: str):

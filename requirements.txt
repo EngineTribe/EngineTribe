@@ -1,6 +1,9 @@
-flask[async]
 peewee
 xpinyin
 requests
 pymysql
 discord
+uvicorn
+fastapi
+pydantic
+python-multipart

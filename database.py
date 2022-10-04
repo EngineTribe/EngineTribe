@@ -4,23 +4,24 @@ from locales import *
 import datetime
 
 if DATABASE_ADAPTER == 'mysql':
-    db = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER, passwd=DATABASE_PASS)
+    db_instance = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
+                                passwd=DATABASE_PASS)
 elif DATABASE_ADAPTER == 'postgres':
-    db = PostgresqlDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
-                            passwd=DATABASE_PASS)
+    db_instance = PostgresqlDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
+                                     passwd=DATABASE_PASS)
 elif DATABASE_ADAPTER == 'sqlite':
-    db = SqliteDatabase(DATABASE_HOST, user=DATABASE_USER, passwd=DATABASE_PASS)
+    db_instance = SqliteDatabase(DATABASE_HOST, user=DATABASE_USER, passwd=DATABASE_PASS)
 
 
 class SMMWEDatabase:
     def __init__(self):
-        db.connect()
+        db_instance.connect()
 
-    class BaseModel(Model):
+    class DatabaseModel(Model):
         class Meta:
-            database = db
+            database = db_instance
 
-    class Level(BaseModel):
+    class Level(DatabaseModel):
         name = TextField()
         likes = IntegerField()
         dislikes = IntegerField()
@@ -37,6 +38,9 @@ class SMMWEDatabase:
         level_id = TextField()  # Level ID
         non_ascii = BooleanField()  # Whether the level name contains non-ASCII characters
         featured = BooleanField()  # Whether the level is in promising levels
+        record_user = TextField()  # Record user
+        record = IntegerField()  # Record
+        sensitive = BooleanField()  # Not sending notifications on QQ
 
         # description = TextField()  # Unimplemented in original server "Sin Descripción"
         # comments = IntegerField()  # Unimplemented in original server
@@ -44,7 +48,7 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'level_table'
 
-    class Stats(BaseModel):
+    class Stats(DatabaseModel):
         level_id = TextField()
         likes_users = TextField()  # Users that liked this level
         dislikes_users = TextField()  # Users that disliked this level
@@ -52,7 +56,7 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'stats_table'
 
-    class User(BaseModel):
+    class User(DatabaseModel):
         username = TextField()  # User name
         user_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID
         uploads = IntegerField()  # Upload levels count
@@ -67,6 +71,7 @@ class SMMWEDatabase:
             table_name = 'user_table'
 
     def add_level(self, name, style, environment, tags, author, level_id, non_ascii):
+        # add level metadata into database
         tags_id = parse_tag_names(tags)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
@@ -74,7 +79,21 @@ class SMMWEDatabase:
                            level_id=level_id, non_ascii=non_ascii)
         level.save()
 
-    def add_user(self, username, password_hash, user_id):
-        user = self.User(username=username, password_hash=password_hash, user_id=user_id, uploads=0,
-                            is_admin=False, is_mod=False, is_booster=False, is_valid=True, is_banned=False)
+    def add_user(self, username: str, password_hash: str, user_id):
+        # register user
+        user = self.User(username=username, password_hash=password_hash, user_id=user_id, uploads=0, is_admin=False,
+                         is_mod=False, is_booster=False, is_valid=True, is_banned=False)
         user.save()
+
+    def get_like_type(self, level_id: str, username: str):
+        # get like type from database
+        try:
+            stat = self.Stats.get(self.Stats.level_id == level_id)  # get like data
+            if username + ',' in stat.likes_users:
+                return '0'  # like
+            elif username + ',' in stat.dislikes_users:
+                return '1'  # dislike
+            else:
+                return '2'  # none
+        except DoesNotExist:
+            return '2'
