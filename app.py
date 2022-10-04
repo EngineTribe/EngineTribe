@@ -33,6 +33,11 @@ async def user_login_handler(alias: str = Form(''), token: str = Form(''), passw
     tokens_auth_code_match = {Tokens.PC_CN: alias + '|PC|CN', Tokens.PC_ES: alias + '|PC|ES',
                               Tokens.PC_EN: alias + '|PC|EN', Tokens.Mobile_CN: alias + '|MB|CN',
                               Tokens.Mobile_ES: alias + '|MB|ES', Tokens.Mobile_EN: alias + '|MB|EN'}
+
+    password = password.encode('latin1').decode('utf-8')
+    # Fixes for Starlette
+    # https://github.com/encode/starlette/issues/425
+
     try:
         auth_code = tokens_auth_code_match[token]
         auth_data = parse_auth_code(auth_code)
@@ -70,7 +75,12 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
     else:
         upload_limit = UPLOAD_LIMIT
     if account.uploads >= upload_limit:
-        return {'error_type': '025', 'message': auth_data.locale_item.UPLOAD_LIMIT_REACHED + f"({upload_limit})"}
+        return ErrorMessage(error_type='025', message=auth_data.locale_item.UPLOAD_LIMIT_REACHED + f"({upload_limit})")
+
+    name = name.encode('latin1').decode('utf-8')
+    tags = tags.encode('latin1').decode('utf-8')
+    # Fixes for Starlette
+    # https://github.com/encode/starlette/issues/425
 
     print('Uploading level ' + name)
 
@@ -145,6 +155,11 @@ async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'
                                          author: Optional[str] = Form(None), aparience: Optional[str] = Form(None),
                                          entorno: Optional[str] = Form(None), last: Optional[str] = Form(None),
                                          sort: Optional[str] = Form(None)):  # Detailed search (level list)
+
+    title = title.encode('latin1').decode('utf-8')
+    # Fixes for Starlette
+    # https://github.com/encode/starlette/issues/425
+
     auth_data = parse_auth_code(auth_code)
 
     results = []
@@ -170,7 +185,6 @@ async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'
         page = 1
 
     # detailed search
-
     if title:
         levels = levels.where(db.Level.name.contains(title))
     if author:
