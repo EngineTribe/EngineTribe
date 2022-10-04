@@ -77,7 +77,7 @@ def calculate_password_hash(password: str):
 
 
 def string_asciify(t):
-    table = {ord(f): ord(t) for f, t in zip(u'，。！？【】（）％＃＠＆－—〔〕：；〇﹒—﹙﹚、—', u',.!?[]()%#@&--():;0.—(),-')}
+    table = {ord(f): ord(t) for f, t in zip(u'，。！？【】（）％＃＠＆－—〔〕：；〇﹒—﹙﹚、—“”', u',.!?[]()%#@&--():;0.—(),-""')}
 
     try:
         t2 = t.translate(table)

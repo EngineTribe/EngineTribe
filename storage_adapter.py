@@ -23,15 +23,15 @@ class StorageAdapterOneDriveCF:
 
     def generate_url(self, name: str, level_id: str):
         if self.proxied:
-            return self.url + quote(name) + ' ' + level_id + '.swe' + '?proxied'
+            return self.url + quote(name + ' ' + level_id) + '.swe' + '?proxied'
         else:
-            return self.url + quote(name) + ' ' + level_id + '.swe'
+            return self.url + quote(name + ' ' + level_id) + '.swe'
 
     def generate_download_url(self, name: str, level_id: str):
         if self.proxied:
-            return self.url + quote(name) + ' ' + level_id + '.swe' + '?raw&proxied'
+            return self.url + quote(name + ' ' + level_id) + '.swe' + '?raw&proxied'
         else:
-            return self.url + quote(name) + ' ' + level_id + '.swe' + '?raw'
+            return self.url + quote(name + ' ' + level_id) + '.swe' + '?raw'
 
     def delete_level(self, name: str, level_id: str):
         print(f'Delete level {name} {level_id}: stubbed')
