@@ -58,6 +58,87 @@ async def user_login_handler(alias: str = Form(''), token: str = Form(''), passw
     return login_user_profile
 
 
+@app.post('/stage/upload')
+async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name: str = Form(), aparience: str = Form(),
+                                entorno: str = Form(), tags: str = Form()):
+    auth_data = parse_auth_code(auth_code)
+    account = db.User.get(db.User.username == auth_data.username)
+    if account.is_booster:
+        upload_limit = UPLOAD_LIMIT + 10
+    elif account.is_mod or account.is_admin:
+        upload_limit = 999
+    else:
+        upload_limit = UPLOAD_LIMIT
+    if account.uploads >= upload_limit:
+        return {'error_type': '025', 'message': auth_data.locale_item.UPLOAD_LIMIT_REACHED + f"({upload_limit})"}
+
+    print('Uploading level ' + name)
+
+    # check non-ASCII
+    non_ascii = False
+    if (re.sub(r'[ -~]', '', name)) != "":
+        non_ascii = True
+
+    # generate level id
+    swe_to_generate = strip_level(swe)
+    level_id = gen_level_id_md5(swe_to_generate)
+
+    # check duplicated level ID
+    not_duplicated = False
+    try:
+        db.Level.get(db.Level.level_id == level_id)
+    except peewee.DoesNotExist:
+        print('md5: Not duplicated')
+        not_duplicated = True
+    if not not_duplicated:
+        print('md5: duplicated, fallback to sha1')
+        level_id = gen_level_id_sha1(swe_to_generate)
+
+    # if duplicated again then use sha256
+    not_duplicated = False
+    try:
+        db.Level.get(db.Level.level_id == level_id)
+    except peewee.DoesNotExist:
+        print('sha1: Not duplicated')
+        not_duplicated = True
+    if not not_duplicated:
+        print('sha1: duplicated, fallback to sha256')
+        level_id = gen_level_id_sha256(swe_to_generate)
+
+    # if sha256 duplicated again then return error
+    not_duplicated = False
+    try:
+        db.Level.get(db.Level.level_id == level_id)
+    except peewee.DoesNotExist:
+        print('sha256: Not duplicated')
+        not_duplicated = True
+    if not not_duplicated:
+        return ErrorMessage(error_type='009', message=auth_data.locale_item.LEVEL_ID_REPEAT)
+
+    if len(swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
+        return ErrorMessage(error_type='025', message=auth_data.locale_item.FILE_TOO_LARGE)
+    try:
+        storage.upload_file(level_name=name, level_data=swe,
+                            level_id=level_id)  # Upload to storage backend
+    except ConnectionError:
+        return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
+
+    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_ascii)
+    account.uploads += 1
+    account.save()
+    if ENABLE_DISCORD_WEBHOOK:
+        webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
+        message = '📤 **' + auth_data.username + '** subió un nuevo nivel: **' + name + '**\n'
+        message += 'ID: `' + level_id + '`'
+        webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
+    if ENABLE_ENGINE_BOT_WEBHOOK:
+        for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
+            requests.post(url=webhook_url,
+                          json={'type': 'new_arrival', 'level_id': level_id, 'level_name': name,
+                                'author': auth_data.username})  # Send new level info to Engine-bot
+    return {'success': auth_data.locale_item.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'}
+
+
 @app.post('/stages/detailed_search')
 async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'), featured: Optional[str] = Form(None),
                                          page: Optional[int] = Form(1), title: Optional[str] = Form(None),
@@ -309,87 +390,6 @@ async def stats_dislikes_handler(level_id: str, auth_code: str = Form()):
     level.dislikes += 1
     level.save()
     return {'success': 'success', 'id': level_id, 'type': 'stats'}
-
-
-@app.post('/stage/upload')
-async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name: str = Form(), aparience: str = Form(),
-                                entorno: str = Form(), tags: str = Form()):
-    auth_data = parse_auth_code(auth_code)
-    account = db.User.get(db.User.username == auth_data.username)
-    if account.is_booster:
-        upload_limit = UPLOAD_LIMIT + 10
-    elif account.is_mod or account.is_admin:
-        upload_limit = 999
-    else:
-        upload_limit = UPLOAD_LIMIT
-    if account.uploads >= upload_limit:
-        return {'error_type': '025', 'message': auth_data.locale_item.UPLOAD_LIMIT_REACHED + f"({upload_limit})"}
-
-    print('Uploading level ' + name)
-
-    # check non-ASCII
-    non_ascii = False
-    if (re.sub(r'[ -~]', '', name)) != "":
-        non_ascii = True
-
-    # generate level id
-    swe_to_generate = strip_level(swe)
-    level_id = gen_level_id_md5(swe_to_generate)
-
-    # check duplicated level ID
-    not_duplicated = False
-    try:
-        db.Level.get(db.Level.level_id == level_id)
-    except peewee.DoesNotExist:
-        print('md5: Not duplicated')
-        not_duplicated = True
-    if not not_duplicated:
-        print('md5: duplicated, fallback to sha1')
-        level_id = gen_level_id_sha1(swe_to_generate)
-
-    # if duplicated again then use sha256
-    not_duplicated = False
-    try:
-        db.Level.get(db.Level.level_id == level_id)
-    except peewee.DoesNotExist:
-        print('sha1: Not duplicated')
-        not_duplicated = True
-    if not not_duplicated:
-        print('sha1: duplicated, fallback to sha256')
-        level_id = gen_level_id_sha256(swe_to_generate)
-
-    # if sha256 duplicated again then return error
-    not_duplicated = False
-    try:
-        db.Level.get(db.Level.level_id == level_id)
-    except peewee.DoesNotExist:
-        print('sha256: Not duplicated')
-        not_duplicated = True
-    if not not_duplicated:
-        return ErrorMessage(error_type='009', message=auth_data.locale_item.LEVEL_ID_REPEAT)
-
-    if len(swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
-        return ErrorMessage(error_type='025', message=auth_data.locale_item.FILE_TOO_LARGE)
-    try:
-        storage.upload_file(level_name=name, level_data=swe,
-                            level_id=level_id)  # Upload to storage backend
-    except ConnectionError:
-        return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
-
-    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_ascii)
-    account.uploads += 1
-    account.save()
-    if ENABLE_DISCORD_WEBHOOK:
-        webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-        message = '📤 **' + auth_data.username + '** subió un nuevo nivel: **' + name + '**\n'
-        message += 'ID: `' + level_id + '`'
-        webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
-    if ENABLE_ENGINE_BOT_WEBHOOK:
-        for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-            requests.post(url=webhook_url,
-                          json={'type': 'new_arrival', 'level_id': level_id, 'level_name': name,
-                                'author': auth_data.username})  # Send new level info to Engine-bot
-    return {'success': auth_data.locale_item.UPLOAD_COMPLETE, 'id': level_id, 'type': 'upload'}
 
 
 # These are APIs exclusive to Engine Tribe
