@@ -88,6 +88,16 @@ def string_asciify(t):
     return t2
 
 
+def is_valid_user_agent(user_agent):
+    if user_agent:
+        if 'GameMaker' in user_agent or 'Android' in user_agent or 'EngineBot' in user_agent:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
 class Tokens:
     PC_CN: str = 'SMMWEPCCN'
     PC_ES: str = 'SMMWEPCES'

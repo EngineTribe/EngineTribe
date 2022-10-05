@@ -3,10 +3,11 @@ from math import ceil
 
 import discord  # Discord webhook support
 import peewee
+from peewee import fn
 import uvicorn
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Header
 from fastapi.responses import RedirectResponse
-from urllib.parse import quote
+from typing import Union
 
 from config import *
 from database import SMMWEDatabase
@@ -46,10 +47,14 @@ async def readme_handler():  # Redirect to Engine Tribe README
 
 
 @app.post('/user/login')
-async def user_login_handler(alias: str = Form(''), token: str = Form(''), password: str = Form('')):  # User login
+async def user_login_handler(user_agent: Union[str, None] = Header(default=None), alias: str = Form(''),
+                             token: str = Form(''), password: str = Form('')):  # User login
     tokens_auth_code_match = {Tokens.PC_CN: alias + '|PC|CN', Tokens.PC_ES: alias + '|PC|ES',
                               Tokens.PC_EN: alias + '|PC|EN', Tokens.Mobile_CN: alias + '|MB|CN',
                               Tokens.Mobile_ES: alias + '|MB|ES', Tokens.Mobile_EN: alias + '|MB|EN'}
+
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
 
     password = password.encode('latin1').decode('utf-8')
     # Fixes for Starlette
@@ -81,8 +86,12 @@ async def user_login_handler(alias: str = Form(''), token: str = Form(''), passw
 
 
 @app.post('/stage/upload')
-async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name: str = Form(), aparience: str = Form(),
+async def stages_upload_handler(user_agent: Union[str, None] = Header(default=None), auth_code: str = Form(),
+                                swe: str = Form(), name: str = Form(), aparience: str = Form(),
                                 entorno: str = Form(), tags: str = Form()):
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
+
     auth_data = parse_auth_code(auth_code)
     account = db.User.get(db.User.username == auth_data.username)
     if account.is_booster:
@@ -177,11 +186,15 @@ async def stages_upload_handler(auth_code: str = Form(), swe: str = Form(), name
 
 
 @app.post('/stages/detailed_search')
-async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'), featured: Optional[str] = Form(None),
+async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(default=None),
+                                         auth_code: str = Form('EngineBot|PC|CN'), featured: Optional[str] = Form(None),
                                          page: Optional[int] = Form(1), title: Optional[str] = Form(None),
                                          author: Optional[str] = Form(None), aparience: Optional[str] = Form(None),
                                          entorno: Optional[str] = Form(None), last: Optional[str] = Form(None),
                                          sort: Optional[str] = Form(None)):  # Detailed search (level list)
+
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
 
     if title:
         title = title.encode('latin1').decode('utf-8')
@@ -252,7 +265,10 @@ async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'
 
 
 @app.post('/stage/random')
-async def stage_id_random_handler(auth_code: str = Form('EngineBot|PC|CN')):  # Random level
+async def stage_id_random_handler(user_agent: Union[str, None] = Header(default=None),
+                                  auth_code: str = Form('EngineBot|PC|CN')):  # Random level
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
     if auth_data.platform == 'MB':
         mobile = True  # Mobile fixes
@@ -266,7 +282,10 @@ async def stage_id_random_handler(auth_code: str = Form('EngineBot|PC|CN')):  # 
 
 
 @app.post('/stage/{level_id}')
-async def stage_id_search_handler(level_id: str, auth_code: str = Form('EngineBot|PC|CN')):  # Level ID search
+async def stage_id_search_handler(level_id: str, user_agent: Union[str, None] = Header(default=None),
+                                  auth_code: str = Form('EngineBot|PC|CN')):  # Level ID search
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
     try:
         if auth_data.platform == 'MB':
@@ -294,7 +313,10 @@ async def stage_delete_handler(level_id: str):  # Delete level
 
 
 @app.post('/stage/{level_id}/switch/promising')
-async def switch_promising_handler(level_id: str):  # Switch featured (promising) level
+async def switch_promising_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+    # Switch featured (promising) level
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
     if not level.featured:
         level.featured = True
@@ -317,7 +339,9 @@ async def switch_promising_handler(level_id: str):  # Switch featured (promising
 
 
 @app.post('/stage/{level_id}/stats/intentos')
-async def stats_intentos_handler(level_id: str):
+async def stats_intentos_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
     level.plays += 1
     level.save()
@@ -343,7 +367,9 @@ async def stats_intentos_handler(level_id: str):
 
 
 @app.post('/stage/{level_id}/stats/victorias')
-async def stats_victorias_handler(level_id: str):
+async def stats_victorias_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
     level.clears += 1
     level.save()
@@ -369,7 +395,9 @@ async def stats_victorias_handler(level_id: str):
 
 
 @app.post('/stage/{level_id}/stats/muertes')
-async def stats_muertes_handler(level_id: str):
+async def stats_muertes_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
     level.deaths += 1
     level.save()
@@ -388,7 +416,10 @@ async def stats_muertes_handler(level_id: str):
 
 
 @app.post('/stage/{level_id}/stats/likes')
-async def stats_likes_handler(level_id: str, auth_code: str = Form()):
+async def stats_likes_handler(level_id: str, auth_code: str = Form(),
+                              user_agent: Union[str, None] = Header(default=None)):
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
     username = auth_data.username
     try:
@@ -427,7 +458,10 @@ async def stats_likes_handler(level_id: str, auth_code: str = Form()):
 
 
 @app.post('/stage/{level_id}/stats/dislikes')
-async def stats_dislikes_handler(level_id: str, auth_code: str = Form()):
+async def stats_dislikes_handler(level_id: str, auth_code: str = Form(),
+                                 user_agent: Union[str, None] = Header(default=None)):
+    if not is_valid_user_agent(user_agent):
+        return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
     username = auth_data.username
     try:
