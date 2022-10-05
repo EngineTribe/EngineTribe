@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../..')
+
 from dfa_filter import DFAFilter
 import requests
 from config import OFFENSIVE_WORDS_LIST, OFFENSIVE_WORDS_LIST_CN_ONLY

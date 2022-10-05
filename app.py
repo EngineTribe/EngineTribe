@@ -273,6 +273,9 @@ async def stage_id_search_handler(level_id: str, auth_code: str = Form('EngineBo
 async def stage_delete_handler(level_id: str):  # Delete level
     level = db.Level.get(db.Level.level_id == level_id)
     db.Level.delete().where(db.Level.level_id == level_id).execute()
+    user = db.User.get(db.User.username == level.author)
+    user.uploads -= 1
+    user.save()
     return {'success': 'success', 'id': level_id, 'type': 'stage'}
 
 
