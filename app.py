@@ -30,13 +30,13 @@ if OFFENSIVE_WORDS_FILTER:
     for url in OFFENSIVE_WORDS_LIST:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
-            if len(word) > 1 and len(word.encode('utf-8')) > 2:
+            if len(word.encode('utf-8')) > 2:
                 dfa_filter.add(word)
     for url in OFFENSIVE_WORDS_LIST_CN_ONLY:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
             if len(re.findall(re.compile(r'[A-Za-z]', re.S), word)) == 0:
-                if len(word) > 1 and len(word.encode('utf-8')) > 2:
+                if len(word.encode('utf-8')) > 2:
                     dfa_filter.add(word)
 
 
@@ -249,6 +249,20 @@ async def stages_detailed_search_handler(auth_code: str = Form('EngineBot|PC|CN'
     else:
         return {'type': 'detailed_search', 'num_rows': str(num_rows), 'rows_perpage': str(rows_perpage),
                 'pages': str(pages), 'result': results}
+
+
+@app.post('/stage/random')
+async def stage_id_random_handler(auth_code: str = Form('EngineBot|PC|CN')):  # Random level
+    auth_data = parse_auth_code(auth_code)
+    if auth_data.platform == 'MB':
+        mobile = True  # Mobile fixes
+    else:
+        mobile = False
+    level = db.Level.select().order_by(peewee.fn.Rand()).limit(1)[0]
+    like_type = db.get_like_type(level_id=level.level_id, username=auth_data.username)
+    return {'type': 'id', 'result': level_db_to_dict(level_data=level, locale=auth_data.locale,
+                                                     generate_url_function=storage.generate_url, mobile=mobile,
+                                                     like_type=like_type)}
 
 
 @app.post('/stage/{level_id}')
