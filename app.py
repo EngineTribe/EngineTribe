@@ -261,7 +261,7 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
     if dificultad:
         levels = levels.where(db.Level.deaths != 0)
         if dificultad == '0':
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1.0))
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 10.0))
         elif dificultad == '1':
             levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))
         elif dificultad == '2':
@@ -402,12 +402,18 @@ async def stats_intentos_handler(level_id: str, user_agent: Union[str, None] = H
 
 
 @app.post('/stage/{level_id}/stats/victorias')
-async def stats_victorias_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+async def stats_victorias_handler(level_id: str, tiempo: str = Form(), auth_code: str = Form('EngineBot|PC|CN'),
+                                  user_agent: Union[str, None] = Header(default=None)):
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
     level.clears += 1
     level.save()
+    auth_data = parse_auth_code(auth_code)
+    if level.record == 0:
+        level.record_user = auth_data.username
+        level.record = int(tiempo)
+        level.save()
     if ENABLE_DISCORD_WEBHOOK:
         if level.clears == 100 or level.clears == 1000:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)

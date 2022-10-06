@@ -13,8 +13,8 @@ def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: boo
         name = string_asciify(level_data.name)
     else:
         name = level_data.name
-    if level_data.plays > 0:
-        record = {'record': 'yes', 'alias': 'EngineTribe', 'id': '0', 'time': 0}
+    if level_data.record != 0:
+        record = {'record': 'yes', 'alias': level_data.record_user, 'id': '0', 'time': level_data.record}
     else:
         record = {'record': 'no'}
     return {'name': name,
