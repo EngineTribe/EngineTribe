@@ -140,7 +140,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
         print('md5: duplicated, fallback to sha1')
         level_id = gen_level_id_sha1(swe_to_generate)
 
-    if not_duplicated == False:
+    if not not_duplicated:
         # if duplicated again then use sha256
         try:
             db.Level.get(db.Level.level_id == level_id)
@@ -151,7 +151,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
             print('sha1: duplicated, fallback to sha256')
             level_id = gen_level_id_sha256(swe_to_generate)
 
-    if not_duplicated == False:
+    if not not_duplicated:
         # if sha256 duplicated again then return error
         try:
             db.Level.get(db.Level.level_id == level_id)
@@ -410,9 +410,10 @@ async def stats_victorias_handler(level_id: str, tiempo: str = Form(), auth_code
     level.clears += 1
     level.save()
     auth_data = parse_auth_code(auth_code)
-    if level.record == 0:
+    new_record = int(tiempo)
+    if level.record == 0 or level.record > new_record:
         level.record_user = auth_data.username
-        level.record = int(tiempo)
+        level.record = new_record
         level.save()
     if ENABLE_DISCORD_WEBHOOK:
         if level.clears == 100 or level.clears == 1000:
