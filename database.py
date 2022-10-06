@@ -6,7 +6,7 @@ import datetime
 if DATABASE_ADAPTER == 'mysql':
     db_instance = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
                                 passwd=DATABASE_PASS)
-elif DATABASE_ADAPTER == 'postgres':
+elif DATABASE_ADAPTER == 'postgresql':
     db_instance = PostgresqlDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
                                      passwd=DATABASE_PASS)
 elif DATABASE_ADAPTER == 'sqlite':
@@ -15,6 +15,7 @@ elif DATABASE_ADAPTER == 'sqlite':
 
 class SMMWEDatabase:
     def __init__(self):
+        self.db_type = DATABASE_ADAPTER
         db_instance.connect()
 
     class DatabaseModel(Model):

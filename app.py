@@ -31,13 +31,13 @@ if OFFENSIVE_WORDS_FILTER:
     for url in OFFENSIVE_WORDS_LIST:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
-            if len(word.encode('utf-8')) > 2:
+            if len(word) > 1 and len(word.encode('utf-8')) > 2:
                 dfa_filter.add(word)
     for url in OFFENSIVE_WORDS_LIST_CN_ONLY:
         wordlist = requests.get(url=url).text.replace('\r', '').split('\n')
         for word in wordlist:
             if len(re.findall(re.compile(r'[A-Za-z]', re.S), word)) == 0:
-                if len(word.encode('utf-8')) > 2:
+                if len(word) > 1 and len(word.encode('utf-8')) > 2:
                     dfa_filter.add(word)
 
 
@@ -236,7 +236,8 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
         levels = levels.where(db.Level.environment == entorno)
     if last:
         days = int(last.strip('d'))
-        levels = levels.where((datetime.date.today().day - db.Level.date.day) <= days)
+        levels = levels.where(
+            db.Level.date.between(datetime.date.today() + datetime.timedelta(days=-days), datetime.date.today()))
     if sort:
         if sort == 'antiguos':
             levels = levels.order_by(db.Level.id.asc())
@@ -274,7 +275,10 @@ async def stage_id_random_handler(user_agent: Union[str, None] = Header(default=
         mobile = True  # Mobile fixes
     else:
         mobile = False
-    level = db.Level.select().order_by(peewee.fn.Rand()).limit(1)[0]
+    if db.db_type == 'mysql':
+        level = db.Level.select().order_by(peewee.fn.Rand()).limit(1)[0]
+    else:
+        level = db.Level.select().order_by(peewee.fn.Random()).limit(1)[0]  # postgresql and sqlite
     like_type = db.get_like_type(level_id=level.level_id, username=auth_data.username)
     return {'type': 'id', 'result': level_db_to_dict(level_data=level, locale=auth_data.locale,
                                                      generate_url_function=storage.generate_url, mobile=mobile,
@@ -530,7 +534,8 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     elif request.permission == 'banned':
         user.is_banned = request.value
     user.save()
-    return {'success': 'Update success', 'type': 'update', 'user_id': user.user_id, 'username': user.username}
+    return {'success': 'Update success', 'type': 'update', 'user_id': user.user_id, 'username': user.username,
+            'permission': request.permission, 'value': request.value}
 
 
 @app.post('/user/update_password')  # Update password
