@@ -21,6 +21,7 @@ class LocaleModel:
     LEVEL_NOT_FOUND: str
     UPLOAD_CONNECT_ERROR: str
     LEVEL_ID_REPEAT: str
+    NOT_IMPLEMENTED: str
 
 
 class zh_CN(LocaleModel):
@@ -34,6 +35,7 @@ class zh_CN(LocaleModel):
     LEVEL_NOT_FOUND: str = '找不到关卡。'
     UPLOAD_CONNECT_ERROR: str = '连接关卡存储后端失败。'
     LEVEL_ID_REPEAT: str = '关卡已存在'
+    NOT_IMPLEMENTED: str = '未实现。'
 
 
 class es_ES(LocaleModel):
@@ -46,7 +48,8 @@ class es_ES(LocaleModel):
     UPLOAD_LIMIT_REACHED: str = 'Se alcanzó el máximo de niveles posible para publicar.'
     LEVEL_NOT_FOUND: str = 'Nivel no encontrado.'
     UPLOAD_CONNECT_ERROR: str = 'No se pudo conectar al backend de nivel.'
-    LEVEL_ID_REPEAT: str = 'El nivel ya existe'
+    LEVEL_ID_REPEAT: str = 'El nivel ya existe.'
+    NOT_IMPLEMENTED: str = 'No se ha implementado.'
 
 
 class en_US(LocaleModel):
@@ -59,7 +62,8 @@ class en_US(LocaleModel):
     UPLOAD_LIMIT_REACHED: str = 'You have reached the upload limit.'
     LEVEL_NOT_FOUND: str = 'Level not found.'
     UPLOAD_CONNECT_ERROR: str = 'Could not connect to the storage backend.'
-    LEVEL_ID_REPEAT: str = 'Level already exists'
+    LEVEL_ID_REPEAT: str = 'Level already exists.'
+    NOT_IMPLEMENTED: str = 'Not implemented.'
 
 
 def parse_tag_names(tag_names: str):

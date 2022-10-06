@@ -188,10 +188,12 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
 @app.post('/stages/detailed_search')
 async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(default=None),
                                          auth_code: str = Form('EngineBot|PC|CN'), featured: Optional[str] = Form(None),
-                                         page: Optional[int] = Form(1), title: Optional[str] = Form(None),
+                                         page: Optional[str] = Form('1'), title: Optional[str] = Form(None),
                                          author: Optional[str] = Form(None), aparience: Optional[str] = Form(None),
                                          entorno: Optional[str] = Form(None), last: Optional[str] = Form(None),
-                                         sort: Optional[str] = Form(None)):  # Detailed search (level list)
+                                         sort: Optional[str] = Form(None), liked: Optional[str] = Form(None),
+                                         disliked: Optional[str] = Form(None), historial: Optional[str] = Form(None),
+                                         dificultad: Optional[str] = Form(None)):  # Detailed search (level list)
 
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
@@ -224,6 +226,8 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
 
     if not page:
         page = 1
+    else:
+        page = int(page)
 
     # detailed search
     if title:
@@ -241,6 +245,32 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
     if sort:
         if sort == 'antiguos':
             levels = levels.order_by(db.Level.id.asc())
+    if liked:
+        stats = db.Stats.select().where(db.Stats.likes_users.contains(auth_data.username))
+        # Engine Tribe stores the username of the liker instead of the ID, so the username in auth_code is used here
+        level_ids = []
+        for stat in stats:
+            level_ids.append(stat.level_id)
+        levels = levels.where(db.Level.level_id.in_(level_ids))
+    elif disliked:
+        stats = db.Stats.select().where(db.Stats.dislikes_users.contains(auth_data.username))
+        level_ids = []
+        for stat in stats:
+            level_ids.append(stat.level_id)
+        levels = levels.where(db.Level.level_id.in_(level_ids))
+    if dificultad:
+        levels = levels.where(db.Level.deaths != 0)
+        if dificultad == '0':
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1.0))
+        elif dificultad == '1':
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))
+        elif dificultad == '2':
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))
+        else:
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))
+
+    if historial:
+        return ErrorMessage(error_type='255', message=auth_data.locale_item.NOT_IMPLEMENTED)
 
     # calculate numbers
     num_rows = len(levels)
@@ -254,7 +284,8 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
         try:
             like_type = db.get_like_type(level_id=level.level_id, username=auth_data.username)
             results.append(
-                level_db_to_dict(level_data=level, locale=auth_data.locale, generate_url_function=storage.generate_url,
+                level_db_to_dict(level_data=level, locale=auth_data.locale,
+                                 generate_url_function=storage.generate_url,
                                  mobile=mobile, like_type=like_type))
         except Exception as e:
             print(e)

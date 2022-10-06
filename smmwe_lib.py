@@ -17,15 +17,23 @@ def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: boo
         record = {'record': 'yes', 'alias': 'EngineTribe', 'id': '0', 'time': 0}
     else:
         record = {'record': 'no'}
-    return {'name': name, 'likes': str(level_data.likes), 'dislikes': str(level_data.dislikes),
-            'comments': '0', 'intentos': str(level_data.plays), 'muertes': str(level_data.deaths),
-            'victorias': str(level_data.clears), 'apariencia': level_data.style,
+    return {'name': name,
+            'likes': str(level_data.likes),
+            'dislikes': str(level_data.dislikes),
+            'comments': '0',
+            'intentos': str(level_data.plays),
+            'muertes': str(level_data.deaths),
+            'victorias': str(level_data.clears),
+            'apariencia': level_data.style,
             'entorno': level_data.environment,
             'etiquetas': get_tag_name(level_data.tag_1, locale) + ',' + get_tag_name(level_data.tag_2, locale),
             'featured': int(level_data.featured),
-            'user_data': {'completed': 'no', 'liked': like_type}, 'record': record,
+            'user_data': {'completed': 'no', 'liked': like_type},
+            'record': record,
             'date': level_data.date.strftime("%m/%d/%Y"),
-            'author': level_data.author, 'description': 'Sin Descripción', 'archivo': url,
+            'author': level_data.author,
+            'description': 'Sin Descripción',
+            'archivo': url,
             'id': level_data.level_id}
 
 
