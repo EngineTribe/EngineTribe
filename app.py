@@ -140,26 +140,26 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
         print('md5: duplicated, fallback to sha1')
         level_id = gen_level_id_sha1(swe_to_generate)
 
-    # if duplicated again then use sha256
-    not_duplicated = False
-    try:
-        db.Level.get(db.Level.level_id == level_id)
-    except peewee.DoesNotExist:
-        print('sha1: Not duplicated')
-        not_duplicated = True
-    if not not_duplicated:
-        print('sha1: duplicated, fallback to sha256')
-        level_id = gen_level_id_sha256(swe_to_generate)
+    if not_duplicated == False:
+        # if duplicated again then use sha256
+        try:
+            db.Level.get(db.Level.level_id == level_id)
+        except peewee.DoesNotExist:
+            print('sha1: Not duplicated')
+            not_duplicated = True
+        if not not_duplicated:
+            print('sha1: duplicated, fallback to sha256')
+            level_id = gen_level_id_sha256(swe_to_generate)
 
-    # if sha256 duplicated again then return error
-    not_duplicated = False
-    try:
-        db.Level.get(db.Level.level_id == level_id)
-    except peewee.DoesNotExist:
-        print('sha256: Not duplicated')
-        not_duplicated = True
-    if not not_duplicated:
-        return ErrorMessage(error_type='009', message=auth_data.locale_item.LEVEL_ID_REPEAT)
+    if not_duplicated == False:
+        # if sha256 duplicated again then return error
+        try:
+            db.Level.get(db.Level.level_id == level_id)
+        except peewee.DoesNotExist:
+            print('sha256: Not duplicated')
+            not_duplicated = True
+        if not not_duplicated:
+            return ErrorMessage(error_type='009', message=auth_data.locale_item.LEVEL_ID_REPEAT)
 
     if len(swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return ErrorMessage(error_type='025', message=auth_data.locale_item.FILE_TOO_LARGE)

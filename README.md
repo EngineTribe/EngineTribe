@@ -14,19 +14,16 @@ The Discord bot has not yet been completed. If you want to join the Engine Tribe
 ### ✅ Features
 
 - 👥 User system, registration and logging in
-- ☁️ OneDrive storage backend
+- ☁ OneDrive storage backend
 - 🗄️ MySQL, PostgreSQL or SQLite database
 - 📤 Uploading and deleting level
 - 🔍 Browsing level and detailed searching
-- ❤️ Likes and dislikes
+- ❤ Likes and dislikes
+- 🕰️ Time recording
 
 ### 🚵‍♀️ Roadmap
 
-- 🕰️ Records
-- 🖋️ Name & password modification
-- 📊 Difficulty search
-- ❎ Denying duplicate levels to upload
-- 🤖 Engine-bot for Discord
+- 📗 Documents
 
 ---
 
