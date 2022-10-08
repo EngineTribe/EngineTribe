@@ -18,8 +18,8 @@ class UpdatePermissionRequestBody(PydanticModel):
     api_key: str
     username: Optional[str]
     user_id: Optional[str]
-    permission: Optional[str]
-    value: Optional[str]
+    permission: str
+    value: bool
 
 
 class UpdatePasswordRequestBody(PydanticModel):

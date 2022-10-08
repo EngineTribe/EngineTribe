@@ -571,6 +571,8 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
         user.is_valid = request.value
     elif request.permission == 'banned':
         user.is_banned = request.value
+    else:
+        return ErrorMessage(error_type='255', message='Permission does not exist.')
     user.save()
     return {'success': 'Update success', 'type': 'update', 'user_id': user.user_id, 'username': user.username,
             'permission': request.permission, 'value': request.value}
