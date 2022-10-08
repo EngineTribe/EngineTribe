@@ -37,7 +37,7 @@ class SMMWEDatabase:
         author = TextField()  # Level maker
         # archivo = TextField()  # Level file in storage backend   # deprecated
         level_id = TextField()  # Level ID
-        non_ascii = BooleanField()  # Whether the level name contains non-ASCII characters
+        non_latin = BooleanField()  # Whether the level name contains non-Latin characters
         featured = BooleanField()  # Whether the level is in promising levels
         record_user = TextField()  # Record user
         record = IntegerField()  # Record
@@ -71,13 +71,13 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'user_table'
 
-    def add_level(self, name, style, environment, tags, author, level_id, non_ascii, offensive):
+    def add_level(self, name, style, environment, tags, author, level_id, non_latin, offensive):
         # add level metadata into database
         tags_id = parse_tag_names(tags)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
                            date=datetime.date.today(), author=author,
-                           level_id=level_id, non_ascii=non_ascii, record_user='', record=0, offensive=offensive)
+                           level_id=level_id, non_latin=non_latin, record_user='', record=0, offensive=offensive)
         level.save()
 
     def add_user(self, username: str, password_hash: str, user_id):

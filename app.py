@@ -120,10 +120,10 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
     else:
         offensive = False
 
-    # check non-ASCII
-    non_ascii = False
-    if (re.sub(r'[ -~]', '', name)) != "":
-        non_ascii = True
+    # check non-Latin
+    non_latin = False
+    if (re.sub(u'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]', u'', name)) != name:
+        non_latin = True
 
     # generate level id
     swe_to_generate = strip_level(swe)
@@ -168,7 +168,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
     except ConnectionError:
         return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
 
-    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_ascii, offensive)
+    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_latin, offensive)
     account.uploads += 1
     account.save()
     if ENABLE_DISCORD_WEBHOOK:

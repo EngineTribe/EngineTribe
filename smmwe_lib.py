@@ -1,6 +1,5 @@
 import base64
 import hashlib
-from urllib.parse import quote
 
 from xpinyin import Pinyin
 
@@ -9,8 +8,8 @@ from locales import *
 
 def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
     url = generate_url_function(level_data.level_id)
-    if mobile:
-        name = string_asciify(level_data.name)
+    if mobile and level_data.non_latin:
+        name = string_latinify(level_data.name)
     else:
         name = level_data.name
     if level_data.record != 0:
@@ -84,7 +83,7 @@ def calculate_password_hash(password: str):
     return hashlib.sha256(base64.b64encode(password.encode('utf-8'))).hexdigest()
 
 
-def string_asciify(t):
+def string_latinify(t):
     table = {ord(f): ord(t) for f, t in zip(u'，。！？【】（）％＃＠＆－—〔〕：；〇﹒—﹙﹚、—“”', u',.!?[]()%#@&--():;0.—(),-""')}
 
     try:
@@ -92,7 +91,7 @@ def string_asciify(t):
     except:
         t2 = t
     t2 = Pinyin().get_pinyin(t2).replace('-', ' ')
-    t2 = quote(t2, safe='"!@#$%^&*()-_=+[{]}\'\\|:;,<.>/?`~ ')
+    t2 = re.sub(u'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]', u'', t2)
     return t2
 
 
