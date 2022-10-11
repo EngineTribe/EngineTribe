@@ -23,6 +23,7 @@ The Discord bot has not yet been completed. If you want to join the Engine Tribe
 
 ### 🚵‍♀️ Roadmap
 
+- 🐛 Fixing bugs
 - 📗 Documents
 
 ---
