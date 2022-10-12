@@ -49,9 +49,20 @@ async def readme_handler():  # Redirect to Engine Tribe README
 @app.post('/user/login')
 async def user_login_handler(user_agent: Union[str, None] = Header(default=None), alias: str = Form(''),
                              token: str = Form(''), password: str = Form('')):  # User login
-    tokens_auth_code_match = {Tokens.PC_CN: alias + '|PC|CN', Tokens.PC_ES: alias + '|PC|ES',
-                              Tokens.PC_EN: alias + '|PC|EN', Tokens.Mobile_CN: alias + '|MB|CN',
-                              Tokens.Mobile_ES: alias + '|MB|ES', Tokens.Mobile_EN: alias + '|MB|EN'}
+    tokens_auth_code_match = {
+        Tokens.PC_CN: alias + '|PC|CN',
+        Tokens.PC_ES: alias + '|PC|ES',
+        Tokens.PC_EN: alias + '|PC|EN',
+        Tokens.Mobile_CN: alias + '|MB|CN',
+        Tokens.Mobile_ES: alias + '|MB|ES',
+        Tokens.Mobile_EN: alias + '|MB|EN',
+        Tokens.PC_Legacy_CN: alias + '|PC|CN|L',
+        Tokens.PC_Legacy_ES: alias + '|PC|ES|L',
+        Tokens.PC_Legacy_EN: alias + '|PC|EN|L',
+        Tokens.Mobile_Legacy_CN: alias + '|MB|CN|L',
+        Tokens.Mobile_Legacy_ES: alias + '|MB|ES|L',
+        Tokens.Mobile_Legacy_EN: alias + '|MB|EN|L'
+    }
 
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
@@ -114,16 +125,17 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
         name_filtered = dfa_filter.filter(name)
         if name_filtered != name:
             name = name_filtered
-            offensive = True
-        else:
-            offensive = False
-    else:
-        offensive = False
 
     # check non-Latin
     non_latin = False
     if (re.sub(u'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]', u'', name)) != name:
         non_latin = True
+
+    # check legacy client
+    if auth_data.legacy:
+        legacy = True
+    else:
+        legacy = False
 
     # generate level id
     swe_to_generate = strip_level(swe)
@@ -168,7 +180,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
     except ConnectionError:
         return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
 
-    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_latin, offensive)
+    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_latin, legacy)
     account.uploads += 1
     account.save()
     if ENABLE_DISCORD_WEBHOOK:
