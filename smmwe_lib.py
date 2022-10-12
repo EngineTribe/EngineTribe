@@ -13,7 +13,7 @@ def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: boo
     else:
         name = level_data.name
     if level_data.record != 0:
-        record = {'record': 'yes', 'alias': level_data.record_user, 'id': '0', 'time': level_data.record}
+        record = {'record': 'yes', 'alias': level_data.record_user, 'id': '10001', 'time': level_data.record}
     else:
         record = {'record': 'no'}
     return {'name': name,

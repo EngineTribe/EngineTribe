@@ -95,6 +95,6 @@ class SMMWEDatabase:
             elif username + ',' in stat.dislikes_users:
                 return '1'  # dislike
             else:
-                return '2'  # none
+                return '3'  # none
         except DoesNotExist:
-            return '2'
+            return '3'
