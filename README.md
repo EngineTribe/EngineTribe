@@ -7,10 +7,10 @@
 
 ---
 
-### ⚠ WIP
+<!--### ⚠ WIP-->
 
 <!--This program is in **Work In Progress** state, maybe not full-functionally work.-->
-The Discord bot has not yet been completed. If you want to join the Engine Tribe, you can join the QQ group.
+<!--The Discord bot has not yet been completed. If you want to join the Engine Tribe, you can join the QQ group.-->
 ### ✅ Features
 
 - 👥 User system, registration and logging in
