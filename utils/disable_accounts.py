@@ -1,4 +1,4 @@
-from goomba_detect_config import *
+from disable_accounts_config import *
 import sys
 
 sys.path.append('..')
