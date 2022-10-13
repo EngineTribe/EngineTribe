@@ -23,7 +23,7 @@ async def on_ready():
     guild = client.get_guild(GUILD_ID)
     print(guild.name)
     for user in db.User.select():
-        if len(user.user_id) > 10:  # Discord user
+        if len(user.user_id) > 10 and user.is_valid:  # Discord user
             if guild.get_member(int(user.user_id)) not in guild.get_role(VERIFIED_ROLE).members:
                 print(f'Disable {user.username}\'s account')
                 user.is_valid = False
