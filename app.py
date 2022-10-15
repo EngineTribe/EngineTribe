@@ -100,6 +100,12 @@ async def user_login_handler(user_agent: Union[str, None] = Header(default=None)
 async def stages_upload_handler(user_agent: Union[str, None] = Header(default=None), auth_code: str = Form(),
                                 swe: str = Form(), name: str = Form(), aparience: str = Form(),
                                 entorno: str = Form(), tags: str = Form()):
+    print(name)
+    print(name)
+    print(name)
+    print(name)
+    print(name)
+    print(name)
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
 
