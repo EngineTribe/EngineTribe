@@ -100,12 +100,6 @@ async def user_login_handler(user_agent: Union[str, None] = Header(default=None)
 async def stages_upload_handler(user_agent: Union[str, None] = Header(default=None), auth_code: str = Form(),
                                 swe: str = Form(), name: str = Form(), aparience: str = Form(),
                                 entorno: str = Form(), tags: str = Form()):
-    print(name)
-    print(name)
-    print(name)
-    print(name)
-    print(name)
-    print(name)
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
 
@@ -129,7 +123,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
 
     if OFFENSIVE_WORDS_FILTER:
         name_filtered = dfa_filter.filter(name)
-        if name_filtered != name:
+        if name_filtered != name.lower():
             name = name_filtered
 
     # check non-Latin
@@ -192,7 +186,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
     if ENABLE_DISCORD_WEBHOOK:
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
         message = f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n'
-        message += f'ID: `{level_id}`  Tags: `{tags}`\n'
+        message += f'ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
         message += 'Descargar: ' + storage.generate_download_url(level_id=level_id)
         webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
@@ -402,7 +396,7 @@ async def stats_intentos_handler(level_id: str, user_agent: Union[str, None] = H
         if level.clears == 100 or level.clears == 1000:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
             message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** ha sido reproducido **' \
-                      + level.plays + '** veces!\n'
+                      + str(level.plays) + '** veces!\n'
             message += 'ID: `' + level_id + '`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
@@ -437,7 +431,7 @@ async def stats_victorias_handler(level_id: str, tiempo: str = Form(), auth_code
         if level.clears == 100 or level.clears == 1000:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
             message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** ha salido victorioso **' + \
-                      level.clears + '** veces!\n'
+                      str(level.clears) + '** veces!\n'
             message += 'ID: `' + level_id + '`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
@@ -495,7 +489,7 @@ async def stats_likes_handler(level_id: str, auth_code: str = Form(),
         if level.likes == 10 or level.likes == 100 or level.likes == 1000:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
             message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** tiene **' + \
-                      level.likes + '** me gusta!\n'
+                      str(level.likes) + '** me gusta!\n'
             message += 'ID: `' + level_id + '`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
