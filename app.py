@@ -18,10 +18,14 @@ from dfa_filter import DFAFilter
 
 app = FastAPI()
 db = SMMWEDatabase()
+
 # auto create table
 db.Level.create_table()
 db.User.create_table()
 db.Stats.create_table()
+
+# Only onedrive-cf storage adapter is supported now
+# ~~In fact, it should be provider not adapter, too lazy to change it~~
 if STORAGE_ADAPTER == 'onedrive-cf':
     storage = StorageAdapterOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED)
 
@@ -49,37 +53,41 @@ async def readme_handler():  # Redirect to Engine Tribe README
 @app.post('/user/login')
 async def user_login_handler(user_agent: Union[str, None] = Header(default=None), alias: str = Form(''),
                              token: str = Form(''), password: str = Form('')):  # User login
+    # match auth_code to generate token
     tokens_auth_code_match = {
-        Tokens.PC_CN: alias + '|PC|CN',
-        Tokens.PC_ES: alias + '|PC|ES',
-        Tokens.PC_EN: alias + '|PC|EN',
-        Tokens.Mobile_CN: alias + '|MB|CN',
-        Tokens.Mobile_ES: alias + '|MB|ES',
-        Tokens.Mobile_EN: alias + '|MB|EN',
-        Tokens.PC_Legacy_CN: alias + '|PC|CN|L',
-        Tokens.PC_Legacy_ES: alias + '|PC|ES|L',
-        Tokens.PC_Legacy_EN: alias + '|PC|EN|L',
-        Tokens.Mobile_Legacy_CN: alias + '|MB|CN|L',
-        Tokens.Mobile_Legacy_ES: alias + '|MB|ES|L',
-        Tokens.Mobile_Legacy_EN: alias + '|MB|EN|L'
+        Tokens.PC_CN: f'{alias}|PC|CN',
+        Tokens.PC_ES: f'{alias}|PC|ES',
+        Tokens.PC_EN: f'{alias}|PC|EN',
+        Tokens.Mobile_CN: f'{alias}|MB|CN',
+        Tokens.Mobile_ES: f'{alias}|MB|ES',
+        Tokens.Mobile_EN: f'{alias}|MB|EN',
+        Tokens.PC_Legacy_CN: f'{alias}|PC|CN|L',
+        Tokens.PC_Legacy_ES: f'{alias}|PC|ES|L',
+        Tokens.PC_Legacy_EN: f'{alias}|PC|EN|L',
+        Tokens.Mobile_Legacy_CN: f'{alias}|MB|CN|L',
+        Tokens.Mobile_Legacy_ES: f'{alias}|MB|ES|L',
+        Tokens.Mobile_Legacy_EN: f'{alias}|MB|EN|L'
     }
 
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
 
     password = password.encode('latin1').decode('utf-8')
-    # Fixes for Starlette
+    # Fix for Starlette
     # https://github.com/encode/starlette/issues/425
 
+    # match the token
     try:
         auth_code = tokens_auth_code_match[token]
         auth_data = parse_auth_code(auth_code)
     except KeyError:
         return ErrorMessage(error_type='005', message='Illegal client.')
+
     if 'SMMWEMB' in token:
         mobile = True
     else:
         mobile = False
+
     try:
         account = db.User.get(db.User.username == alias)
     except peewee.DoesNotExist:
@@ -105,10 +113,11 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
 
     auth_data = parse_auth_code(auth_code)
     account = db.User.get(db.User.username == auth_data.username)
+
     if account.is_booster:
-        upload_limit = UPLOAD_LIMIT + 10
+        upload_limit = UPLOAD_LIMIT + BOOSTERS_EXTRA_LIMIT
     elif account.is_mod or account.is_admin:
-        upload_limit = 999
+        upload_limit = 999  # Almost infinite
     else:
         upload_limit = UPLOAD_LIMIT
     if account.uploads >= upload_limit:
@@ -121,7 +130,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
 
     print('Uploading level ' + name)
 
-    if OFFENSIVE_WORDS_FILTER:
+    if OFFENSIVE_WORDS_FILTER:  # Apply filter
         name_filtered = dfa_filter.filter(name)
         if name_filtered != name.lower():
             name = name_filtered
@@ -187,7 +196,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
         message = f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n'
         message += f'ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
-        message += 'Descargar: ' + storage.generate_download_url(level_id=level_id)
+        message += f'Descargar: {storage.generate_download_url(level_id=level_id)}'
         webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
         for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
@@ -486,18 +495,13 @@ async def stats_likes_handler(level_id: str, auth_code: str = Form(),
     level.likes += 1
     level.save()
     if ENABLE_DISCORD_WEBHOOK:
-        if level.likes == 10 or level.likes == 100 or level.likes == 1000:
+        if level.likes == 100 or level.likes == 1000:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
             message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** tiene **' + \
                       str(level.likes) + '** me gusta!\n'
             message += 'ID: `' + level_id + '`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
-        if level.likes == 10:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                requests.post(url=webhook_url,
-                              json={'type': '10_likes', 'level_id': level_id, 'level_name': level.name,
-                                    'author': level.author})
         if level.likes == 100:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 requests.post(url=webhook_url,
