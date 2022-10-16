@@ -379,8 +379,8 @@ async def switch_promising_handler(level_id: str, user_agent: Union[str, None] =
         print(level_id + ' added to featured')
         if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = '🌟 El **' + level.name + '** por **' + level.author + '** se agrega a niveles prometedores! \n '
-            message += 'ID: `' + level_id + '`'
+            message = f'🌟 El **{level.name}** por **{level.author}** se agrega a niveles prometedores! \n '
+            message += f'ID: `{level_id}`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
         if ENABLE_ENGINE_BOT_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
@@ -401,23 +401,16 @@ async def stats_intentos_handler(level_id: str, user_agent: Union[str, None] = H
     level = db.Level.get(db.Level.level_id == level_id)
     level.plays += 1
     level.save()
-    if ENABLE_DISCORD_WEBHOOK:
-        if level.clears == 100 or level.clears == 1000:
+    if level.plays == 100 or level.plays == 1000:
+        if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** ha sido reproducido **' \
-                      + str(level.plays) + '** veces!\n'
-            message += 'ID: `' + level_id + '`'
+            message = f'🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n'
+            message += f'ID: `{level_id}`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
-    if ENABLE_ENGINE_BOT_WEBHOOK:
-        if level.plays == 100:
+        if ENABLE_ENGINE_BOT_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 requests.post(url=webhook_url,
-                              json={'type': '100_plays', 'level_id': level_id, 'level_name': level.name,
-                                    'author': level.author})
-        if level.plays == 1000:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                requests.post(url=webhook_url,
-                              json={'type': '1000_plays', 'level_id': level_id, 'level_name': level.name,
+                              json={'type': f'{level.plays}_plays', 'level_id': level_id, 'level_name': level.name,
                                     'author': level.author})  # Send plays info to Engine-bot
     return {'success': 'success', 'id': level_id, 'type': 'stats'}
 
@@ -436,23 +429,16 @@ async def stats_victorias_handler(level_id: str, tiempo: str = Form(), auth_code
         level.record_user = auth_data.username
         level.record = new_record
         level.save()
-    if ENABLE_DISCORD_WEBHOOK:
-        if level.clears == 100 or level.clears == 1000:
+    if level.clears == 100 or level.clears == 1000:
+        if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** ha salido victorioso **' + \
-                      str(level.clears) + '** veces!\n'
-            message += 'ID: `' + level_id + '`'
+            message = f'🎉 Felicidades, el **{level.name}** de **{level.author}** ha salido victorioso **{level.clears}** veces!\n'
+            message += f'ID: `{level_id}`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
-    if ENABLE_ENGINE_BOT_WEBHOOK:
-        if level.clears == 100:
+        if ENABLE_ENGINE_BOT_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 requests.post(url=webhook_url,
-                              json={'type': '100_clears', 'level_id': level_id, 'level_name': level.name,
-                                    'author': level.author})
-        if level.clears == 1000:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                requests.post(url=webhook_url,
-                              json={'type': '1000_clears', 'level_id': level_id, 'level_name': level.name,
+                              json={'type': f'{level.clears}_clears', 'level_id': level_id, 'level_name': level.name,
                                     'author': level.author})  # Send clears info to Engine-bot
     return {'success': 'success', 'id': level_id, 'type': 'stats'}
 
@@ -464,16 +450,11 @@ async def stats_muertes_handler(level_id: str, user_agent: Union[str, None] = He
     level = db.Level.get(db.Level.level_id == level_id)
     level.deaths += 1
     level.save()
-    if ENABLE_ENGINE_BOT_WEBHOOK:
-        if level.deaths == 100:
+    if level.deaths == 100 or level.deaths == 1000:
+        if ENABLE_ENGINE_BOT_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 requests.post(url=webhook_url,
-                              json={'type': '100_deaths', 'level_id': level_id, 'level_name': level.name,
-                                    'author': level.author})
-        if level.deaths == 1000:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                requests.post(url=webhook_url,
-                              json={'type': '1000_deaths', 'level_id': level_id, 'level_name': level.name,
+                              json={'type': f'{level.deaths}_deaths', 'level_id': level_id, 'level_name': level.name,
                                     'author': level.author})  # Send deaths info to Engine-bot
     return {'success': 'success', 'id': level_id, 'type': 'stats'}
 
@@ -494,23 +475,16 @@ async def stats_likes_handler(level_id: str, auth_code: str = Form(),
     level = db.Level.get(db.Level.level_id == level_id)
     level.likes += 1
     level.save()
-    if ENABLE_DISCORD_WEBHOOK:
-        if level.likes == 100 or level.likes == 1000:
+    if level.likes == 100 or level.likes == 1000:
+        if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = '🎉 Felicidades, el **' + level.name + '** de **' + level.author + '** tiene **' + \
-                      str(level.likes) + '** me gusta!\n'
-            message += 'ID: `' + level_id + '`'
+            message = f'🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n'
+            message += f'ID: `{level_id}`'
             webhook.send(message, username='Engine Bot', avatar_url=DISCORD_AVATAR_URL)
-    if ENABLE_ENGINE_BOT_WEBHOOK:
-        if level.likes == 100:
+        if ENABLE_ENGINE_BOT_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 requests.post(url=webhook_url,
-                              json={'type': '100_likes', 'level_id': level_id, 'level_name': level.name,
-                                    'author': level.author})
-        if level.likes == 1000:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                requests.post(url=webhook_url,
-                              json={'type': '1000_likes', 'level_id': level_id, 'level_name': level.name,
+                              json={'type': f'{level.likes}_likes', 'level_id': level_id, 'level_name': level.name,
                                     'author': level.author})  # Send likes info to Engine-bot
     return {'success': 'success', 'id': level_id, 'type': 'stats'}
 
