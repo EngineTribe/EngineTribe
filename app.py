@@ -8,6 +8,9 @@ import uvicorn
 from fastapi import FastAPI, Form, Header
 from fastapi.responses import RedirectResponse
 from typing import Union
+import threading
+import platform
+from datetime import datetime
 
 from config import *
 from database import SMMWEDatabase
@@ -18,6 +21,9 @@ from dfa_filter import DFAFilter
 
 app = FastAPI()
 db = SMMWEDatabase()
+connection_count = 0
+connection_per_minute = 0
+start_time = datetime.now()
 
 # auto create table
 db.Level.create_table()
@@ -69,6 +75,8 @@ async def user_login_handler(user_agent: Union[str, None] = Header(default=None)
         Tokens.Mobile_Legacy_EN: f'{alias}|MB|EN|L'
     }
 
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
 
@@ -108,6 +116,8 @@ async def user_login_handler(user_agent: Union[str, None] = Header(default=None)
 async def stages_upload_handler(user_agent: Union[str, None] = Header(default=None), auth_code: str = Form(),
                                 swe: str = Form(), name: str = Form(), aparience: str = Form(),
                                 entorno: str = Form(), tags: str = Form()):
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
 
@@ -216,6 +226,8 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
                                          disliked: Optional[str] = Form(None), historial: Optional[str] = Form(None),
                                          dificultad: Optional[str] = Form(None)):  # Detailed search (level list)
 
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
 
@@ -320,6 +332,8 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
 @app.post('/stage/random')
 async def stage_id_random_handler(user_agent: Union[str, None] = Header(default=None),
                                   auth_code: str = Form('EngineBot|PC|CN')):  # Random level
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
@@ -360,6 +374,8 @@ async def stage_id_search_handler(level_id: str, user_agent: Union[str, None] = 
 
 @app.post('/stage/{level_id}/delete')
 async def stage_delete_handler(level_id: str):  # Delete level
+    global connection_count
+    connection_count += 1
     level = db.Level.get(db.Level.level_id == level_id)
     db.Level.delete().where(db.Level.level_id == level_id).execute()
     user = db.User.get(db.User.username == level.author)
@@ -371,6 +387,8 @@ async def stage_delete_handler(level_id: str):  # Delete level
 @app.post('/stage/{level_id}/switch/promising')
 async def switch_promising_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
     # Switch featured (promising) level
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
@@ -396,6 +414,8 @@ async def switch_promising_handler(level_id: str, user_agent: Union[str, None] =
 
 @app.post('/stage/{level_id}/stats/intentos')
 async def stats_intentos_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
@@ -418,6 +438,8 @@ async def stats_intentos_handler(level_id: str, user_agent: Union[str, None] = H
 @app.post('/stage/{level_id}/stats/victorias')
 async def stats_victorias_handler(level_id: str, tiempo: str = Form(), auth_code: str = Form('EngineBot|PC|CN'),
                                   user_agent: Union[str, None] = Header(default=None)):
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
@@ -445,6 +467,8 @@ async def stats_victorias_handler(level_id: str, tiempo: str = Form(), auth_code
 
 @app.post('/stage/{level_id}/stats/muertes')
 async def stats_muertes_handler(level_id: str, user_agent: Union[str, None] = Header(default=None)):
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     level = db.Level.get(db.Level.level_id == level_id)
@@ -462,6 +486,8 @@ async def stats_muertes_handler(level_id: str, user_agent: Union[str, None] = He
 @app.post('/stage/{level_id}/stats/likes')
 async def stats_likes_handler(level_id: str, auth_code: str = Form(),
                               user_agent: Union[str, None] = Header(default=None)):
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
@@ -492,6 +518,8 @@ async def stats_likes_handler(level_id: str, auth_code: str = Form(),
 @app.post('/stage/{level_id}/stats/dislikes')
 async def stats_dislikes_handler(level_id: str, auth_code: str = Form(),
                                  user_agent: Union[str, None] = Header(default=None)):
+    global connection_count
+    connection_count += 1
     if not is_valid_user_agent(user_agent):
         return ErrorMessage(error_type='005', message='Illegal client.')
     auth_data = parse_auth_code(auth_code)
@@ -513,6 +541,8 @@ async def stats_dislikes_handler(level_id: str, auth_code: str = Form(),
 # In Engine Tribe, they are separated, so need to use these APIs
 @app.post('/user/register')  # Register account
 async def user_register_handler(request: RegisterRequestBody):
+    global connection_count
+    connection_count += 1
     if request.api_key != API_KEY:
         return {'error_type': '004', 'message': 'Invalid API key.', 'api_key': request.api_key}
     user_exist = True
@@ -540,6 +570,8 @@ async def user_register_handler(request: RegisterRequestBody):
 @app.post('/user/update_permission')  # Update permission
 async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     # username/user_id, permission, value, api_key
+    global connection_count
+    connection_count += 1
     if request.api_key != API_KEY:
         return {'error_type': '004', 'message': 'Invalid API key.', 'api_key': request.api_key}
     try:
@@ -571,6 +603,8 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
 @app.post('/user/update_password')  # Update password
 async def user_update_password_handler(request: UpdatePasswordRequestBody):
     # username, password_hash, api_key
+    global connection_count
+    connection_count += 1
     if request.api_key != API_KEY:
         return {'error_type': '004', 'message': 'Invalid API key.', 'api_key': request.api_key}
     try:
@@ -584,6 +618,8 @@ async def user_update_password_handler(request: UpdatePasswordRequestBody):
 
 @app.post('/user/info')  # Get user info
 async def user_info_handler(request: UserInfoRequestBody):
+    global connection_count
+    connection_count += 1
     try:
         if request.username:
             user = db.User.get(db.User.username == request.username)
@@ -598,5 +634,26 @@ async def user_info_handler(request: UserInfoRequestBody):
                                        'is_valid': user.is_valid, 'is_banned': user.is_banned}}
 
 
+@app.get('/server_stats')
+async def server_stats():
+    global connection_per_minute, start_time
+    return {
+        'os': f'{platform.platform()} {platform.version()}',
+        'python': platform.python_version(),
+        'player_count': db.User.select().count(),
+        'level_count': db.Level.select().count(),
+        'uptime': datetime.now() - start_time,
+        'connection_per_minute': connection_per_minute
+    }
+
+
+def timer_function():
+    global connection_count, connection_per_minute
+    connection_per_minute = connection_count
+    connection_count = 0
+    threading.Timer(60, timer_function).start()
+
+
 if __name__ == '__main__':
+    threading.Timer(1, timer_function).start()
     uvicorn.run(app, host=HOST, port=PORT)
