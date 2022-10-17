@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 from typing import Union
 import threading
 import platform
-from datetime import datetime
+import datetime
 
 from config import *
 from database import SMMWEDatabase
@@ -23,7 +23,7 @@ app = FastAPI()
 db = SMMWEDatabase()
 connection_count = 0
 connection_per_minute = 0
-start_time = datetime.now()
+start_time = datetime.datetime.now()
 
 # auto create table
 db.Level.create_table()
@@ -642,7 +642,7 @@ async def server_stats():
         'python': platform.python_version(),
         'player_count': db.User.select().count(),
         'level_count': db.Level.select().count(),
-        'uptime': datetime.now() - start_time,
+        'uptime': datetime.datetime.now() - start_time,
         'connection_per_minute': connection_per_minute
     }
 
