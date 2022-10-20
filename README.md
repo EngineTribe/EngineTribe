@@ -24,7 +24,12 @@
 ### 🚵‍♀️ Roadmap
 
 - 🐛 Fixing bugs
+
 - 📗 Documents
+
+### 🕰️ Legacy Client
+
+Engine Tribe also has limited support to patched 3.1.1 "legacy" client.
 
 ---
 
