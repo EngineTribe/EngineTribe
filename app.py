@@ -400,6 +400,7 @@ async def switch_promising_handler(level_id: str, user_agent: Union[str, None] =
     level = db.Level.get(db.Level.level_id == level_id)
     if not level.featured:
         level.featured = True
+        level.save()
         print(level_id + ' added to featured')
         if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
@@ -412,9 +413,9 @@ async def switch_promising_handler(level_id: str, user_agent: Union[str, None] =
                               json={'type': 'new_featured', 'level_id': level_id, 'level_name': level.name,
                                     'author': level.author})  # Send new featured info to Engine-bot
     else:
-        print(level_id + ' removed from featured')
         level.featured = False
-    level.save()
+        level.save()
+        print(level_id + ' removed from featured')
     return {'success': 'success', 'id': level_id, 'type': 'stage'}
 
 
