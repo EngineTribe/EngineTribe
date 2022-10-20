@@ -11,6 +11,7 @@ from typing import Union
 import threading
 import platform
 import datetime
+import requests
 
 from config import *
 from database import SMMWEDatabase
@@ -18,6 +19,7 @@ from models import *
 from smmwe_lib import *
 from storage_adapter import *
 from dfa_filter import DFAFilter
+from locales import es_ES
 
 app = FastAPI()
 db = SMMWEDatabase()
@@ -106,9 +108,13 @@ async def user_login_handler(user_agent: Union[str, None] = Header(default=None)
         return ErrorMessage(error_type='005', message=auth_data.locale_item.ACCOUNT_BANNED)
     if account.password_hash != calculate_password_hash(password):
         return ErrorMessage(error_type='007', message=auth_data.locale_item.ACCOUNT_ERROR_PASSWORD)
-    login_user_profile = {'username': alias, 'admin': account.is_admin, 'mod': account.is_mod,
-                          'booster': account.is_booster, 'goomba': True, 'alias': alias, 'id': account.user_id,
-                          'uploads': str(account.uploads), 'mobile': mobile, 'auth_code': auth_code}
+    if '|L' in auth_code:
+        login_user_profile = {'goomba': True, 'alias': alias, 'id': account.user_id, 'auth_code': auth_code,
+                              'ip': '127.0.0.1'}
+    else:
+        login_user_profile = {'username': alias, 'admin': account.is_admin, 'mod': account.is_mod,
+                              'booster': account.is_booster, 'goomba': True, 'alias': alias, 'id': account.user_id,
+                              'uploads': str(account.uploads), 'mobile': mobile, 'auth_code': auth_code}
     return login_user_profile
 
 
@@ -645,6 +651,17 @@ async def server_stats():
         'uptime': datetime.datetime.now() - start_time,
         'connection_per_minute': connection_per_minute
     }
+
+
+# APIs for legacy client
+
+@app.get('/stage/{level_id}/file')
+async def legacy_stage_file(level_id: str):
+    try:
+        return {'data': requests.get(storage.generate_url(level_id)).text}
+    except Exception as ex:
+        print(ex)
+        return ErrorMessage(error_type='029', message=es_ES.LEVEL_NOT_FOUND)  # No level found
 
 
 def timer_function():
