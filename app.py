@@ -254,7 +254,7 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
             levels = levels.where(db.Level.featured == True)  # featured levels
             levels = levels.order_by(db.Level.id.desc())  # latest levels
         elif featured == 'popular':
-            levels = levels.order_by(db.Level.likes.desc())  # likes
+            levels = levels.order_by((db.Level.likes - db.Level.dislikes).desc())  # likes
     else:
         levels = levels.order_by(db.Level.id.desc())  # latest levels
 
