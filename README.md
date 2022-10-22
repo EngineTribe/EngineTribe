@@ -29,7 +29,7 @@
 
 ### 🕰️ Legacy Client
 
-Engine Tribe also has limited support to patched 3.1.1 "legacy" client.
+Engine Tribe also has limited support to patched 3.1.1 "legacy" client. To play with 3.1.1 client, you have to modify legacy routes to 3.2.3 ones.
 
 ---
 
