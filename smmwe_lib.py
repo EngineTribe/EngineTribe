@@ -78,7 +78,7 @@ def parse_auth_code(raw_auth_code: str):
             legacy = True
             testing_client = False
         elif auth_code_arr[3] == 'T':
-            # 3.3.0 testing client
+            # 3.2.4 testing client
             legacy = False
             testing_client = True
         else:

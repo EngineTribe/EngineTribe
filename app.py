@@ -258,6 +258,10 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
     else:
         levels = levels.order_by(db.Level.id.desc())  # latest levels
 
+    # avoid non-testing client error
+    if not auth_data.testing_client:
+        levels = levels.where(db.Level.testing_client == False)
+
     if auth_data.platform == 'MB':
         mobile = True  # Mobile fixes
     else:
@@ -310,6 +314,7 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
 
     if historial:
         return ErrorMessage(error_type='255', message=auth_data.locale_item.NOT_IMPLEMENTED)
+
 
     # calculate numbers
     num_rows = len(levels)
