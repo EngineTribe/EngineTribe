@@ -156,11 +156,11 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
     if (re.sub(u'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]', u'', name)) != name:
         non_latin = True
 
-    # check legacy client
-    if auth_data.legacy:
-        legacy = True
+    # check testing client
+    if auth_data.testing_client:
+        testing_client = True
     else:
-        legacy = False
+        testing_client = False
 
     # generate level id
     swe_to_generate = strip_level(swe)
@@ -205,7 +205,7 @@ async def stages_upload_handler(user_agent: Union[str, None] = Header(default=No
     except ConnectionError:
         return ErrorMessage(error_type='009', message=auth_data.locale_item.UPLOAD_CONNECT_ERROR)
 
-    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_latin, legacy)
+    db.add_level(name, aparience, entorno, tags, auth_data.username, level_id, non_latin, testing_client)
     account.uploads += 1
     account.save()
     if ENABLE_DISCORD_WEBHOOK:

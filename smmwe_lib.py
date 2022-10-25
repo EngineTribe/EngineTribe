@@ -74,18 +74,28 @@ def parse_auth_code(raw_auth_code: str):
         locale_item = es_ES
     if len(auth_code_arr) == 4:
         if auth_code_arr[3] == 'L':
+            # 3.1.5 client
             legacy = True
-        else:
+            testing_client = False
+        elif auth_code_arr[3] == 'T':
+            # 3.3.0 testing client
             legacy = False
+            testing_client = True
+        else:
+            # other client
+            legacy = False
+            testing_client = False
     else:
-        # Outdated 3.2.3 patch
+        # 3.2.3 client
         legacy = False
+        testing_client = False
     return_data = AuthCodeData()
     return_data.username = auth_code_arr[0]
     return_data.platform = auth_code_arr[1]
     return_data.locale = locale
     return_data.locale_item = locale_item
     return_data.legacy = legacy
+    return_data.testing_client = testing_client
     return return_data
 
 
@@ -128,6 +138,12 @@ class Tokens:
     Mobile_Legacy_CN: str = 'LEGACMBCN'
     Mobile_Legacy_ES: str = 'LEGACMBES'
     Mobile_Legacy_EN: str = 'LEGACMBEN'
+    PC_Testing_CN: str = 'TESTCPCCN'
+    PC_Testing_ES: str = 'TESTCPCES'
+    PC_Testing_EN: str = 'TESTCPCEN'
+    Mobile_Testing_CN: str = 'TESTCMBCN'
+    Mobile_Testing_ES: str = 'TESTCMBES'
+    Mobile_Testing_EN: str = 'TESTCMBEN'
 
 
 class AuthCodeData:
@@ -136,3 +152,4 @@ class AuthCodeData:
     locale: str
     locale_item: LocaleModel
     legacy: bool
+    testing_client: bool
