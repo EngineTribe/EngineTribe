@@ -1,16 +1,12 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/EngineTribe/Server/main/assets/enginetribe.png" width="180px">
-  <h2>Engine Tribe</h2>
+  <br>
 </div>
 
 📡 **Engine Tribe** project is an open source reimplementation for SMM_WE online server **Engine Kingdom** v3.2.3. 
 
 ---
 
-<!--### ⚠ WIP-->
-
-<!--This program is in **Work In Progress** state, maybe not full-functionally work.-->
-<!--The Discord bot has not yet been completed. If you want to join the Engine Tribe, you can join the QQ group.-->
 ### ✅ Features
 
 - 👥 User system, registration and logging in
@@ -24,16 +20,15 @@
 ### 🚵‍♀️ Roadmap
 
 - 🐛 Fixing bugs
-
 - 📗 Documents
 
-### 🕰️ Legacy Client
+### 🕰️ Legacy Client Support
 
-Engine Tribe also has limited support to patched 3.1.1 "legacy" client.
+Engine Tribe also has limited support to patched 3.1.1 "legacy" client. To play with 3.1.1 client, you have to modify legacy routes to 3.2.3 ones.
 
 ---
 
-### 🫂 Join the Community
+### 🫂 Join Our Community
 
 ![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?style=flat&logo=tencentqq) [![DiscordChat](https://img.shields.io/badge/Discord-Chat-5865f2?style=flat&logo=discord)](https://discord.gg/d6XdW6t9qS)
 
