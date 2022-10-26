@@ -315,7 +315,6 @@ async def stages_detailed_search_handler(user_agent: Union[str, None] = Header(d
     if historial:
         return ErrorMessage(error_type='255', message=auth_data.locale_item.NOT_IMPLEMENTED)
 
-
     # calculate numbers
     num_rows = len(levels)
     if num_rows > ROWS_PERPAGE:
@@ -646,11 +645,12 @@ async def user_info_handler(request: UserInfoRequestBody):
                                        'is_valid': user.is_valid, 'is_banned': user.is_banned}}
 
 
+# get server status
 @app.get('/server_stats')
 async def server_stats():
     global connection_per_minute, start_time
     return {
-        'os': f'{platform.platform()} {platform.version()}',
+        'os': f'{platform.platform()}',
         'python': platform.python_version(),
         'player_count': db.User.select().count(),
         'level_count': db.Level.select().count(),
