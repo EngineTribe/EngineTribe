@@ -2,7 +2,7 @@ from contextvars import ContextVar
 from typing import Any, Union
 
 import peewee
-from fastapi import APIRouter, Header, Form
+from fastapi import APIRouter, Header, Form, Depends
 
 import context
 from config import API_KEY
@@ -14,14 +14,9 @@ from models import (
 	RegisterRequestBody,
 	ErrorMessage,
 )
-from smmwe_lib import (
-	Tokens,
-	is_valid_user_agent,
-	parse_auth_code,
-	calculate_password_hash,
-)
+import smmwe_lib
 
-router = APIRouter(prefix="/user", dependencies=[connection_count_inc()])
+router = APIRouter(prefix="/user", dependencies=[Depends(connection_count_inc)])
 
 db = context.db_ctx.get()
 
@@ -46,22 +41,19 @@ async def user_login_handler(
 ):  # User login
 	# match auth_code to generate token
 	tokens_auth_code_match = {
-		Tokens.PC_CN: f"{alias}|PC|CN",
-		Tokens.PC_ES: f"{alias}|PC|ES",
-		Tokens.PC_EN: f"{alias}|PC|EN",
-		Tokens.Mobile_CN: f"{alias}|MB|CN",
-		Tokens.Mobile_ES: f"{alias}|MB|ES",
-		Tokens.Mobile_EN: f"{alias}|MB|EN",
-		Tokens.PC_Legacy_CN: f"{alias}|PC|CN|L",
-		Tokens.PC_Legacy_ES: f"{alias}|PC|ES|L",
-		Tokens.PC_Legacy_EN: f"{alias}|PC|EN|L",
-		Tokens.Mobile_Legacy_CN: f"{alias}|MB|CN|L",
-		Tokens.Mobile_Legacy_ES: f"{alias}|MB|ES|L",
-		Tokens.Mobile_Legacy_EN: f"{alias}|MB|EN|L",
+		smmwe_lib.Tokens.PC_CN: f"{alias}|PC|CN",
+		smmwe_lib.Tokens.PC_ES: f"{alias}|PC|ES",
+		smmwe_lib.Tokens.PC_EN: f"{alias}|PC|EN",
+		smmwe_lib.Tokens.Mobile_CN: f"{alias}|MB|CN",
+		smmwe_lib.Tokens.Mobile_ES: f"{alias}|MB|ES",
+		smmwe_lib.Tokens.Mobile_EN: f"{alias}|MB|EN",
+		smmwe_lib.Tokens.PC_Legacy_CN: f"{alias}|PC|CN|L",
+		smmwe_lib.Tokens.PC_Legacy_ES: f"{alias}|PC|ES|L",
+		smmwe_lib.Tokens.PC_Legacy_EN: f"{alias}|PC|EN|L",
+		smmwe_lib.Tokens.Mobile_Legacy_CN: f"{alias}|MB|CN|L",
+		smmwe_lib.Tokens.Mobile_Legacy_ES: f"{alias}|MB|ES|L",
+		smmwe_lib.Tokens.Mobile_Legacy_EN: f"{alias}|MB|EN|L",
 	}
-
-	if not is_valid_user_agent(user_agent):
-		return ErrorMessage(error_type="005", message="Illegal client.")
 
 	password = password.encode("latin1").decode("utf-8")
 	# Fix for Starlette
@@ -70,7 +62,7 @@ async def user_login_handler(
 	# match the token
 	try:
 		auth_code = tokens_auth_code_match[token]
-		auth_data = parse_auth_code(auth_code)
+		auth_data = smmwe_lib.parse_auth_code(auth_code)
 	except KeyError:
 		return ErrorMessage(error_type="005", message="Illegal client.")
 
@@ -93,7 +85,7 @@ async def user_login_handler(
 		return ErrorMessage(
 			error_type="005", message=auth_data.locale_item.ACCOUNT_BANNED
 		)
-	if account.password_hash != calculate_password_hash(password):
+	if account.password_hash != smmwe_lib.calculate_password_hash(password):
 		return ErrorMessage(
 			error_type="007", message=auth_data.locale_item.ACCOUNT_ERROR_PASSWORD
 		)
