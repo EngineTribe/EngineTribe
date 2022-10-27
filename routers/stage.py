@@ -8,7 +8,9 @@ import aiohttp
 import discord
 import peewee
 from fastapi import APIRouter, Form, Depends
+from typing import Optional
 
+import context
 import dfa_filter
 from config import (
 	ENABLE_DISCORD_WEBHOOK,
@@ -26,7 +28,7 @@ from config import (
 	ROWS_PERPAGE,
 )
 from depends import connection_count_inc, is_valid_user
-from locales import es_ES
+from locales import es_ES  # for fallback messages
 from models import ErrorMessage
 from smmwe_lib import (
 	parse_auth_code,
@@ -43,13 +45,151 @@ router = APIRouter(
 	dependencies=[Depends(connection_count_inc), Depends(is_valid_user)],
 )
 
-db = ContextVar("db").get()
-# Only onedrive-cf storage adapter is supported now
-# ~~In fact, it should be provider not adapter, too lazy to change it~~
-if STORAGE_ADAPTER == "onedrive-cf":
-	storage = StorageProviderOneDriveCF(
-		url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED
-	)
+db = context.db_ctx.get()
+
+# router.post("s/detailed_search") == stages/detailed_search
+@router.post("s/detailed_search")
+async def stages_detailed_search_handler(
+        auth_code: str = Form("EngineBot|PC|CN"),
+        featured: Optional[str] = Form(None),
+        page: Optional[str] = Form("1"),
+        title: Optional[str] = Form(None),
+        author: Optional[str] = Form(None),
+        aparience: Optional[str] = Form(None),
+        entorno: Optional[str] = Form(None),
+        last: Optional[str] = Form(None),
+        sort: Optional[str] = Form(None),
+        liked: Optional[str] = Form(None),
+        disliked: Optional[str] = Form(None),
+        historial: Optional[str] = Form(None),
+        dificultad: Optional[str] = Form(None),
+):  # Detailed search (level list)
+    if title:
+        title = title.encode("latin1").decode("utf-8")
+    # Fixes for Starlette
+    # https://github.com/encode/starlette/issues/425
+
+    auth_data = parse_auth_code(auth_code)
+
+    results = []
+    levels = db.Level.select()
+
+    # Filter and search
+
+    if featured:
+        if featured == "promising":
+            levels = levels.where(db.Level.featured == True)  # featured levels
+            levels = levels.order_by(db.Level.id.desc())  # latest levels
+        elif featured == "popular":
+            levels = levels.order_by(
+                (db.Level.likes - db.Level.dislikes).desc()
+            )  # likes
+    else:
+        levels = levels.order_by(db.Level.id.desc())  # latest levels
+
+    # avoid non-testing client error
+    if not auth_data.testing_client:
+        levels = levels.where(db.Level.testing_client == False)
+
+    if auth_data.platform == "MB":
+        mobile = True  # Mobile fixes
+    else:
+        mobile = False
+
+    if not page:
+        page = 1
+    else:
+        page = int(page)
+
+    # detailed search
+    if title:
+        levels = levels.where(db.Level.name.contains(title))
+    if author:
+        levels = levels.where(db.Level.author == author)
+    if aparience:
+        levels = levels.where(db.Level.style == aparience)
+    if entorno:
+        levels = levels.where(db.Level.environment == entorno)
+    if last:
+        days = int(last.strip("d"))
+        levels = levels.where(
+            db.Level.date.between(
+                datetime.date.today() + datetime.timedelta(days=-days),
+                datetime.date.today(),
+            )
+        )
+    if sort:
+        if sort == "antiguos":
+            levels = levels.order_by(db.Level.id.asc())
+    if liked:
+        stats = db.Stats.select().where(
+            db.Stats.likes_users.contains(auth_data.username)
+        )
+        # Engine Tribe stores the username of the liker instead of the ID, so the username in auth_code is used here
+        level_ids = []
+        for stat in stats:
+            level_ids.append(stat.level_id)
+        levels = levels.where(db.Level.level_id.in_(level_ids))
+    elif disliked:
+        stats = db.Stats.select().where(
+            db.Stats.dislikes_users.contains(auth_data.username)
+        )
+        level_ids = []
+        for stat in stats:
+            level_ids.append(stat.level_id)
+        levels = levels.where(db.Level.level_id.in_(level_ids))
+    if dificultad:
+        levels = levels.where(db.Level.deaths != 0)
+        if dificultad == "0":
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 10.0))  # Easy
+        elif dificultad == "1":
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
+        elif dificultad == "2":
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))  # Hard
+        else:
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
+
+    if historial:
+        return ErrorMessage(
+            error_type="255", message=auth_data.locale_item.NOT_IMPLEMENTED
+        )
+
+    # calculate numbers
+    num_rows = len(levels)
+    if num_rows > ROWS_PERPAGE:
+        rows_perpage = ROWS_PERPAGE
+        pages = ceil(num_rows / ROWS_PERPAGE)
+    else:
+        rows_perpage = num_rows
+        pages = 1
+    for level in levels.paginate(page, rows_perpage):
+        try:
+            like_type = db.get_like_type(
+                level_id=level.level_id, username=auth_data.username
+            )
+            results.append(
+                level_db_to_dict(
+                    level_data=level,
+                    locale=auth_data.locale,
+                    generate_url_function=context.storage.generate_url,
+                    mobile=mobile,
+                    like_type=like_type,
+                )
+            )
+        except Exception as e:
+            print(e)
+    if len(results) == 0:
+        return ErrorMessage(
+            error_type="029", message=auth_data.locale_item.LEVEL_NOT_FOUND
+        )  # No level found
+    else:
+        return {
+            "type": "detailed_search",
+            "num_rows": str(num_rows),
+            "rows_perpage": str(rows_perpage),
+            "pages": str(pages),
+            "result": results,
+        }
 
 
 @router.post("/{level_id}/stats/likes")
@@ -96,164 +236,18 @@ async def stats_dislikes_handler(
 		level_id: str,
 		auth_code: str = Form(),
 ):
-	auth_data = parse_auth_code(auth_code)
-	username = auth_data.username
-	try:
-		stat = db.Stats.get(db.Stats.level_id == level_id)
-	except peewee.DoesNotExist:
-		stat = db.Stats(level_id=level_id, likes_users="", dislikes_users="")
-	stat.dislikes_users += username + ","
-	stat.save()
-	level = db.Level.get(db.Level.level_id == level_id)
-	level.dislikes += 1
-	level.save()
-	return {"success": "success", "id": level_id, "type": "stats"}
-
-
-@router.post("/detailed_search")
-async def stages_detailed_search_handler(
-		auth_code: str = Form("EngineBot|PC|CN"),
-		featured: Optional[str] = Form(None),
-		page: Optional[str] = Form("1"),
-		title: Optional[str] = Form(None),
-		author: Optional[str] = Form(None),
-		aparience: Optional[str] = Form(None),
-		entorno: Optional[str] = Form(None),
-		last: Optional[str] = Form(None),
-		sort: Optional[str] = Form(None),
-		liked: Optional[str] = Form(None),
-		disliked: Optional[str] = Form(None),
-		historial: Optional[str] = Form(None),
-		dificultad: Optional[str] = Form(None),
-):  # Detailed search (level list)
-	if title:
-		title = title.encode("latin1").decode("utf-8")
-	# Fixes for Starlette
-	# https://github.com/encode/starlette/issues/425
-
-	auth_data = parse_auth_code(auth_code)
-
-	results = []
-	levels = db.Level.select()
-
-	# Filter and search
-
-	if featured:
-		if featured == "promising":
-			levels = levels.where(db.Level.featured == True)  # featured levels
-			levels = levels.order_by(db.Level.id.desc())  # latest levels
-		elif featured == "popular":
-			levels = levels.order_by(
-				(db.Level.likes - db.Level.dislikes).desc()
-			)  # likes
-	else:
-		levels = levels.order_by(db.Level.id.desc())  # latest levels
-
-	# avoid non-testing client error
-	if not auth_data.testing_client:
-		levels = levels.where(db.Level.testing_client == False)
-
-	if auth_data.platform == "MB":
-		mobile = True  # Mobile fixes
-	else:
-		mobile = False
-
-	if not page:
-		page = 1
-	else:
-		page = int(page)
-
-	# detailed search
-	if title:
-		levels = levels.where(db.Level.name.contains(title))
-	if author:
-		levels = levels.where(db.Level.author == author)
-	if aparience:
-		levels = levels.where(db.Level.style == aparience)
-	if entorno:
-		levels = levels.where(db.Level.environment == entorno)
-	if last:
-		days = int(last.strip("d"))
-		levels = levels.where(
-			db.Level.date.between(
-				datetime.date.today() + datetime.timedelta(days=-days),
-				datetime.date.today(),
-			)
-		)
-	if sort:
-		if sort == "antiguos":
-			levels = levels.order_by(db.Level.id.asc())
-	if liked:
-		stats = db.Stats.select().where(
-			db.Stats.likes_users.contains(auth_data.username)
-		)
-		# Engine Tribe stores the username of the liker instead of the ID, so the username in auth_code is used here
-		level_ids = []
-		for stat in stats:
-			level_ids.append(stat.level_id)
-		levels = levels.where(db.Level.level_id.in_(level_ids))
-	elif disliked:
-		stats = db.Stats.select().where(
-			db.Stats.dislikes_users.contains(auth_data.username)
-		)
-		level_ids = []
-		for stat in stats:
-			level_ids.append(stat.level_id)
-		levels = levels.where(db.Level.level_id.in_(level_ids))
-	if dificultad:
-		levels = levels.where(db.Level.deaths != 0)
-		if dificultad == "0":
-			levels = levels.where(
-				(db.Level.clears / db.Level.deaths).between(0.8, 10.0)
-			)
-		elif dificultad == "1":
-			levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))
-		elif dificultad == "2":
-			levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))
-		else:
-			levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))
-
-	if historial:
-		return ErrorMessage(
-			error_type="255", message=auth_data.locale_item.NOT_IMPLEMENTED
-		)
-
-	# calculate numbers
-	num_rows = len(levels)
-	if num_rows > ROWS_PERPAGE:
-		rows_perpage = ROWS_PERPAGE
-		pages = ceil(num_rows / ROWS_PERPAGE)
-	else:
-		rows_perpage = num_rows
-		pages = 1
-	for level in levels.paginate(page, rows_perpage):
-		try:
-			like_type = db.get_like_type(
-				level_id=level.level_id, username=auth_data.username
-			)
-			results.append(
-				level_db_to_dict(
-					level_data=level,
-					locale=auth_data.locale,
-					generate_url_function=storage.generate_url,
-					mobile=mobile,
-					like_type=like_type,
-				)
-			)
-		except Exception as e:
-			print(e)
-	if len(results) == 0:
-		return ErrorMessage(
-			error_type="029", message=auth_data.locale_item.LEVEL_NOT_FOUND
-		)  # No level found
-	else:
-		return {
-			"type": "detailed_search",
-			"num_rows": str(num_rows),
-			"rows_perpage": str(rows_perpage),
-			"pages": str(pages),
-			"result": results,
-		}
+    auth_data = parse_auth_code(auth_code)
+    username = auth_data.username
+    try:
+        stat = db.Stats.get(db.Stats.level_id == level_id)
+    except peewee.DoesNotExist:
+        stat = db.Stats(level_id=level_id, likes_users="", dislikes_users="")
+    stat.dislikes_users += username + ","
+    stat.save()
+    level = db.Level.get(db.Level.level_id == level_id)
+    level.dislikes += 1
+    level.save()
+    return {"success": "success", "id": level_id, "type": "stats"}
 
 
 @router.post("/upload")

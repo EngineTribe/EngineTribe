@@ -4,6 +4,7 @@ from typing import Any, Union
 import peewee
 from fastapi import APIRouter, Header, Form
 
+import context
 from config import API_KEY
 from depends import connection_count_inc
 from models import (
@@ -22,7 +23,7 @@ from smmwe_lib import (
 
 router = APIRouter(prefix="/user", dependencies=[connection_count_inc()])
 
-db = ContextVar("db").get()
+db = context.db_ctx.get()
 
 
 def get_user(request) -> ErrorMessage | Any:
@@ -39,7 +40,6 @@ def get_user(request) -> ErrorMessage | Any:
 
 @router.post("/login")
 async def user_login_handler(
-		user_agent: Union[str, None] = Header(default=None),
 		alias: str = Form(""),
 		token: str = Form(""),
 		password: str = Form(""),
@@ -98,6 +98,7 @@ async def user_login_handler(
 			error_type="007", message=auth_data.locale_item.ACCOUNT_ERROR_PASSWORD
 		)
 	if "|L" in auth_code:
+		# 3.1.5 return data
 		login_user_profile = {
 			"goomba": True,
 			"alias": alias,

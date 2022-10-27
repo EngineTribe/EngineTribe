@@ -12,7 +12,7 @@ DATABASE_USER = 'enginetribe'  # Database user (not UNIX user)
 DATABASE_PASS = 'enginetribe'  # Database password (not UNIX password)
 DATABASE_NAME = 'enginetribe'  # Database name
 
-STORAGE_ADAPTER = 'onedrive-cf'  # Storage adapter to use, only onedrive-cf is supported now
+STORAGE_PROVIDER = 'onedrive-cf'  # Storage provider to use, only onedrive-cf is supported now
 # onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
 STORAGE_URL = 'https://storage.enginetribe.gq/'  # Storage url (with path)
 STORAGE_AUTH_KEY = 'enginetribesA7EKiqBxY6QeH'  # Storage auth key

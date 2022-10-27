@@ -14,7 +14,7 @@ from storage_provider import *
 
 db = SMMWEDatabase()
 
-if STORAGE_ADAPTER == 'onedrive-cf':
+if STORAGE_PROVIDER == 'onedrive-cf':
 	storage = StorageProviderOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=False)
 
 	environments = {"underground": "1", "castle": "2", "underwater": "3", "ghost": "4", "airship": "5", "forest": "6",
