@@ -7,3 +7,5 @@ uvicorn
 fastapi
 pydantic
 python-multipart
+aiohttp
+contextvars
