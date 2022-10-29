@@ -200,8 +200,6 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
 @router.post("/update_password")  # Update password
 async def user_update_password_handler(request: UpdatePasswordRequestBody):
 	# username, password_hash, api_key
-	global connection_count
-	connection_count += 1
 	if request.api_key != API_KEY:
 		return {
 			"error_type": "004",
