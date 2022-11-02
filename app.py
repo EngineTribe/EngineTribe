@@ -9,7 +9,7 @@ import uvicorn
 from fastapi import FastAPI, Form
 from fastapi.responses import RedirectResponse
 
-import context
+from context import db, connection_count
 import routers
 from config import *
 from dfa_filter import DFAFilter
@@ -18,13 +18,9 @@ from smmwe_lib import *
 
 app = FastAPI()
 
-# init in context.py
-db = context.db_ctx.get()
-
 app.include_router(routers.stage.router)
 app.include_router(routers.user.router)
 
-connection_count = context.connection_count
 connection_per_minute = 0
 
 start_time = datetime.datetime.now()
@@ -61,7 +57,7 @@ async def readme_handler():  # Redirect to Engine Tribe README
 async def server_stats():
     global connection_per_minute, start_time
     return {
-        "os": f"{platform.platform()}",
+        "os": platform.platform().replace('-',''),
         "python": platform.python_version(),
         "player_count": db.User.select().count(),
         "level_count": db.Level.select().count(),
@@ -71,9 +67,9 @@ async def server_stats():
 
 
 def timer_function():
-    global connection_per_minute
-    connection_per_minute = connection_count.get()
-    connection_count.set(0)
+    global connection_per_minute, connection_count
+    connection_per_minute = connection_count
+    connection_count = 0
     threading.Timer(60, timer_function).start()
 
 

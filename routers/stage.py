@@ -8,7 +8,7 @@ import peewee
 from fastapi import APIRouter, Form, Depends
 from typing import Optional
 
-import context
+from context import db, storage
 import dfa_filter
 from config import (
     ENABLE_DISCORD_WEBHOOK,
@@ -37,8 +37,6 @@ router = APIRouter(
     prefix="/stage",
     dependencies=[Depends(connection_count_inc), Depends(is_valid_user)],
 )
-
-db = context.db_ctx.get()
 
 # router.post("s/detailed_search") == stages/detailed_search
 @router.post("s/detailed_search")
@@ -164,7 +162,7 @@ async def stages_detailed_search_handler(
                 level_db_to_dict(
                     level_data=level,
                     locale=auth_data.locale,
-                    generate_url_function=context.storage.generate_url,
+                    generate_url_function=storage.generate_url,
                     mobile=mobile,
                     like_type=like_type,
                 )
@@ -335,7 +333,7 @@ async def stages_upload_handler(
             error_type="025", message=auth_data.locale_item.FILE_TOO_LARGE
         )
     try:
-        await context.storage.upload_file(
+        await storage.upload_file(
             level_data=swe, level_id=level_id
         )  # Upload to storage backend
     except ConnectionError:
@@ -359,7 +357,7 @@ async def stages_upload_handler(
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
         message = f"📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n"
         message += f'ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
-        message += f"Descargar: {context.storage.generate_download_url(level_id=level_id)}"
+        message += f"Descargar: {storage.generate_download_url(level_id=level_id)}"
         webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK:
         for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
@@ -402,7 +400,7 @@ async def stage_id_random_handler(
         "result": level_db_to_dict(
             level_data=level,
             locale=auth_data.locale,
-            generate_url_function=context.storage.generate_url,
+            generate_url_function=storage.generate_url,
             mobile=mobile,
             like_type=like_type,
         ),
@@ -429,7 +427,7 @@ async def stage_id_search_handler(
             "result": level_db_to_dict(
                 level_data=level,
                 locale=auth_data.locale,
-                generate_url_function=context.storage.generate_url,
+                generate_url_function=storage.generate_url,
                 mobile=mobile,
                 like_type=like_type,
             ),
@@ -574,7 +572,7 @@ async def stats_muertes_handler(level_id: str):
 @router.get("/{level_id}/file")
 async def legacy_stage_file(level_id: str):
     try:
-        async with aiohttp.request("GET", context.storage.generate_url(level_id)) as r:
+        async with aiohttp.request("GET", storage.generate_url(level_id)) as r:
             text = await r.text()
         return {"data": text}
     except Exception as ex:
