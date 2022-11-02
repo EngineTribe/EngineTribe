@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 from math import ceil
 
@@ -484,8 +485,12 @@ async def switch_promising_handler(level_id: str) -> dict:
 
 
 @router.post("/{level_id}/stats/intentos")
-async def stats_intentos_handler(level_id: str) -> dict:
-    level = db.Level.get(db.Level.level_id == level_id)
+async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
+    try:
+        level = db.Level.get(db.Level.level_id == level_id)
+    except peewee.DoesNotExist:
+        logging.error(f'intentos handler: {level_id} not found')
+        return ErrorMessage(error_type="029", message=es_ES.LEVEL_NOT_FOUND)
     level.plays += 1
     level.save()
     if level.plays == 100 or level.plays == 1000:
@@ -515,8 +520,12 @@ async def stats_victorias_handler(
         level_id: str,
         tiempo: str = Form(),
         auth_code: str = Form("EngineBot|PC|CN"),
-) -> dict:
-    level = db.Level.get(db.Level.level_id == level_id)
+) -> ErrorMessage | dict:
+    try:
+        level = db.Level.get(db.Level.level_id == level_id)
+    except peewee.DoesNotExist:
+        logging.error(f'victorias handler: {level_id} not found')
+        return ErrorMessage(error_type="029", message=es_ES.LEVEL_NOT_FOUND)
     level.clears += 1
     level.save()
     auth_data = parse_auth_code(auth_code)
@@ -548,8 +557,12 @@ async def stats_victorias_handler(
 
 
 @router.post("/{level_id}/stats/muertes")
-async def stats_muertes_handler(level_id: str):
-    level = db.Level.get(db.Level.level_id == level_id)
+async def stats_muertes_handler(level_id: str) -> ErrorMessage | dict:
+    try:
+        level = db.Level.get(db.Level.level_id == level_id)
+    except peewee.DoesNotExist:
+        logging.error(f'muertes handler: {level_id} not found')
+        return ErrorMessage(error_type="029", message=es_ES.LEVEL_NOT_FOUND)
     level.deaths += 1
     level.save()
     if level.deaths == 100 or level.deaths == 1000:
