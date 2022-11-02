@@ -9,7 +9,7 @@ import uvicorn
 from fastapi import FastAPI, Form
 from fastapi.responses import RedirectResponse
 
-from context import db, connection_count
+import context
 import routers
 from config import *
 from dfa_filter import DFAFilter
@@ -26,9 +26,9 @@ connection_per_minute = 0
 start_time = datetime.datetime.now()
 
 # auto create table
-db.Level.create_table()
-db.User.create_table()
-db.Stats.create_table()
+context.db.Level.create_table()
+context.db.User.create_table()
+context.db.Stats.create_table()
 
 if OFFENSIVE_WORDS_FILTER:
     # Load DFA filter
@@ -55,21 +55,20 @@ async def readme_handler() -> RedirectResponse:  # Redirect to Engine Tribe READ
 # get server status
 @app.get("/server_stats")
 async def server_stats() -> dict:
-    global connection_per_minute, start_time
     return {
-        "os": platform.platform().replace('-',''),
+        "os": platform.platform().replace('-', ' '),
         "python": platform.python_version(),
-        "player_count": db.User.select().count(),
-        "level_count": db.Level.select().count(),
+        "player_count": context.db.User.select().count(),
+        "level_count": context.db.Level.select().count(),
         "uptime": datetime.datetime.now() - start_time,
         "connection_per_minute": connection_per_minute,
     }
 
 
 def timer_function():
-    global connection_per_minute, connection_count
-    connection_per_minute = connection_count
-    connection_count = 0
+    global connection_per_minute
+    connection_per_minute = context.connection_count
+    context.connection_count = 0
     threading.Timer(60, timer_function).start()
 
 
