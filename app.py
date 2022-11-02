@@ -6,14 +6,14 @@ from typing import Optional
 
 import requests
 import uvicorn
-from fastapi import FastAPI, Form
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import RedirectResponse, JSONResponse
 
 import context
 import routers
 from config import *
 from dfa_filter import DFAFilter
-from models import ErrorMessage
+from models import ErrorMessage, ErrorMessageException
 from smmwe_lib import *
 
 app = FastAPI()
@@ -63,6 +63,17 @@ async def server_stats() -> dict:
         "uptime": datetime.datetime.now() - start_time,
         "connection_per_minute": connection_per_minute,
     }
+
+
+@app.exception_handler(ErrorMessageException)
+async def error_message_exception_handler(request: Request, exc: ErrorMessageException):
+    return JSONResponse(
+        status_code=200,
+        content={
+            "error_type": exc.error_type,
+            "message": exc.message,
+        },
+    )
 
 
 def timer_function():

@@ -1,8 +1,9 @@
 import context
 
-from fastapi import Header, HTTPException
+from fastapi import Header
+from typing import Optional
 
-from models import ErrorMessage
+from models import ErrorMessageException
 
 
 def connection_count_inc():
@@ -16,7 +17,6 @@ def is_valid_user(user_agent: str | None = Header(default=None)):
             or ("EngineBot" in user_agent)  # Engine Bot
             or ("PlayStation" in user_agent)  # PlayStation Vita
     ):
-        raise HTTPException(
-            status_code=200,
-            detail=ErrorMessage(error_type="005", message="Illegal client."),
-        )
+        raise ErrorMessageException(
+            error_type="005",
+            message="Illegal client.")
