@@ -7,7 +7,6 @@ from models import ErrorMessage
 
 def connection_count_inc():
     context.connection_count += 1
-    print(context.connection_count)
 
 
 def is_valid_user(user_agent: str | None = Header(default=None)):
