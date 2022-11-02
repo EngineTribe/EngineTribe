@@ -48,13 +48,13 @@ if OFFENSIVE_WORDS_FILTER:
 
 
 @app.get("/")
-async def readme_handler():  # Redirect to Engine Tribe README
+async def readme_handler() -> RedirectResponse:  # Redirect to Engine Tribe README
     return RedirectResponse("https://web.enginetribe.gq/index.html")
 
 
 # get server status
 @app.get("/server_stats")
-async def server_stats():
+async def server_stats() -> dict:
     global connection_per_minute, start_time
     return {
         "os": platform.platform().replace('-',''),

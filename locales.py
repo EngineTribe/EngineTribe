@@ -1,5 +1,4 @@
 import re
-from pydantic import BaseModel as PydanticModel
 
 tags_cn = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术", "技巧",
            "射击", "BOSS战", "单人", "Link", "---"]
@@ -66,7 +65,7 @@ class en_US(LocaleModel):
     NOT_IMPLEMENTED: str = 'Not implemented.'
 
 
-def parse_tag_names(tag_names: str):
+def parse_tag_names(tag_names: str) -> list:
     tags = tag_names.split(',')
     tag_1 = tags[0].strip()
     tag_2 = tags[1].strip()
@@ -78,7 +77,7 @@ def parse_tag_names(tag_names: str):
     return [tag_1, tag_2]
 
 
-def get_tag_name(tag_id: int, locale_to: str):
+def get_tag_name(tag_id: int, locale_to: str) -> str:
     if locale_to == "ES":
         return tags_es[tag_id]
     elif locale_to == "EN":

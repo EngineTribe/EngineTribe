@@ -38,6 +38,7 @@ router = APIRouter(
     dependencies=[Depends(connection_count_inc), Depends(is_valid_user)],
 )
 
+
 # router.post("s/detailed_search") == stages/detailed_search
 @router.post("s/detailed_search")
 async def stages_detailed_search_handler(
@@ -54,7 +55,7 @@ async def stages_detailed_search_handler(
         disliked: Optional[str] = Form(None),
         historial: Optional[str] = Form(None),
         dificultad: Optional[str] = Form(None),
-):  # Detailed search (level list)
+) -> ErrorMessage | dict:  # Detailed search (level list)
     if title:
         title = title.encode("latin1").decode("utf-8")
     # Fixes for Starlette
@@ -187,7 +188,7 @@ async def stages_detailed_search_handler(
 async def stats_likes_handler(
         level_id: str,
         auth_code: str = Form(),
-):
+) -> dict:
     auth_data = parse_auth_code(auth_code)
     username = auth_data.username
     try:
@@ -226,7 +227,7 @@ async def stats_likes_handler(
 async def stats_dislikes_handler(
         level_id: str,
         auth_code: str = Form(),
-):
+) -> dict:
     auth_data = parse_auth_code(auth_code)
     username = auth_data.username
     try:
@@ -249,7 +250,7 @@ async def stages_upload_handler(
         aparience: str = Form(),
         entorno: str = Form(),
         tags: str = Form(),
-):
+) -> ErrorMessage | dict:
     auth_data = parse_auth_code(auth_code)
     account = db.User.get(db.User.username == auth_data.username)
 
@@ -350,9 +351,9 @@ async def stages_upload_handler(
         level_id,
         non_latin,
         testing_client,
-    )
+    )  # add new level to database
     account.uploads += 1
-    account.save()
+    account.save()  # add a upload to account info
     if ENABLE_DISCORD_WEBHOOK:
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
         message = f"📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n"
@@ -382,7 +383,7 @@ async def stages_upload_handler(
 @router.post("/random")
 async def stage_id_random_handler(
         auth_code: str = Form("EngineBot|PC|CN"),
-):  # Random level
+) -> dict:  # Random level
     auth_data = parse_auth_code(auth_code)
     if auth_data.platform == "MB":
         mobile = True  # Mobile fixes
@@ -411,7 +412,7 @@ async def stage_id_random_handler(
 async def stage_id_search_handler(
         level_id: str,
         auth_code: str = Form("EngineBot|PC|CN"),
-):  # Level ID search
+) -> ErrorMessage | dict:  # Level ID search
     auth_data = parse_auth_code(auth_code)
     try:
         if auth_data.platform == "MB":
@@ -440,7 +441,7 @@ async def stage_id_search_handler(
 
 
 @router.post("/{level_id}/delete")
-async def stage_delete_handler(level_id: str):  # Delete level
+async def stage_delete_handler(level_id: str) -> dict:  # Delete level
     level = db.Level.get(db.Level.level_id == level_id)
     db.Level.delete().where(db.Level.level_id == level_id).execute()
     user = db.User.get(db.User.username == level.author)
@@ -450,7 +451,7 @@ async def stage_delete_handler(level_id: str):  # Delete level
 
 
 @router.post("/{level_id}/switch/promising")
-async def switch_promising_handler(level_id: str):
+async def switch_promising_handler(level_id: str) -> dict:
     # Switch featured (promising) level
     level = db.Level.get(db.Level.level_id == level_id)
     if not level.featured:
@@ -483,7 +484,7 @@ async def switch_promising_handler(level_id: str):
 
 
 @router.post("/{level_id}/stats/intentos")
-async def stats_intentos_handler(level_id: str):
+async def stats_intentos_handler(level_id: str) -> dict:
     level = db.Level.get(db.Level.level_id == level_id)
     level.plays += 1
     level.save()
@@ -514,7 +515,7 @@ async def stats_victorias_handler(
         level_id: str,
         tiempo: str = Form(),
         auth_code: str = Form("EngineBot|PC|CN"),
-):
+) -> dict:
     level = db.Level.get(db.Level.level_id == level_id)
     level.clears += 1
     level.save()
@@ -570,7 +571,7 @@ async def stats_muertes_handler(level_id: str):
 
 
 @router.get("/{level_id}/file")
-async def legacy_stage_file(level_id: str):
+async def legacy_stage_file(level_id: str) -> ErrorMessage | dict:
     try:
         async with aiohttp.request("GET", storage.generate_url(level_id)) as r:
             text = await r.text()
