@@ -209,9 +209,12 @@ async def user_update_password_handler(request: UpdatePasswordRequestBody):
         user = db.User.get(db.User.username == request.username)
     except peewee.DoesNotExist:
         return ErrorMessage(error_type="006", message="User not found.")
-    user.password_hash = request.password_hash
-    user.save()
-    return {"success": "Update success", "type": "update", "username": user.username}
+    if user.password_hash == request.old_password_hash:
+        user.password_hash = request.password_hash
+        user.save()
+        return {"success": "Update success", "type": "update", "username": user.username}
+    else:
+        return ErrorMessage(error_type='007', message='Password incorrect.')
 
 
 @router.post("/info")  # Get user info
