@@ -11,12 +11,13 @@ def connection_count_inc():
 
 
 def is_valid_user(user_agent: str | None = Header(default=None)):
-    if user_agent is None or not (
-            ("GameMaker" in user_agent)  # Windows / Linux
-            or ("Android" in user_agent)  # Android
-            or ("EngineBot" in user_agent)  # Engine Bot
-            or ("PlayStation" in user_agent)  # PlayStation Vita
-    ):
+    # if user_agent is None or not (
+    #         ("GameMaker" in user_agent)  # Windows / Linux
+    #         or ("Android" in user_agent)  # Android
+    #         or ("EngineBot" in user_agent)  # Engine Bot
+    #         or ("PlayStation" in user_agent)  # PlayStation Vita
+    # ):
+    if user_agent is None:
         raise ErrorMessageException(
             error_type="005",
             message="Illegal client.")
