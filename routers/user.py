@@ -125,7 +125,7 @@ async def user_register_handler(request: RegisterRequestBody):
         }
     user_exist = True
     try:
-        db.User.get(db.User.user_id == request.user_id)
+        expected_user = db.User.get(db.User.user_id == request.user_id)
     except:
         user_exist = False
     if user_exist:
@@ -133,17 +133,19 @@ async def user_register_handler(request: RegisterRequestBody):
             "error_type": "035",
             "message": "User ID already exists.",
             "user_id": request.user_id,
+            "username": expected_user.username
         }
     user_exist = True
     try:
-        db.User.get(db.User.username == request.username)
+        expected_user = db.User.get(db.User.username == request.username)
     except:
         user_exist = False
     if user_exist:
         return {
             "error_type": "036",
             "message": "Username already exists.",
-            "username": request.username,
+            "user_id": expected_user.user_id,
+            "username": request.username
         }
     try:
         db.add_user(
