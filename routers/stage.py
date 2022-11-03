@@ -14,6 +14,7 @@ import dfa_filter
 from config import (
     ENABLE_DISCORD_WEBHOOK,
     ENABLE_ENGINE_BOT_WEBHOOK,
+    ENABLE_ENGINE_BOT_COUNTER_WEBHOOK,
     DISCORD_WEBHOOK_URL,
     DISCORD_AVATAR_URL,
     ENGINE_BOT_WEBHOOK_URLS,
@@ -207,7 +208,7 @@ async def stats_likes_handler(
             message = f"🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n"
             message += f"ID: `{level_id}`"
             webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
-        if ENABLE_ENGINE_BOT_WEBHOOK:
+        if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 # Send likes info to Engine-bot
                 async with aiohttp.request(
@@ -361,7 +362,7 @@ async def stages_upload_handler(
         message += f'ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
         message += f"Descargar: {storage.generate_download_url(level_id=level_id)}"
         webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
-    if ENABLE_ENGINE_BOT_WEBHOOK:
+    if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
         for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
             async with aiohttp.request(
                     method="POST",
@@ -499,7 +500,7 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
             message = f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n"
             message += f"ID: `{level_id}`"
             webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
-        if ENABLE_ENGINE_BOT_WEBHOOK:
+        if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 async with aiohttp.request(
                         method="POST",
@@ -540,7 +541,7 @@ async def stats_victorias_handler(
             message = f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha salido victorioso **{level.clears}** veces!\n "
             message += f"ID: `{level_id}`"
             webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
-        if ENABLE_ENGINE_BOT_WEBHOOK:
+        if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 async with aiohttp.request(
                         method="POST",
@@ -566,7 +567,7 @@ async def stats_muertes_handler(level_id: str) -> ErrorMessage | dict:
     level.deaths += 1
     level.save()
     if level.deaths == 100 or level.deaths == 1000:
-        if ENABLE_ENGINE_BOT_WEBHOOK:
+        if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
                 # Send deaths info to Engine-bot
                 async with aiohttp.request(
