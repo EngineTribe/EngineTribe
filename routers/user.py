@@ -126,7 +126,7 @@ async def user_register_handler(request: RegisterRequestBody):
     user_exist = True
     try:
         expected_user = db.User.get(db.User.user_id == request.user_id)
-    except:
+    except peewee.DoesNotExist:
         user_exist = False
     if user_exist:
         return {
@@ -138,7 +138,7 @@ async def user_register_handler(request: RegisterRequestBody):
     user_exist = True
     try:
         expected_user = db.User.get(db.User.username == request.username)
-    except:
+    except peewee.DoesNotExist:
         user_exist = False
     if user_exist:
         return {
@@ -209,12 +209,12 @@ async def user_update_password_handler(request: UpdatePasswordRequestBody):
         user = db.User.get(db.User.username == request.username)
     except peewee.DoesNotExist:
         return ErrorMessage(error_type="006", message="User not found.")
-    if user.password_hash == request.old_password_hash:
+    if user.user_id == request.user_id:
         user.password_hash = request.password_hash
         user.save()
         return {"success": "Update success", "type": "update", "username": user.username}
     else:
-        return ErrorMessage(error_type='007', message='Password incorrect.')
+        return ErrorMessage(error_type='006', message='User incorrect.')
 
 
 @router.post("/info")  # Get user info

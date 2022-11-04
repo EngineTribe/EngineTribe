@@ -35,8 +35,8 @@ class UpdatePermissionRequestBody(PydanticModel):
 class UpdatePasswordRequestBody(PydanticModel):
     api_key: str
     username: str
-    old_password_hash: str
     password_hash: str
+    user_id: str
 
 
 class UserInfoRequestBody(PydanticModel):
