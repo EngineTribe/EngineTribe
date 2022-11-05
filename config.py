@@ -1,5 +1,5 @@
 HOST = '0.0.0.0'  # Engine Tribe Central Server
-PORT = 25019  # Default port that SMM_WE uses
+PORT = 80  # Default port that SMM_WE uses
 API_KEY = "enginetribe"  # Engine-bot 's API key
 ROWS_PERPAGE = 5  # Levels per page
 UPLOAD_LIMIT = 25  # Max levels per account
@@ -12,10 +12,11 @@ DATABASE_USER = 'enginetribe'  # Database user (not UNIX user)
 DATABASE_PASS = 'enginetribe'  # Database password (not UNIX password)
 DATABASE_NAME = 'enginetribe'  # Database name
 
-STORAGE_PROVIDER = 'onedrive-cf'  # Storage provider to use, only onedrive-cf is supported now
+STORAGE_PROVIDER = 'onemanager'  # Storage provider to use, onemanager and onedrive-cf are supported now
 # onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
-STORAGE_URL = 'https://storage.enginetribe.gq/'  # Storage url (with path)
-STORAGE_AUTH_KEY = 'enginetribesA7EKiqBxY6QeH'  # Storage auth key
+# onemanager: https://github.com/qkqpttgf/OneManager-php
+STORAGE_URL = 'http://storage-v2.enginetribe.gq:8086/'  # Storage url (with path)
+STORAGE_AUTH_KEY = 'qoKJsiEt8bgBBj8r5X3C4y'  # Storage auth key
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
 
 ENABLE_ENGINE_BOT_WEBHOOK = False
