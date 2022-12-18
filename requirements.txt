@@ -4,6 +4,7 @@ requests
 pymysql
 discord
 uvicorn
+starlette<1.0.0
 fastapi
 pydantic
 python-multipart

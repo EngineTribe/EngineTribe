@@ -1,6 +1,6 @@
 from config import STORAGE_URL, STORAGE_AUTH_KEY, STORAGE_PROXIED, STORAGE_PROVIDER
 from database import SMMWEDatabase
-from storage_provider import StorageProviderOneDriveCF, StorageProviderOneManager
+from storage_provider import StorageProviderOneDriveCF, StorageProviderOneManager, StorageProviderDatabase
 
 db = SMMWEDatabase()
 
@@ -14,4 +14,9 @@ match STORAGE_PROVIDER:
     case "onemanager":
         storage = StorageProviderOneManager(
             url=STORAGE_URL, admin_password=STORAGE_AUTH_KEY
+        )
+    case "database":
+        storage = StorageProviderDatabase(
+            base_url=STORAGE_URL,
+            database=db
         )

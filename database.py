@@ -59,7 +59,7 @@ class SMMWEDatabase:
 
     class User(DatabaseModel):
         username = TextField()  # User name
-        user_id = TextField()  # Since Engine-bot is hosted on QQ, use QQ ID instead of original Discord ID
+        user_id = TextField()  # Engine Bot is run across IMs, so use string user id
         uploads = IntegerField()  # Upload levels count
         password_hash = TextField()  # Password hash
         is_admin = BooleanField()  # Is administrator
@@ -71,13 +71,24 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'user_table'
 
+    class LevelData(DatabaseModel):  # used in StorageProviderDatabase
+        level_id = TextField()  # Level id
+        level_data = BlobField()  # Leve data without checksum
+        level_checksum = FixedCharField(max_length=40)
+
+        # Store the decoded level data and checksum separately to reduce database usage
+
+        class Meta:
+            table_name = 'level_data_table'
+
     def add_level(self, name, style, environment, tags, author, level_id, non_latin, testing_client):
         # add level metadata into database
         tags_id = parse_tag_names(tags)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
                            date=datetime.date.today(), author=author,
-                           level_id=level_id, non_latin=non_latin, record_user='', record=0, testing_client=testing_client)
+                           level_id=level_id, non_latin=non_latin, record_user='', record=0,
+                           testing_client=testing_client)
         level.save()
 
     def add_user(self, username: str, password_hash: str, user_id):

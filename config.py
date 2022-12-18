@@ -12,11 +12,14 @@ DATABASE_USER = 'enginetribe'  # Database user (not UNIX user)
 DATABASE_PASS = 'enginetribe'  # Database password (not UNIX password)
 DATABASE_NAME = 'enginetribe'  # Database name
 
-STORAGE_PROVIDER = 'onemanager'  # Storage provider to use, onemanager and onedrive-cf are supported now
-# onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
-# onemanager: https://github.com/qkqpttgf/OneManager-php
-STORAGE_URL = 'http://storage-v2.enginetribe.gq:8086/'  # Storage url (with path)
-STORAGE_AUTH_KEY = 'qoKJsiEt8bgBBj8r5X3C4y'  # Storage auth key
+STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
+# The official instance of Engine Tribe used OneDrive to store levels, so the first two storage providers are
+# implemented. If you host Engine Tribe yourself, you can choose the third one.
+# - onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
+# - onemanager: https://github.com/qkqpttgf/OneManager-php
+# - database: use database to store levels  (recommended)
+STORAGE_URL = 'http://juego.enginetribe.gq/'  # Storage url with '/'
+STORAGE_AUTH_KEY = ''  # Storage auth key, onedrive-cf and onemanager only
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
 
 ENABLE_ENGINE_BOT_WEBHOOK = False

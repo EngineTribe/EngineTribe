@@ -4,6 +4,9 @@ import aiohttp
 from io import BytesIO
 from time import time
 from hashlib import md5
+from base64 import b64encode, b64decode
+
+from database import SMMWEDatabase
 
 
 class StorageProviderOneDriveCF:
@@ -98,3 +101,35 @@ class StorageProviderOneManager:
 
         timestamp = int(time()) + 604800  # $timestamp = time()+7*24*60*60;
         return md5sum(f'admin:{md5sum(admin_password)}@{timestamp}') + f'({timestamp})'
+
+
+class StorageProviderDatabase:
+    def __init__(self, base_url: str, database: SMMWEDatabase):
+        self.base_url = base_url
+        self.database = database
+        self.database.LevelData.create_table()  # auto create table for level data
+        self.type = "database"
+
+    # noinspection PyBroadException
+    async def upload_file(self, level_data: str, level_id: str):
+        print('start uploading')
+        self.database.LevelData(
+            level_id=level_id,
+            level_data=b64decode(level_data[:-40].encode()),
+            level_checksum=level_data[-40:]
+        ).save()
+
+    def generate_url(self, level_id: str):
+        return f'{self.base_url}stage/{level_id}/file'
+
+    def generate_download_url(self, level_id: str):
+        return f'{self.base_url}stage/{level_id}/file'
+
+    def delete_level(self, name: str, level_id: str):
+        self.database.LevelData.delete().where(level_id == level_id).execute()
+        print(f"Deleted level {name} {level_id} from database")
+        return
+
+    def dump_level_data(self, level_id: str) -> str:
+        level = self.database.LevelData.get(level_id == level_id)
+        return f'{b64encode(level.level_data).decode()}{level.level_checksum}'
