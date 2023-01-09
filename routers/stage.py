@@ -206,8 +206,8 @@ async def stats_likes_handler(
     if level.likes == 100 or level.likes == 1000:
         if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = f"🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n"
-            message += f"ID: `{level_id}`"
+            message: str = f"🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n" \
+                           f"> ID: `{level_id}`"
             webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
@@ -283,9 +283,7 @@ async def stages_upload_handler(
 
     # check non-Latin
     non_latin = False
-    if (
-            re.sub("[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]", "", name)
-    ) != name:
+    if re.sub("[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]", "", name) != name:
         non_latin = True
 
     # check testing client
@@ -359,9 +357,9 @@ async def stages_upload_handler(
     account.save()  # add a upload to account info
     if ENABLE_DISCORD_WEBHOOK:
         webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-        message = f"📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n"
-        message += f'ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
-        message += f"Descargar: {storage.generate_download_url(level_id=level_id)}"
+        message: str = f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n' \
+                       f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n' \
+                       f'> Descargar: {storage.generate_download_url(level_id=level_id)}'
         webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
     if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
         for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
@@ -384,9 +382,7 @@ async def stages_upload_handler(
 
 
 @router.post("/random")
-async def stage_id_random_handler(
-        auth_code: str = Form("EngineBot|PC|CN"),
-) -> dict:  # Random level
+async def stage_id_random_handler(auth_code: str = Form("EngineBot|PC|CN")) -> dict:  # Random level
     auth_data = parse_auth_code(auth_code)
     if auth_data.platform == "MB":
         mobile = True  # Mobile fixes
@@ -414,7 +410,7 @@ async def stage_id_random_handler(
 @router.post("/{level_id}")
 async def stage_id_search_handler(
         level_id: str,
-        auth_code: str = Form("EngineBot|PC|CN"),
+        auth_code: str = Form("EngineBot|PC|CN")
 ) -> ErrorMessage | dict:  # Level ID search
     auth_data = parse_auth_code(auth_code)
     try:
@@ -481,8 +477,8 @@ async def switch_promising_handler(level_id: str) -> dict:
         print(level_id + " added to featured")
         if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = f"🌟 El **{level.name}** por **{level.author}** se agrega a niveles prometedores! \n "
-            message += f"ID: `{level_id}`"
+            message: str = f"🌟 El **{level.name}** por **{level.author}** se agrega a niveles prometedores! \n" \
+                      f"> ID: `{level_id}`"
             webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
         if ENABLE_ENGINE_BOT_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
@@ -516,8 +512,8 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
     if level.plays == 100 or level.plays == 1000:
         if ENABLE_DISCORD_WEBHOOK:
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n"
-            message += f"ID: `{level_id}`"
+            message: str = f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n" \
+                      f"> ID: `{level_id}`"
             webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
