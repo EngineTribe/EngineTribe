@@ -7,7 +7,7 @@ import aiohttp
 import discord
 import peewee
 from fastapi import APIRouter, Form, Depends
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from typing import Optional
 
 from context import db, storage
@@ -444,14 +444,21 @@ async def stage_id_search_handler(
 
 
 @router.get("/{level_id}/file")
-async def stage_file_handler(level_id: str) -> PlainTextResponse | RedirectResponse:  # Return level data
+async def stage_file_handler(level_id: str) -> Response | RedirectResponse:  # Return level data
     match storage.type:
         case 'onedrive-cf':
             return RedirectResponse(storage.generate_download_url(level_id=level_id))
         case 'onemanager':
             return RedirectResponse(storage.generate_download_url(level_id=level_id))
         case 'database':
-            return PlainTextResponse(storage.dump_level_data(level_id=level_id))
+            return Response(
+                content=storage.dump_level_data(level_id=level_id),
+                headers={
+                    'Content-Disposition': f'attachment; '
+                                           f'filename="{db.Level.get(db.Level.level_id == level_id).name}.swe"'
+                },
+                media_type='text/plain'
+            )
 
 
 @router.post("/{level_id}/delete")
