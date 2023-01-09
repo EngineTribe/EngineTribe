@@ -131,5 +131,5 @@ class StorageProviderDatabase:
         return
 
     def dump_level_data(self, level_id: str) -> str:
-        level = self.database.LevelData.get(level_id == level_id)
+        level = self.database.LevelData.get(self.database.LevelData.level_id == level_id)
         return f'{b64encode(level.level_data).decode()}{level.level_checksum}'

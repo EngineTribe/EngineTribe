@@ -11,7 +11,7 @@ from models import (
     UpdatePasswordRequestBody,
     UpdatePermissionRequestBody,
     RegisterRequestBody,
-    ErrorMessage,
+    ErrorMessage
 )
 import smmwe_lib
 
@@ -233,3 +233,4 @@ async def user_info_handler(request: UserInfoRequestBody):
             "is_banned": user.is_banned,
         },
     }
+
