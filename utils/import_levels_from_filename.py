@@ -18,7 +18,7 @@ if STORAGE_PROVIDER == 'onedrive-cf':
 	storage = StorageProviderOneDriveCF(url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=False)
 
 	environments = {"underground": "1", "castle": "2", "underwater": "3", "ghost": "4", "airship": "5", "forest": "6",
-					"sky": "7", "desert": "8", "snow": "9", "fall": "10", "beach": "11"}
+					"sky": "7", "desert": "8", "snow": "9", "fall": "10", "beach": "11", "Mountain y Volcano": "12"}
 
 
 async def recover_level(level_id):
