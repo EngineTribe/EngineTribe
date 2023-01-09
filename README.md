@@ -3,14 +3,14 @@
   <br>
 </div>
 
-📡 **Engine Tribe** project is an open source reimplementation for SMM_WE online server **Engine Kingdom** v3.2.3. 
+📡 **Engine Tribe** project is an open source reimplementation for SMM_WE online server **Engine Kingdom** v3.2.3, also used in SMM_WE v3.0.0.
 
 ---
 
 ### ✅ Features
 
 - 👥 User system, registration and logging in
-- ☁ OneDrive storage backend
+- ☁ OneDrive & local database storage providers
 - 🗄️ MySQL, PostgreSQL or SQLite database
 - 📤 Uploading and deleting level
 - 🔍 Browsing level and detailed searching
