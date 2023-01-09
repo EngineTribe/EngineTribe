@@ -15,6 +15,13 @@ from models import (
 )
 import smmwe_lib
 
+import discord
+from config import (
+    ENABLE_DISCORD_WEBHOOK,
+    DISCORD_WEBHOOK_URL,
+    DISCORD_AVATAR_URL
+)
+
 router = APIRouter(prefix="/user", dependencies=[Depends(connection_count_inc)])
 
 
@@ -186,6 +193,19 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     else:
         return ErrorMessage(error_type="255", message="Permission does not exist.")
     user.save()
+    if ENABLE_DISCORD_WEBHOOK and request.user_id:
+        if request.permission == 'booster':
+            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
+            message = f"**{user.username}** ahora {'sí' if request.value else 'no'} " \
+                      f"tiene el rol **Boost** en Engine Kingdom!! " \
+                      f"{'🤗' if request.value else '😥'}\n"
+            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+        elif request.permission == 'mod':
+            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
+            message = f"**{user.username}** ahora {'sí' if request.value else 'no'} " \
+                      f"tiene el rol **Stage Mod** en Engine Kingdom!! " \
+                      f"{'🤗' if request.value else '😥'}\n"
+            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
     return {
         "success": "Update success",
         "type": "update",
@@ -233,4 +253,3 @@ async def user_info_handler(request: UserInfoRequestBody):
             "is_banned": user.is_banned,
         },
     }
-
