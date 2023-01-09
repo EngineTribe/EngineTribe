@@ -136,7 +136,7 @@ async def stages_detailed_search_handler(
     if dificultad:
         levels = levels.where(db.Level.deaths != 0)
         if dificultad == "0":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 10.0))  # Easy
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1000.0))  # Easy
         elif dificultad == "1":
             levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
         elif dificultad == "2":
