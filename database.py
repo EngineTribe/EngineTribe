@@ -5,7 +5,7 @@ import datetime
 
 if DATABASE_ADAPTER == 'mysql':
     db_instance = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
-                                passwd=DATABASE_PASS)
+                                passwd=DATABASE_PASS, ssl_ca='/etc/ssl/certs/ca-certificates.crt')
 elif DATABASE_ADAPTER == 'postgresql':
     db_instance = PostgresqlDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
                                      passwd=DATABASE_PASS)
