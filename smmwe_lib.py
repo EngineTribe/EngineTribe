@@ -139,8 +139,8 @@ async def push_to_engine_bot_qq(data: dict):
                 method="POST",
                 url=webhook_url,
                 json=data
-        ):
-            pass
+        ) as response:
+            response_text = await response.text()
 
 
 async def push_to_engine_bot_discord(message: str):
