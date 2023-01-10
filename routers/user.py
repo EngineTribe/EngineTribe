@@ -25,18 +25,6 @@ from config import (
 router = APIRouter(prefix="/user", dependencies=[Depends(connection_count_inc)])
 
 
-def get_user(request) -> ErrorMessage | Any:
-    try:
-        if request.username:
-            return db.User.get(db.User.username == request.username)
-        elif request.user_id:
-            return db.User.get(db.User.user_id == request.user_id)
-        else:
-            return ErrorMessage(error_type="255", message="API error.")
-    except peewee.DoesNotExist:
-        return ErrorMessage(error_type="006", message="User not found.")
-
-
 @router.post("/login")
 async def user_login_handler(
         alias: str = Form(""),
@@ -179,10 +167,16 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
             "message": "Invalid API key.",
             "api_key": request.api_key,
         }
-    user = get_user(request)
+    try:
+        if request.username:
+            user = db.User.get(db.User.username == request.username)
+        elif request.user_id:
+            user = db.User.get(db.User.user_id == request.user_id)
+        else:
+            return ErrorMessage(error_type="255", message="API error.")
+    except peewee.DoesNotExist:
+        return ErrorMessage(error_type="006", message="User not found.")
     permission_changed: bool = False
-    if isinstance(user, ErrorMessage):
-        return user
     if request.permission == "mod":
         if user.is_mod != request.value:
             permission_changed = True
@@ -200,7 +194,7 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     else:
         return ErrorMessage(error_type="255", message="Permission does not exist.")
     user.save()
-    if ENABLE_DISCORD_WEBHOOK and request.user_id and permission_changed:
+    if ENABLE_DISCORD_WEBHOOK and permission_changed:
         if request.permission == 'booster':
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
             message = f"**{user.username}** ahora {'sí' if request.value else 'no'} " \
@@ -246,7 +240,15 @@ async def user_update_password_handler(request: UpdatePasswordRequestBody):
 
 @router.post("/info")  # Get user info
 async def user_info_handler(request: UserInfoRequestBody):
-    user = get_user(request)
+    try:
+        if request.username:
+            user = db.User.get(db.User.username == request.username)
+        elif request.user_id:
+            user = db.User.get(db.User.user_id == request.user_id)
+        else:
+            return ErrorMessage(error_type="255", message="API error.")
+    except peewee.DoesNotExist:
+        return ErrorMessage(error_type="006", message="User not found.")
     if isinstance(user, ErrorMessage):
         return user
     return {
