@@ -18,8 +18,7 @@ import smmwe_lib
 import discord
 from config import (
     ENABLE_DISCORD_WEBHOOK,
-    DISCORD_WEBHOOK_URL,
-    DISCORD_AVATAR_URL
+    ENABLE_ENGINE_BOT_WEBHOOK
 )
 
 router = APIRouter(prefix="/user", dependencies=[Depends(connection_count_inc)])
@@ -194,19 +193,35 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     else:
         return ErrorMessage(error_type="255", message="Permission does not exist.")
     user.save()
-    if ENABLE_DISCORD_WEBHOOK and permission_changed:
-        if request.permission == 'booster':
-            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = f"**{user.username}** ahora {'sí' if request.value else 'no'} " \
-                      f"tiene el rol **Boost** en Engine Kingdom!! " \
-                      f"{'🤗' if request.value else '😥'}\n"
-            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
-        elif request.permission == 'mod':
-            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = f"**{user.username}** ahora {'sí' if request.value else 'no'} " \
-                      f"tiene el rol **Stage Mod** en Engine Kingdom!! " \
-                      f"{'🤗' if request.value else '😥'}\n"
-            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+    if permission_changed:
+        if ENABLE_ENGINE_BOT_WEBHOOK:
+            if request.permission == 'booster':
+                await smmwe_lib.push_to_engine_bot_qq({
+                    'type': 'permission_change',
+                    'permission': 'booster',
+                    'username': user.username,
+                    'value': request.value
+                })
+            elif request.permission == 'mod':
+                await smmwe_lib.push_to_engine_bot_qq({
+                    'type': 'permission_change',
+                    'permission': 'mod',
+                    'username': user.username,
+                    'value': request.value
+                })
+        if ENABLE_DISCORD_WEBHOOK:
+            if request.permission == 'booster':
+                await smmwe_lib.push_to_engine_bot_discord(
+                    f"**{user.username}** ahora {'sí' if request.value else 'no'} "
+                    f"tiene el rol **Booster** en Engine Kingdom!! "
+                    f"{'🤗' if request.value else '😥'}\n"
+                )
+            elif request.permission == 'mod':
+                await smmwe_lib.push_to_engine_bot_discord(
+                    f"**{user.username}** ahora {'sí' if request.value else 'no'} "
+                    f"tiene el rol **Stage Moderator** en Engine Kingdom!! "
+                    f"{'🤗' if request.value else '😥'}\n"
+                )
     return {
         "success": "Update success",
         "type": "update",

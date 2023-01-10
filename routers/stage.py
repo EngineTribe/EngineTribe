@@ -4,7 +4,6 @@ import re
 from math import ceil
 
 import aiohttp
-import discord
 import peewee
 from fastapi import APIRouter, Form, Depends
 from fastapi.responses import RedirectResponse, Response
@@ -16,9 +15,6 @@ from config import (
     ENABLE_DISCORD_WEBHOOK,
     ENABLE_ENGINE_BOT_WEBHOOK,
     ENABLE_ENGINE_BOT_COUNTER_WEBHOOK,
-    DISCORD_WEBHOOK_URL,
-    DISCORD_AVATAR_URL,
-    ENGINE_BOT_WEBHOOK_URLS,
     BOOSTERS_EXTRA_LIMIT,
     UPLOAD_LIMIT,
     OFFENSIVE_WORDS_FILTER,
@@ -34,6 +30,8 @@ from smmwe_lib import (
     gen_level_id_sha1,
     gen_level_id_sha256,
     level_db_to_dict,
+    push_to_engine_bot_qq,
+    push_to_engine_bot_discord
 )
 
 router = APIRouter(
@@ -205,24 +203,17 @@ async def stats_likes_handler(
     level.save()
     if level.likes == 100 or level.likes == 1000:
         if ENABLE_DISCORD_WEBHOOK:
-            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message: str = f"🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n" \
-                           f"> ID: `{level_id}`"
-            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+            await push_to_engine_bot_discord(
+                f"🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n"
+                f"> ID: `{level_id}`"
+            )
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                # Send likes info to Engine-bot
-                async with aiohttp.request(
-                        method="POST",
-                        url=webhook_url,
-                        json={
-                            "type": f"{level.likes}_likes",
-                            "level_id": level_id,
-                            "level_name": level.name,
-                            "author": level.author,
-                        },
-                ):
-                    pass
+            await push_to_engine_bot_qq({
+                "type": f"{level.likes}_likes",
+                "level_id": level_id,
+                "level_name": level.name,
+                "author": level.author,
+            })
     return {"success": "success", "id": level_id, "type": "stats"}
 
 
@@ -356,24 +347,18 @@ async def stages_upload_handler(
     account.uploads += 1
     account.save()  # add a upload to account info
     if ENABLE_DISCORD_WEBHOOK:
-        webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-        message: str = f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n' \
-                       f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n' \
-                       f'> Descargar: {storage.generate_download_url(level_id=level_id)}'
-        webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+        await push_to_engine_bot_discord(
+            f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n'
+            f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
+            f'> Descargar: {storage.generate_download_url(level_id=level_id)}'
+        )
     if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-        for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-            async with aiohttp.request(
-                    method="POST",
-                    url=webhook_url,
-                    json={
-                        "type": "new_arrival",
-                        "level_id": level_id,
-                        "level_name": name,
-                        "author": auth_data.username,
-                    },
-            ):  # Send new level info to Engine-bot
-                pass
+        await push_to_engine_bot_qq({
+                    "type": "new_arrival",
+                    "level_id": level_id,
+                    "level_name": name,
+                    "author": auth_data.username,
+        })
     return {
         "success": auth_data.locale_item.UPLOAD_COMPLETE,
         "id": level_id,
@@ -476,23 +461,17 @@ async def switch_promising_handler(level_id: str) -> dict:
         level.save()
         print(level_id + " added to featured")
         if ENABLE_DISCORD_WEBHOOK:
-            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message: str = f"🌟 El **{level.name}** por **{level.author}** se agrega a niveles prometedores! \n" \
-                      f"> ID: `{level_id}`"
-            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+            await push_to_engine_bot_discord(
+                f"🌟 El **{level.name}** por **{level.author}** se agrega a niveles prometedores! \n"
+                f"> ID: `{level_id}`"
+            )
         if ENABLE_ENGINE_BOT_WEBHOOK:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                async with aiohttp.request(
-                        method="POST",
-                        url=webhook_url,
-                        json={
+            await push_to_engine_bot_qq({
                             "type": "new_featured",
                             "level_id": level_id,
                             "level_name": level.name,
                             "author": level.author,
-                        },
-                ):  # Send new featured info to Engine-bot
-                    pass
+            })
     else:
         level.featured = False
         level.save()
@@ -511,23 +490,17 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
     level.save()
     if level.plays == 100 or level.plays == 1000:
         if ENABLE_DISCORD_WEBHOOK:
-            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message: str = f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n" \
-                      f"> ID: `{level_id}`"
-            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+            await push_to_engine_bot_discord(
+                f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n"
+                f"> ID: `{level_id}`"
+            )
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                async with aiohttp.request(
-                        method="POST",
-                        url=webhook_url,
-                        json={
+            await push_to_engine_bot_qq({
                             "type": f"{level.plays}_plays",
                             "level_id": level_id,
                             "level_name": level.name,
                             "author": level.author,
-                        },
-                ):  # Send plays info to Engine-bot
-                    pass
+            })
     return {"success": "success", "id": level_id, "type": "stats"}
 
 
@@ -552,23 +525,17 @@ async def stats_victorias_handler(
         level.save()
     if level.clears == 100 or level.clears == 1000:
         if ENABLE_DISCORD_WEBHOOK:
-            webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
-            message = f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha salido victorioso **{level.clears}** veces!\n "
-            message += f"ID: `{level_id}`"
-            webhook.send(message, username="Engine Bot", avatar_url=DISCORD_AVATAR_URL)
+            await push_to_engine_bot_discord(
+                f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha salido victorioso **{level.clears}** veces!\n"
+                f"> ID: `{level_id}`"
+            )
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                async with aiohttp.request(
-                        method="POST",
-                        url=webhook_url,
-                        json={
+            await push_to_engine_bot_qq({
                             "type": f"{level.clears}_clears",
                             "level_id": level_id,
                             "level_name": level.name,
                             "author": level.author,
-                        },
-                ):  # Send clears info to Engine-bot
-                    pass
+            })
     return {"success": "success", "id": level_id, "type": "stats"}
 
 
@@ -583,19 +550,12 @@ async def stats_muertes_handler(level_id: str) -> ErrorMessage | dict:
     level.save()
     if level.deaths == 100 or level.deaths == 1000:
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-            for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-                # Send deaths info to Engine-bot
-                async with aiohttp.request(
-                        method="POST",
-                        url=webhook_url,
-                        json={
+            await push_to_engine_bot_qq({
                             "type": f"{level.deaths}_deaths",
                             "level_id": level_id,
                             "level_name": level.name,
                             "author": level.author,
-                        },
-                ):
-                    pass
+            })
     return {"success": "success", "id": level_id, "type": "stats"}
 
 

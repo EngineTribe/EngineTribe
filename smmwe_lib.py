@@ -1,9 +1,17 @@
 import base64
 import hashlib
+import aiohttp
+import discord
 
 from xpinyin import Pinyin
 
 from locales import *
+
+from config import (
+    DISCORD_AVATAR_URL,
+    DISCORD_WEBHOOK_URLS,
+    ENGINE_BOT_WEBHOOK_URLS
+)
 
 
 def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
@@ -123,6 +131,24 @@ def is_valid_user_agent(user_agent):
             return False
     else:
         return False
+
+
+async def push_to_engine_bot_qq(data: dict):
+    for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
+        async with aiohttp.request(
+                method="POST",
+                url=webhook_url,
+                json=data
+        ):
+            pass
+
+
+async def push_to_engine_bot_discord(message: str):
+    async with aiohttp.ClientSession() as session:
+        for webhook_url in DISCORD_WEBHOOK_URLS:
+            webhook = discord.Webhook.from_url(url=webhook_url, session=session)
+            message: str = message
+            await webhook.send(message, username="Engine-bot", avatar_url=DISCORD_AVATAR_URL)
 
 
 class Tokens:
