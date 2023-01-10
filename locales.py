@@ -30,7 +30,7 @@ class zh_CN(LocaleModel):
     ACCOUNT_IS_NOT_VALID: str = '请重新加群。'
     ACCOUNT_BANNED: str = '玩家已被封禁。'
     ACCOUNT_ERROR_PASSWORD: str = '密码错误。'
-    UPLOAD_LIMIT_REACHED: str = '关卡数量发布已达上限。'
+    UPLOAD_LIMIT_REACHED: str = '关卡发布数量已达上限。'
     LEVEL_NOT_FOUND: str = '找不到关卡。'
     UPLOAD_CONNECT_ERROR: str = '连接关卡存储后端失败。'
     LEVEL_ID_REPEAT: str = '关卡已存在'
