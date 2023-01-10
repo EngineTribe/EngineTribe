@@ -180,6 +180,8 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
             "api_key": request.api_key,
         }
     user = get_user(request)
+    if isinstance(user, ErrorMessage):
+        return user
     if request.permission == "mod":
         user.is_mod = request.value
     elif request.permission == "admin":
@@ -240,6 +242,8 @@ async def user_update_password_handler(request: UpdatePasswordRequestBody):
 @router.post("/info")  # Get user info
 async def user_info_handler(request: UserInfoRequestBody):
     user = get_user(request)
+    if isinstance(user, ErrorMessage):
+        return user
     return {
         "type": "user",
         "result": {
