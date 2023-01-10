@@ -180,13 +180,18 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
             "api_key": request.api_key,
         }
     user = get_user(request)
+    permission_changed: bool = False
     if isinstance(user, ErrorMessage):
         return user
     if request.permission == "mod":
+        if user.is_mod != request.value:
+            permission_changed = True
         user.is_mod = request.value
     elif request.permission == "admin":
         user.is_admin = request.value
     elif request.permission == "booster":
+        if user.is_booster != request.value:
+            permission_changed = True
         user.is_booster = request.value
     elif request.permission == "valid":
         user.is_valid = request.value
@@ -195,7 +200,7 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     else:
         return ErrorMessage(error_type="255", message="Permission does not exist.")
     user.save()
-    if ENABLE_DISCORD_WEBHOOK and request.user_id:
+    if ENABLE_DISCORD_WEBHOOK and request.user_id and permission_changed:
         if request.permission == 'booster':
             webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
             message = f"**{user.username}** ahora {'sí' if request.value else 'no'} " \
