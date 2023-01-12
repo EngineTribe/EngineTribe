@@ -388,10 +388,10 @@ async def stage_id_random_handler(
         else:
             levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
     if db.db_type == "mysql":
-        level = levels.select().order_by(peewee.fn.Rand()).limit(1)[0]
+        level = levels.order_by(peewee.fn.Rand()).limit(1)[0]
     else:
         level = (
-            levels.select().order_by(peewee.fn.Random()).limit(1)[0]
+            levels.order_by(peewee.fn.Random()).limit(1)[0]
         )  # postgresql and sqlite
     like_type = db.get_like_type(level_id=level.level_id, username=auth_data.username)
     return {
