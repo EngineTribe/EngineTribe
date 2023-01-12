@@ -354,10 +354,10 @@ async def stages_upload_handler(
         )
     if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
         await push_to_engine_bot_qq({
-                    "type": "new_arrival",
-                    "level_id": level_id,
-                    "level_name": name,
-                    "author": auth_data.username,
+            "type": "new_arrival",
+            "level_id": level_id,
+            "level_name": name,
+            "author": auth_data.username,
         })
     return {
         "success": auth_data.locale_item.UPLOAD_COMPLETE,
@@ -367,17 +367,31 @@ async def stages_upload_handler(
 
 
 @router.post("/random")
-async def stage_id_random_handler(auth_code: str = Form("EngineBot|PC|CN")) -> dict:  # Random level
+async def stage_id_random_handler(
+        auth_code: str = Form("EngineBot|PC|CN"),
+        dificultad: Optional[str] = Form(None)
+) -> dict:  # Random level
     auth_data = parse_auth_code(auth_code)
     if auth_data.platform == "MB":
         mobile = True  # Mobile fixes
     else:
         mobile = False
+    levels = db.Level.select()
+    if dificultad:
+        levels = levels.where(db.Level.deaths != 0)
+        if dificultad == "0":
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1000.0))  # Easy
+        elif dificultad == "1":
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
+        elif dificultad == "2":
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))  # Hard
+        else:
+            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
     if db.db_type == "mysql":
-        level = db.Level.select().order_by(peewee.fn.Rand()).limit(1)[0]
+        level = levels.select().order_by(peewee.fn.Rand()).limit(1)[0]
     else:
         level = (
-            db.Level.select().order_by(peewee.fn.Random()).limit(1)[0]
+            levels.select().order_by(peewee.fn.Random()).limit(1)[0]
         )  # postgresql and sqlite
     like_type = db.get_like_type(level_id=level.level_id, username=auth_data.username)
     return {
@@ -467,10 +481,10 @@ async def switch_promising_handler(level_id: str) -> dict:
             )
         if ENABLE_ENGINE_BOT_WEBHOOK:
             await push_to_engine_bot_qq({
-                            "type": "new_featured",
-                            "level_id": level_id,
-                            "level_name": level.name,
-                            "author": level.author,
+                "type": "new_featured",
+                "level_id": level_id,
+                "level_name": level.name,
+                "author": level.author,
             })
     else:
         level.featured = False
@@ -496,10 +510,10 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
             )
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             await push_to_engine_bot_qq({
-                            "type": f"{level.plays}_plays",
-                            "level_id": level_id,
-                            "level_name": level.name,
-                            "author": level.author,
+                "type": f"{level.plays}_plays",
+                "level_id": level_id,
+                "level_name": level.name,
+                "author": level.author,
             })
     return {"success": "success", "id": level_id, "type": "stats"}
 
@@ -531,10 +545,10 @@ async def stats_victorias_handler(
             )
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             await push_to_engine_bot_qq({
-                            "type": f"{level.clears}_clears",
-                            "level_id": level_id,
-                            "level_name": level.name,
-                            "author": level.author,
+                "type": f"{level.clears}_clears",
+                "level_id": level_id,
+                "level_name": level.name,
+                "author": level.author,
             })
     return {"success": "success", "id": level_id, "type": "stats"}
 
@@ -551,10 +565,10 @@ async def stats_muertes_handler(level_id: str) -> ErrorMessage | dict:
     if level.deaths == 100 or level.deaths == 1000:
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             await push_to_engine_bot_qq({
-                            "type": f"{level.deaths}_deaths",
-                            "level_id": level_id,
-                            "level_name": level.name,
-                            "author": level.author,
+                "type": f"{level.deaths}_deaths",
+                "level_id": level_id,
+                "level_name": level.name,
+                "author": level.author,
             })
     return {"success": "success", "id": level_id, "type": "stats"}
 
