@@ -1,4 +1,5 @@
 import base64
+from dataclasses import dataclass
 import hashlib
 import aiohttp
 import discord
@@ -72,14 +73,15 @@ def prettify_level_id(level_id: str):
 def parse_auth_code(raw_auth_code: str):
     auth_code_arr = raw_auth_code.split('|')
     locale = auth_code_arr[2]
-    if locale == 'CN':
-        locale_item = zh_CN
-    elif locale == 'ES':
-        locale_item = es_ES
-    elif locale == 'EN':
-        locale_item = en_US
-    else:
-        locale_item = es_ES
+    match locale:
+        case 'CN':
+            locale_item = zh_CN
+        case 'ES':
+            locale_item = es_ES
+        case 'EN':
+            locale_item = en_US
+        case _:
+            locale_item = es_ES
     if len(auth_code_arr) == 4:
         if auth_code_arr[3] == 'L':
             # 3.1.5 client
@@ -97,14 +99,8 @@ def parse_auth_code(raw_auth_code: str):
         # 3.2.3 client
         legacy = False
         testing_client = False
-    return_data = AuthCodeData()
-    return_data.username = auth_code_arr[0]
-    return_data.platform = auth_code_arr[1]
-    return_data.locale = locale
-    return_data.locale_item = locale_item
-    return_data.legacy = legacy
-    return_data.testing_client = testing_client
-    return return_data
+    return AuthCodeData(username=auth_code_arr[0], platform=auth_code_arr[1], locale=locale, locale_item=locale_item,
+                        legacy=legacy, testing_client=testing_client)
 
 
 def calculate_password_hash(password: str):
@@ -172,6 +168,7 @@ class Tokens:
     Mobile_Testing_EN: str = 'TESTCMBEN'
 
 
+@dataclass
 class AuthCodeData:
     username: str
     platform: str

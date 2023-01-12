@@ -70,13 +70,16 @@ async def stages_detailed_search_handler(
     # Filter and search
 
     if featured:
-        if featured == "promising":
-            levels = levels.where(db.Level.featured == True)  # featured levels
-            levels = levels.order_by(db.Level.id.desc())  # latest levels
-        elif featured == "popular":
-            levels = levels.order_by(
-                (db.Level.likes - db.Level.dislikes).desc()
-            )  # likes
+        match featured:
+            case "promising":
+                levels = levels.where(db.Level.featured == True).order_by(db.Level.id.desc())  # featured levels
+                levels = levels  # latest levels
+            case "popular":
+                levels = levels.order_by(
+                    (db.Level.likes - db.Level.dislikes).desc()
+                )  # likes
+            case _:
+                return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
     else:
         levels = levels.order_by(db.Level.id.desc())  # latest levels
 
@@ -84,10 +87,7 @@ async def stages_detailed_search_handler(
     if not auth_data.testing_client:
         levels = levels.where(db.Level.testing_client == False)
 
-    if auth_data.platform == "MB":
-        mobile = True  # Mobile fixes
-    else:
-        mobile = False
+    mobile: bool = True if auth_data.platform == "MB" else False
 
     if not page:
         page = 1
@@ -114,6 +114,8 @@ async def stages_detailed_search_handler(
     if sort:
         if sort == "antiguos":
             levels = levels.order_by(db.Level.id.asc())
+        else:
+            return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
     if liked:
         stats = db.Stats.select().where(
             db.Stats.likes_users.contains(auth_data.username)
@@ -131,16 +133,20 @@ async def stages_detailed_search_handler(
         for stat in stats:
             level_ids.append(stat.level_id)
         levels = levels.where(db.Level.level_id.in_(level_ids))
+
     if dificultad:
         levels = levels.where(db.Level.deaths != 0)
-        if dificultad == "0":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1000.0))  # Easy
-        elif dificultad == "1":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
-        elif dificultad == "2":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))  # Hard
-        else:
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
+        match dificultad:
+            case "0":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1000.0))  # Easy
+            case "1":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
+            case "2":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))  # Hard
+            case "3":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
+            case _:
+                return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
 
     if historial:
         return ErrorMessage(
@@ -278,10 +284,7 @@ async def stages_upload_handler(
         non_latin = True
 
     # check testing client
-    if auth_data.testing_client:
-        testing_client = True
-    else:
-        testing_client = False
+    testing_client: bool = True if auth_data.testing_client else False
 
     # generate level id
     swe_to_generate = strip_level(swe)
@@ -323,7 +326,7 @@ async def stages_upload_handler(
 
     if len(swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return ErrorMessage(
-            error_type="025", message=auth_data.locale_item.FILE_TOO_LARGE
+            error_type="026", message=auth_data.locale_item.FILE_TOO_LARGE
         )
     try:
         await storage.upload_file(
@@ -331,7 +334,7 @@ async def stages_upload_handler(
         )  # Upload to storage backend
     except ConnectionError:
         return ErrorMessage(
-            error_type="009", message=auth_data.locale_item.UPLOAD_CONNECT_ERROR
+            error_type="010", message=auth_data.locale_item.UPLOAD_CONNECT_ERROR
         )
 
     db.add_level(
@@ -370,7 +373,7 @@ async def stages_upload_handler(
 async def stage_id_random_handler(
         auth_code: str = Form("EngineBot|PC|CN"),
         dificultad: Optional[str] = Form(None)
-) -> dict:  # Random level
+) -> ErrorMessage | dict:  # Random level
     auth_data = parse_auth_code(auth_code)
     if auth_data.platform == "MB":
         mobile = True  # Mobile fixes
@@ -379,14 +382,17 @@ async def stage_id_random_handler(
     levels = db.Level.select()
     if dificultad:
         levels = levels.where(db.Level.deaths != 0)
-        if dificultad == "0":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1000.0))  # Easy
-        elif dificultad == "1":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
-        elif dificultad == "2":
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))  # Hard
-        else:
-            levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
+        match dificultad:
+            case "0":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.8, 1000.0))  # Easy
+            case "1":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.5, 0.8))  # Normal
+            case "2":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.3, 0.5))  # Hard
+            case "3":
+                levels = levels.where((db.Level.clears / db.Level.deaths).between(0.0, 0.3))  # Expert
+            case _:
+                return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
     if db.db_type == "mysql":
         level = levels.order_by(peewee.fn.Rand()).limit(1)[0]
     else:
@@ -413,10 +419,8 @@ async def stage_id_search_handler(
 ) -> ErrorMessage | dict:  # Level ID search
     auth_data = parse_auth_code(auth_code)
     try:
-        if auth_data.platform == "MB":
-            mobile = True  # Mobile fixes
-        else:
-            mobile = False
+        mobile: bool = True if auth_data.platform == "MB" else False
+
         level = db.Level.get(db.Level.level_id == level_id)
         like_type = db.get_like_type(
             level_id=level.level_id, username=auth_data.username

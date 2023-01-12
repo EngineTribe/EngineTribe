@@ -1,7 +1,5 @@
-from typing import Any
-
 import peewee
-from fastapi import APIRouter, Header, Form, Depends
+from fastapi import APIRouter, Form, Depends
 
 from context import db
 from config import API_KEY
@@ -15,7 +13,6 @@ from models import (
 )
 import smmwe_lib
 
-import discord
 from config import (
     ENABLE_DISCORD_WEBHOOK,
     ENABLE_ENGINE_BOT_WEBHOOK
@@ -55,12 +52,9 @@ async def user_login_handler(
         auth_code = tokens_auth_code_match[token]
         auth_data = smmwe_lib.parse_auth_code(auth_code)
     except KeyError:
-        return ErrorMessage(error_type="005", message="Illegal client.")
+        return ErrorMessage(error_type="003", message="Illegal client.")
 
-    if "SMMWEMB" in token:
-        mobile = True
-    else:
-        mobile = False
+    mobile: bool = True if "MB" in token else False
 
     try:
         account = db.User.get(db.User.username == alias)
@@ -117,30 +111,26 @@ async def user_register_handler(request: RegisterRequestBody):
             "message": "Invalid API key.",
             "api_key": request.api_key,
         }
-    user_exist = True
     try:
         expected_user = db.User.get(db.User.user_id == request.user_id)
-    except peewee.DoesNotExist:
-        user_exist = False
-    if user_exist:
         return {
             "error_type": "035",
             "message": "User ID already exists.",
             "user_id": request.user_id,
             "username": expected_user.username
         }
-    user_exist = True
+    except peewee.DoesNotExist:
+        pass
     try:
         expected_user = db.User.get(db.User.username == request.username)
-    except peewee.DoesNotExist:
-        user_exist = False
-    if user_exist:
         return {
             "error_type": "036",
             "message": "Username already exists.",
             "user_id": expected_user.user_id,
             "username": request.username
         }
+    except peewee.DoesNotExist:
+        pass
     try:
         db.add_user(
             username=request.username,
@@ -176,22 +166,23 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody):
     except peewee.DoesNotExist:
         return ErrorMessage(error_type="006", message="User not found.")
     permission_changed: bool = False
-    if request.permission == "mod":
-        if user.is_mod != request.value:
-            permission_changed = True
-        user.is_mod = request.value
-    elif request.permission == "admin":
-        user.is_admin = request.value
-    elif request.permission == "booster":
-        if user.is_booster != request.value:
-            permission_changed = True
-        user.is_booster = request.value
-    elif request.permission == "valid":
-        user.is_valid = request.value
-    elif request.permission == "banned":
-        user.is_banned = request.value
-    else:
-        return ErrorMessage(error_type="255", message="Permission does not exist.")
+    match request.permission:
+        case "mod":
+            if user.is_mod != request.value:
+                permission_changed = True
+            user.is_mod = request.value
+        case "admin":
+            user.is_admin = request.value
+        case "booster":
+            if user.is_booster != request.value:
+                permission_changed = True
+            user.is_booster = request.value
+        case "valid":
+            user.is_valid = request.value
+        case "banned":
+            user.is_banned = request.value
+        case _:
+            return ErrorMessage(error_type="255", message="Permission does not exist.")
     user.save()
     if permission_changed:
         if ENABLE_ENGINE_BOT_WEBHOOK:

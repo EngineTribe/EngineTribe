@@ -19,6 +19,8 @@ class LocaleModel:
     UPLOAD_LIMIT_REACHED: str
     LEVEL_NOT_FOUND: str
     UPLOAD_CONNECT_ERROR: str
+    UNKNOWN_DIFFICULTY: str
+    UNKNOWN_QUERY_MODE: str
     LEVEL_ID_REPEAT: str
     NOT_IMPLEMENTED: str
 
@@ -33,6 +35,8 @@ class zh_CN(LocaleModel):
     UPLOAD_LIMIT_REACHED: str = '关卡发布数量已达上限。'
     LEVEL_NOT_FOUND: str = '找不到关卡。'
     UPLOAD_CONNECT_ERROR: str = '连接关卡存储后端失败。'
+    UNKNOWN_DIFFICULTY: str = '未知难度。'
+    UNKNOWN_QUERY_MODE: str = '未知查询模式。'
     LEVEL_ID_REPEAT: str = '关卡已存在'
     NOT_IMPLEMENTED: str = '未实现。'
 
@@ -47,6 +51,8 @@ class es_ES(LocaleModel):
     UPLOAD_LIMIT_REACHED: str = 'Se alcanzó el máximo de niveles posible para publicar.'
     LEVEL_NOT_FOUND: str = 'Nivel no encontrado.'
     UPLOAD_CONNECT_ERROR: str = 'No se pudo conectar al backend de nivel.'
+    UNKNOWN_DIFFICULTY: str = 'Dificultad desconocida.'
+    UNKNOWN_QUERY_MODE: str = 'Modo de consulta desconocido.'
     LEVEL_ID_REPEAT: str = 'El nivel ya existe.'
     NOT_IMPLEMENTED: str = 'No se ha implementado.'
 
@@ -61,6 +67,8 @@ class en_US(LocaleModel):
     UPLOAD_LIMIT_REACHED: str = 'You have reached the upload limit.'
     LEVEL_NOT_FOUND: str = 'Level not found.'
     UPLOAD_CONNECT_ERROR: str = 'Could not connect to the storage backend.'
+    UNKNOWN_DIFFICULTY: str = 'Unknown difficulty.'
+    UNKNOWN_QUERY_MODE: str = 'Unknown query mode.'
     LEVEL_ID_REPEAT: str = 'Level already exists.'
     NOT_IMPLEMENTED: str = 'Not implemented.'
 
