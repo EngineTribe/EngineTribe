@@ -41,9 +41,9 @@ class SMMWEDatabase:
         featured = BooleanField()  # Whether the level is in promising levels
         record_user = TextField()  # Record user
         record = IntegerField()  # Record
-        testing_client = BooleanField()  # For 3.3.0 testing client
+        testing_client = BooleanField()  # For 3.3.0+ testing client
+        description = TextField()  # Course description
 
-        # description = TextField()  # Unimplemented in original server "Sin Descripción"
         # comments = IntegerField()  # Unimplemented in original server
 
         class Meta:
@@ -64,7 +64,7 @@ class SMMWEDatabase:
         password_hash = TextField()  # Password hash
         is_admin = BooleanField()  # Is administrator
         is_mod = BooleanField()  # Is moderator
-        is_booster = BooleanField()  # Is booster (not implemented now but planned)
+        is_booster = BooleanField()  # Is booster
         is_valid = BooleanField()  # Is account valid (Engine-bot determines whether account is still in the QQ group)
         is_banned = BooleanField()  # Is account banned
 
@@ -81,14 +81,14 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'level_data_table'
 
-    def add_level(self, name, style, environment, tags, author, level_id, non_latin, testing_client):
+    def add_level(self, name, style, environment, tags, author, level_id, non_latin, testing_client, description):
         # add level metadata into database
         tags_id = parse_tag_names(tags)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
                            date=datetime.date.today(), author=author,
                            level_id=level_id, non_latin=non_latin, record_user='', record=0,
-                           testing_client=testing_client)
+                           testing_client=testing_client, description=description)
         level.save()
 
     def add_user(self, username: str, password_hash: str, user_id):

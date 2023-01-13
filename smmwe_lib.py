@@ -41,7 +41,7 @@ def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: boo
             'record': record,
             'date': level_data.date.strftime("%m/%d/%Y"),
             'author': level_data.author,
-            'description': 'Sin Descripción',
+            'description': level_data.description,
             'archivo': url,
             'id': level_data.level_id}
 

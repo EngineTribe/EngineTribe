@@ -250,6 +250,7 @@ async def stages_upload_handler(
         aparience: str = Form(),
         entorno: str = Form(),
         tags: str = Form(),
+        descripcion: str = Form('Sin Descripción')
 ) -> ErrorMessage | dict:
     auth_data = parse_auth_code(auth_code)
     account = db.User.get(db.User.username == auth_data.username)
@@ -338,14 +339,15 @@ async def stages_upload_handler(
         )
 
     db.add_level(
-        name,
-        aparience,
-        entorno,
-        tags,
-        auth_data.username,
-        level_id,
-        non_latin,
-        testing_client,
+        name=name,
+        style=aparience,
+        environment=entorno,
+        tags=tags,
+        author=auth_data.username,
+        level_id=level_id,
+        non_latin=non_latin,
+        testing_client=testing_client,
+        description=descripcion
     )  # add new level to database
     account.uploads += 1
     account.save()  # add a upload to account info
