@@ -41,6 +41,12 @@ async def user_login_handler(
         smmwe_lib.Tokens.Mobile_Legacy_CN: f"{alias}|MB|CN|L",
         smmwe_lib.Tokens.Mobile_Legacy_ES: f"{alias}|MB|ES|L",
         smmwe_lib.Tokens.Mobile_Legacy_EN: f"{alias}|MB|EN|L",
+        smmwe_lib.Tokens.PC_Testing_CN: f"{alias}|PC|CN|T",
+        smmwe_lib.Tokens.PC_Testing_ES: f"{alias}|PC|ES|T",
+        smmwe_lib.Tokens.PC_Testing_EN: f"{alias}|PC|EN|T",
+        smmwe_lib.Tokens.Mobile_Testing_CN: f"{alias}|MB|CN|T",
+        smmwe_lib.Tokens.Mobile_Testing_ES: f"{alias}|MB|ES|T",
+        smmwe_lib.Tokens.Mobile_Testing_EN: f"{alias}|MB|EN|T",
     }
 
     password = password.encode("latin1").decode("utf-8")
