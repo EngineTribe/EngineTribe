@@ -73,11 +73,13 @@ async def stages_detailed_search_handler(
         match featured:
             case "promising":
                 levels = levels.where(db.Level.featured == True).order_by(db.Level.id.desc())  # featured levels
-                levels = levels  # latest levels
             case "popular":
                 levels = levels.order_by(
                     (db.Level.likes - db.Level.dislikes).desc()
                 )  # likes
+            case "notpromising":
+                # not featured levels (post-3.3.0)
+                levels = levels.where(db.Level.featured == False).order_by(db.Level.id.desc())
             case _:
                 return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
     else:
@@ -112,10 +114,13 @@ async def stages_detailed_search_handler(
             )
         )
     if sort:
-        if sort == "antiguos":
-            levels = levels.order_by(db.Level.id.asc())
-        else:
-            return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
+        match sort:
+            case "antiguos":
+                levels = levels.order_by(db.Level.id.asc())
+            case "popular":
+                levels = levels.order_by((db.Level.likes - db.Level.dislikes).desc())
+            case _:
+                return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
     if liked:
         stats = db.Stats.select().where(
             db.Stats.likes_users.contains(auth_data.username)
