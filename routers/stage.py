@@ -350,7 +350,7 @@ async def stages_upload_handler(
         description=descripcion
     )  # add new level to database
     account.uploads += 1
-    account.save()  # add a upload to account info
+    account.save()  # add an upload to account info
     if ENABLE_DISCORD_WEBHOOK:
         await push_to_engine_bot_discord(
             f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n'
