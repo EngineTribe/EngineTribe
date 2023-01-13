@@ -504,6 +504,11 @@ async def switch_promising_handler(level_id: str) -> dict:
     return {"success": "success", "id": level_id, "type": "stage"}
 
 
+@router.post("{level_id}/switch/promising")
+async def switch_promising_330_handler(level_id: str) -> dict:
+    return await switch_promising_handler(level_id)
+
+
 @router.post("/{level_id}/stats/intentos")
 async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
     try:
