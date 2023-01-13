@@ -18,9 +18,11 @@ from config import (
 def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
     url = generate_url_function(level_data.level_id)
     if mobile and level_data.non_latin:
-        name = string_latinify(level_data.name)
+        name: str = string_latinify(level_data.name)
+        description: str = string_latinify(level_data.description)
     else:
-        name = level_data.name
+        name: str = level_data.name
+        description: str = level_data.description
     # print(level_data.name)
     if level_data.record != 0:
         record = {'record': 'yes', 'alias': level_data.record_user, 'id': '10001', 'time': level_data.record}
@@ -41,7 +43,7 @@ def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: boo
             'record': record,
             'date': level_data.date.strftime("%m/%d/%Y"),
             'author': level_data.author,
-            'description': level_data.description,
+            'description': description,
             'archivo': url,
             'id': level_data.level_id}
 

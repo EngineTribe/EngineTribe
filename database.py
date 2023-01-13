@@ -42,7 +42,7 @@ class SMMWEDatabase:
         record_user = TextField()  # Record user
         record = IntegerField()  # Record
         testing_client = BooleanField()  # For 3.3.0+ testing client
-        description = TextField()  # Course description
+        description = TextField()  # Level description
 
         # comments = IntegerField()  # Unimplemented in original server
 
