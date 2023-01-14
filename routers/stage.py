@@ -21,7 +21,7 @@ from config import (
     ROWS_PERPAGE,
 )
 from depends import connection_count_inc, is_valid_user
-from locales import es_ES  # for fallback messages
+from locales import ES  # for fallback messages
 from models import ErrorMessage
 from smmwe_lib import (
     parse_auth_code,
@@ -352,7 +352,8 @@ async def stages_upload_handler(
         level_id=level_id,
         non_latin=non_latin,
         testing_client=testing_client,
-        description=descripcion
+        description=descripcion,
+        locale=auth_data.locale
     )  # add new level to database
     account.uploads += 1
     account.save()  # add an upload to account info
@@ -515,7 +516,7 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | dict:
         level = db.Level.get(db.Level.level_id == level_id)
     except peewee.DoesNotExist:
         logging.error(f'intentos handler: {level_id} not found')
-        return ErrorMessage(error_type="029", message=es_ES.LEVEL_NOT_FOUND)
+        return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
     level.plays += 1
     level.save()
     if level.plays == 100 or level.plays == 1000:
@@ -544,7 +545,7 @@ async def stats_victorias_handler(
         level = db.Level.get(db.Level.level_id == level_id)
     except peewee.DoesNotExist:
         logging.error(f'victorias handler: {level_id} not found')
-        return ErrorMessage(error_type="029", message=es_ES.LEVEL_NOT_FOUND)
+        return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
     level.clears += 1
     level.save()
     auth_data = parse_auth_code(auth_code)
@@ -575,7 +576,7 @@ async def stats_muertes_handler(level_id: str) -> ErrorMessage | dict:
         level = db.Level.get(db.Level.level_id == level_id)
     except peewee.DoesNotExist:
         logging.error(f'muertes handler: {level_id} not found')
-        return ErrorMessage(error_type="029", message=es_ES.LEVEL_NOT_FOUND)
+        return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
     level.deaths += 1
     level.save()
     if level.deaths == 100 or level.deaths == 1000:
@@ -598,5 +599,5 @@ async def legacy_stage_file(level_id: str) -> ErrorMessage | dict:
     except Exception as ex:
         print(ex)
         return ErrorMessage(
-            error_type="029", message=es_ES.LEVEL_NOT_FOUND
+            error_type="029", message=ES.LEVEL_NOT_FOUND
         )  # No level found

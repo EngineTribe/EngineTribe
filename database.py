@@ -81,9 +81,9 @@ class SMMWEDatabase:
         class Meta:
             table_name = 'level_data_table'
 
-    def add_level(self, name, style, environment, tags, author, level_id, non_latin, testing_client, description):
+    def add_level(self, name, style, environment, tags, author, level_id, non_latin, testing_client, description, locale):
         # add level metadata into database
-        tags_id = parse_tag_names(tags)
+        tags_id = parse_tag_names(tags, locale)
         level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
                            style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
                            date=datetime.date.today(), author=author,

@@ -1,4 +1,4 @@
-import re
+from dataclasses import dataclass
 
 tags_cn = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术", "技巧",
            "射击", "BOSS战", "单人", "Link", "---"]
@@ -7,8 +7,15 @@ tags_en = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short 
 tags_es = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
            "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
            "En solitario", "Link", "---"]
+tags_pt = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
+           "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
+           "En solitario", "Link", "---"]  # I didn't find Portuguese text in SMM2, so put it aside for now
+tags_it = ["Classico", "Rompicapi", "Corsa", "Scorrimento", "Automatico", "Corto ma bello", "Competizione",
+           "Tematico", "Musica", "Artistico", "Tecnico", "Sparatutto", "Scontro col boss", "Un giocatore",
+           "Link", "---"]
 
 
+@dataclass
 class LocaleModel:
     UPLOAD_COMPLETE: str
     FILE_TOO_LARGE: str
@@ -25,7 +32,8 @@ class LocaleModel:
     NOT_IMPLEMENTED: str
 
 
-class zh_CN(LocaleModel):
+@dataclass
+class CN(LocaleModel):
     UPLOAD_COMPLETE: str = '上传完成。'
     FILE_TOO_LARGE: str = '文件大于 4MB。'
     ACCOUNT_NOT_FOUND: str = '帐号错误或不存在。'
@@ -41,7 +49,8 @@ class zh_CN(LocaleModel):
     NOT_IMPLEMENTED: str = '未实现。'
 
 
-class es_ES(LocaleModel):
+@dataclass
+class ES(LocaleModel):
     UPLOAD_COMPLETE: str = 'Publicar completado.'
     FILE_TOO_LARGE: str = 'El archivo tiene más de 4 MB.'
     ACCOUNT_NOT_FOUND: str = 'Usuario incorrecto o no encontrado.'
@@ -57,10 +66,11 @@ class es_ES(LocaleModel):
     NOT_IMPLEMENTED: str = 'No se ha implementado.'
 
 
-class en_US(LocaleModel):
+@dataclass
+class EN(LocaleModel):
     UPLOAD_COMPLETE: str = 'Upload completed.'
     FILE_TOO_LARGE: str = 'File is bigger than 4MB.'
-    ACCOUNT_NOT_FOUND: str = 'User incorrect or doesn\'t exist'
+    ACCOUNT_NOT_FOUND: str = 'User incorrect or doesn\'t exist.'
     ACCOUNT_IS_NOT_VALID: str = 'Not authorized because you are not in the server.'
     ACCOUNT_BANNED: str = 'User has been banned.'
     ACCOUNT_ERROR_PASSWORD: str = 'Password incorrect.'
@@ -73,22 +83,73 @@ class en_US(LocaleModel):
     NOT_IMPLEMENTED: str = 'Not implemented.'
 
 
-def parse_tag_names(tag_names: str) -> list:
+@dataclass
+class PT(LocaleModel):
+    UPLOAD_COMPLETE: str = 'Carregamento concluído.'
+    FILE_TOO_LARGE: str = 'O arquivo é maior que 4 MB.'
+    ACCOUNT_NOT_FOUND: str = 'Usuário incorreto ou não existe.'
+    ACCOUNT_IS_NOT_VALID: str = 'Não autorizado porque você não está no servidor.'
+    ACCOUNT_BANNED: str = 'O usuário foi banido.'
+    ACCOUNT_ERROR_PASSWORD: str = 'Senha incorreta.'
+    UPLOAD_LIMIT_REACHED: str = 'Você atingiu o limite de upload.'
+    LEVEL_NOT_FOUND: str = 'Nível não encontrado.'
+    UPLOAD_CONNECT_ERROR: str = 'Não foi possível conectar ao back-end de armazenamento.'
+    UNKNOWN_DIFFICULTY: str = 'Dificuldade desconhecida.'
+    UNKNOWN_QUERY_MODE: str = 'Modo de consulta desconhecido.'
+    LEVEL_ID_REPEAT: str = 'O nível já existe.'
+    NOT_IMPLEMENTED: str = 'Não implementado.'
+
+
+@dataclass
+class IT(LocaleModel):
+    UPLOAD_COMPLETE: str = 'Caricamento completato.'
+    FILE_TOO_LARGE: str = 'Il file è più grande di 4 MB.'
+    ACCOUNT_NOT_FOUND: str = 'Utente errato o inesistente.'
+    ACCOUNT_IS_NOT_VALID: str = 'Non autorizzato perché non sei nel server.'
+    ACCOUNT_BANNED: str = 'L\'utente è stato bannato.'
+    ACCOUNT_ERROR_PASSWORD: str = 'Password non corretta.'
+    UPLOAD_LIMIT_REACHED: str = 'Hai raggiunto il limite di caricamento.'
+    LEVEL_NOT_FOUND: str = 'Livello non trovato.'
+    UPLOAD_CONNECT_ERROR: str = 'Impossibile connettersi al back-end di archiviazione.'
+    UNKNOWN_DIFFICULTY: str = 'Difficoltà sconosciuta.'
+    UNKNOWN_QUERY_MODE: str = 'Modalità query sconosciuta.'
+    LEVEL_ID_REPEAT: str = 'Il livello esiste già.'
+    NOT_IMPLEMENTED: str = 'Non implementato.'
+
+
+def parse_tag_names(tag_names: str, locale: str) -> list:
     tags = tag_names.split(',')
     tag_1 = tags[0].strip()
     tag_2 = tags[1].strip()
+    tags_list: list = []
+    match locale:
+        case "ES":
+            tags_list = tags_es
+        case "EN":
+            tags_list = tags_en
+        case "CN":
+            tags_list = tags_cn
+        case "PT":
+            tags_list = tags_pt
+        case "IT":
+            tags_list = tags_it
     for i in range(0, 16):
-        if tags_es[i] == tag_1 or tags_en[i] == tag_1 or tags_cn[i] == tag_1:
+        if tags_list[i] == tag_1:
             tag_1 = i
-        if tags_es[i] == tag_2 or tags_en[i] == tag_2 or tags_cn[i] == tag_2:
+        if tags_list[i] == tag_2:
             tag_2 = i
     return [tag_1, tag_2]
 
 
 def get_tag_name(tag_id: int, locale_to: str) -> str:
-    if locale_to == "ES":
-        return tags_es[tag_id]
-    elif locale_to == "EN":
-        return tags_en[tag_id]
-    elif locale_to == "CN":
-        return tags_cn[tag_id]
+    match locale_to:
+        case "ES":
+            return tags_es[tag_id]
+        case "EN":
+            return tags_en[tag_id]
+        case "CN":
+            return tags_cn[tag_id]
+        case "PT":
+            return tags_pt[tag_id]
+        case "IT":
+            return tags_it[tag_id]

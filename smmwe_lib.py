@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import hashlib
 import aiohttp
 import discord
+import re
 
 from xpinyin import Pinyin
 
@@ -77,13 +78,18 @@ def parse_auth_code(raw_auth_code: str):
     locale = auth_code_arr[2]
     match locale:
         case 'CN':
-            locale_item = zh_CN
+            locale_item = CN
         case 'ES':
-            locale_item = es_ES
+            locale_item = ES
         case 'EN':
-            locale_item = en_US
+            locale_item = EN
+        case 'PT':
+            locale_item = PT
+        case 'IT':
+            locale_item = IT
         case _:
-            locale_item = es_ES
+            locale = 'ES'
+            locale_item = ES
     if len(auth_code_arr) == 4:
         if auth_code_arr[3] == 'L':
             # 3.1.5 client
