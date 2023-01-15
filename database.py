@@ -143,10 +143,9 @@ class SMMWEDatabase:
         # register user
         user = self.User(username=username, password_hash=password_hash, user_id=user_id, uploads=0, is_admin=False,
                          is_mod=False, is_booster=False, is_valid=True, is_banned=False)
-        async with self.session as session:
-            async with session.begin():
-                session.add(user)
-                await session.commit()
+        async with self.session.begin() as session:
+            session.add(user)
+            await session.commit()
 
     async def execute_selection(self, selection) -> list:
         async with self.session.begin() as session:
