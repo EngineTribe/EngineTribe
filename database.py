@@ -325,11 +325,21 @@ class SMMWEDatabase:
             session.add(level)
             await session.commit()
 
-    async def get_level_count(self, selection) -> int:
+    async def get_level_count(self, selection=None) -> int:
+        if selection is None:
+            selection = select(self.Level)
         async with self.session.begin() as session:
             return (
                 await session.execute(
                     select(func.count()).select_from(selection)
+                )
+            ).scalars().first()
+
+    async def get_player_count(self) -> int:
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(func.count()).select_from(self.User)
                 )
             ).scalars().first()
 

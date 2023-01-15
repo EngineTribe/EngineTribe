@@ -61,8 +61,8 @@ async def server_stats() -> dict:
     return {
         "os": platform.platform().replace('-', ' '),
         "python": platform.python_version(),
-        "player_count": context.db.User.select().count(),
-        "level_count": context.db.Level.select().count(),
+        "player_count": await context.db.get_player_count(),
+        "level_count": await context.db.get_level_count(),
         "uptime": datetime.datetime.now() - start_time,
         "connection_per_minute": connection_per_minute,
     }
