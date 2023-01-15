@@ -56,7 +56,7 @@ class SMMWEDatabase:
         environment = Column(Integer)  # Level environment
         tag_1 = Column(Integer)  # Tag 1
         tag_2 = Column(Integer)  # Tag 2
-        date = Column(Date, server_default=func.today())  # Upload date
+        date = Column(Date)  # Upload date
         author = Column(Text)  # Level maker
         level_id = Column(Text)  # Level ID
         non_latin = Column(Boolean)  # Whether the level name contains non-Latin characters
