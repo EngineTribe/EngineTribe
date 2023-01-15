@@ -1,11 +1,11 @@
 from config import *
 import datetime
-from sqlalchemy import Column, Integer, UnicodeText, Text, Date, Boolean, ForeignKey
-from sqlalchemy import func
+from sqlalchemy import Column, Integer, UnicodeText, Text, Date, Boolean
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from sqlalchemy import select
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 import ssl
 
 Base = declarative_base()
@@ -67,15 +67,11 @@ class SMMWEDatabase:
         description = Column(UnicodeText)  # Level description
         # archivo = Column(Text)  # Level file in storage backend   # deprecated
         # comments = Column(Integer)  # Unimplemented in original server
-        like_users = relationship("LikeUsers", cascade="all, delete")
-        dislike_users = relationship("DislikeUsers", cascade="all, delete")
-        cleared_users = relationship("ClearedUsers", cascade="all, delete")
-
     class LikeUsers(Base):
         __tablename__ = "likes_table"
 
         id = Column(Integer, primary_key=True)
-        parent_id = Column(Integer, ForeignKey("level_table.id"))
+        parent_id = Column(Integer)
 
         username = Column(Text)
 
@@ -83,7 +79,7 @@ class SMMWEDatabase:
         __tablename__ = "dislikes_table"
 
         id = Column(Integer, primary_key=True)
-        parent_id = Column(Integer, ForeignKey("level_table.id"))
+        parent_id = Column(Integer)
 
         username = Column(Text)
 
@@ -91,7 +87,7 @@ class SMMWEDatabase:
         __tablename__ = "clears_table"
 
         id = Column(Integer, primary_key=True)
-        parent_id = Column(Integer, ForeignKey("level_table.id"))
+        parent_id = Column(Integer)
 
         username = Column(Text)
 
@@ -304,6 +300,12 @@ class SMMWEDatabase:
     async def delete_level(self, level: Level):
         async with self.session.begin() as session:
             session.delete(level)
+            await session.execute(
+                delete(self.LikeUsers).where(self.LikeUsers.parent_id == level.id)
+            )
+            await session.execute(
+                delete(self.DislikeUsers).where(self.LikeUsers.parent_id == level.id)
+            )
             await session.commit()
 
     async def delete_level_data(self, level_id: str):
@@ -340,7 +342,7 @@ class SMMWEDatabase:
         likes_users = Column(Text)
         dislikes_users = Column(Text)
 
-    async def get_old_stats(self):
+    async def get_old_stats(self) -> list[Stats]:
         async with self.session.begin() as session:
             return (
                 await session.execute(

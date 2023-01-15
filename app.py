@@ -6,7 +6,6 @@ import threading
 from math import ceil
 from typing import Optional
 
-import requests
 import uvicorn
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -27,8 +26,9 @@ connection_per_minute = 0
 
 start_time = datetime.datetime.now()
 
-
 if OFFENSIVE_WORDS_FILTER:
+    import requests
+
     # Load DFA filter
     dfa_filter = DFAFilter()
     wordlist = None
@@ -43,6 +43,11 @@ if OFFENSIVE_WORDS_FILTER:
             if len(re.findall(re.compile(r"[A-Za-z]", re.S), word)) == 0:
                 if len(word) > 1 and len(word.encode("utf-8")) > 2:
                     dfa_filter.add(word)
+
+
+@app.on_event("startup")
+async def startup_event():
+    await context.db.create_columns()
 
 
 @app.get("/")
