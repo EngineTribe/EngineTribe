@@ -131,12 +131,14 @@ async def stages_detailed_search_handler(
     if liked:
         level_data_ids: list[int] = []  # Liked levels' data ids
         for liked_data in await db.get_liked_levels_by_user(auth_data.username):
-            level_data_ids.append(liked_data.parent_id)
+            if liked_data.parent_id not in level_data_ids:
+                level_data_ids.append(liked_data.parent_id)
         selection = selection.where(db.Level.id.in_(level_data_ids))
     elif disliked:
         level_data_ids: list[int] = []  # Disliked levels' data ids
         for disliked_data in await db.get_disliked_levels_by_user(auth_data.username):
-            level_data_ids.append(disliked_data.parent_id)
+            if disliked_data.parent_id not in level_data_ids:
+                level_data_ids.append(disliked_data.parent_id)
         selection = selection.where(db.Level.id.in_(level_data_ids))
     if dificultad:
         selection = selection.where(db.Level.deaths != 0)
@@ -153,9 +155,19 @@ async def stages_detailed_search_handler(
                 return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
 
     if historial:
-        return ErrorMessage(
-            error_type="255", message=auth_data.locale_item.NOT_IMPLEMENTED
-        )
+        if historial in ["0", "1"]:
+            level_data_ids_cleared: list[int] = []  # Cleared levels' data ids
+            for cleared_data in await db.get_cleared_levels_by_user(auth_data.username):
+                if cleared_data.parent_id not in level_data_ids_cleared:
+                    level_data_ids_cleared.append(cleared_data.parent_id)
+            if historial == "0":  # cleared
+                selection = selection.where(db.Level.id.in_(level_data_ids_cleared))
+                pass
+                selection = selection.where(db.Level.id.not_in(level_data_ids_cleared))
+            if historial == "1":  # not cleared
+                pass
+        else:
+            return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
 
     # get numbers
     num_rows: int = await db.get_level_count(selection)

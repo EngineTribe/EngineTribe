@@ -272,7 +272,16 @@ class SMMWEDatabase:
         async with self.session.begin() as session:
             return (
                 await session.execute(
-                    select(self.DislikeUsers).where(self.LikeUsers.username == username)
+                    select(self.DislikeUsers).where(self.DislikeUsers.username == username)
+                )
+            ).scalars().all()
+
+    async def get_cleared_levels_by_user(self, username: str) -> list[ClearedUsers]:
+        # get user's cleared levels
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(self.ClearedUsers).where(self.ClearedUsers.username == username)
                 )
             ).scalars().all()
 
