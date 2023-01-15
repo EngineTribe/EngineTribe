@@ -107,17 +107,14 @@ class StorageProviderDatabase:
     def __init__(self, base_url: str, database: SMMWEDatabase):
         self.base_url = base_url
         self.database = database
-        self.database.LevelData.create_table()  # auto create table for level data
         self.type = "database"
 
-    # noinspection PyBroadException
     async def upload_file(self, level_data: str, level_id: str):
-        print('start uploading')
-        self.database.LevelData(
+        await self.database.add_level_data(
             level_id=level_id,
-            level_data=b64decode(level_data[:-40].encode()),
+            level_data=b64decode(level_data[:-40].encode()).decode(),
             level_checksum=level_data[-40:]
-        ).save()
+        )
 
     def generate_url(self, level_id: str):
         return f'{self.base_url}stage/{level_id}/file'
@@ -125,11 +122,14 @@ class StorageProviderDatabase:
     def generate_download_url(self, level_id: str):
         return f'{self.base_url}stage/{level_id}/file'
 
-    def delete_level(self, name: str, level_id: str):
-        self.database.LevelData.delete().where(level_id == level_id).execute()
+    async def delete_level(self, name: str, level_id: str):
+        await self.database.delete_level_data(level_id=level_id)
         print(f"Deleted level {name} {level_id} from database")
         return
 
-    def dump_level_data(self, level_id: str) -> str:
-        level = self.database.LevelData.get(self.database.LevelData.level_id == level_id)
-        return f'{b64encode(level.level_data).decode()}{level.level_checksum}'
+    async def dump_level_data(self, level_id: str) -> str | None:
+        level = (await self.database.dump_level_data(level_id=level_id))
+        if level is not None:
+            return f'{b64encode(level.level_data.encode()).decode()}{level.level_checksum}'
+        else:
+            return None

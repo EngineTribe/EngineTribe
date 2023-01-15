@@ -5,6 +5,9 @@ import sys
 import rapidjson as json
 import requests
 
+# DEPRECATED
+# WON'T WORK
+
 sys.path.append('..')
 
 import asyncio

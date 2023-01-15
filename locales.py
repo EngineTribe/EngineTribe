@@ -1,18 +1,18 @@
 from dataclasses import dataclass
 
-tags_cn = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术", "技巧",
-           "射击", "BOSS战", "单人", "Link", "---"]
-tags_en = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short and Sweet", "Multiplayer",
-           "Themed", "Music", "Art", "Technical", "Shooter", "Boss battle", "Singleplayer", "Link", "---"]
-tags_es = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
-           "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
-           "En solitario", "Link", "---"]
-tags_pt = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
-           "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
-           "En solitario", "Link", "---"]  # I didn't find Portuguese text in SMM2, so put it aside for now
-tags_it = ["Classico", "Rompicapi", "Corsa", "Scorrimento", "Automatico", "Corto ma bello", "Competizione",
-           "Tematico", "Musica", "Artistico", "Tecnico", "Sparatutto", "Scontro col boss", "Un giocatore",
-           "Link", "---"]
+TAGS_CN: list[str] = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术",
+                      "技巧", "射击", "BOSS战", "单人", "Link", "---"]
+TAGS_EN: list[str] = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short and Sweet", "Multiplayer",
+                      "Themed", "Music", "Art", "Technical", "Shooter", "Boss battle", "Singleplayer", "Link", "---"]
+TAGS_ES: list[str] = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
+                      "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
+                      "En solitario", "Link", "---"]
+TAGS_PT: list[str] = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",
+                      "Competitivo", "Tematico", "Música", "Artístico", "Habilidad", "Disparos", "Contra jefes",
+                      "En solitario", "Link", "---"]  # I didn't find Portuguese text in SMM2, so put it aside for now
+TAGS_IT: list[str] = ["Classico", "Rompicapi", "Corsa", "Scorrimento", "Automatico", "Corto ma bello", "Competizione",
+                      "Tematico", "Musica", "Artistico", "Tecnico", "Sparatutto", "Scontro col boss", "Un giocatore",
+                      "Link", "---"]
 
 
 @dataclass
@@ -117,39 +117,41 @@ class IT(LocaleModel):
     NOT_IMPLEMENTED: str = 'Non implementato.'
 
 
-def parse_tag_names(tag_names: str, locale: str) -> list:
+def parse_tag_names(tag_names: str, locale: str) -> tuple[int, int]:
     tags = tag_names.split(',')
     tag_1 = tags[0].strip()
     tag_2 = tags[1].strip()
     tags_list: list = []
     match locale:
         case "ES":
-            tags_list = tags_es
+            tags_list = TAGS_ES
         case "EN":
-            tags_list = tags_en
+            tags_list = TAGS_EN
         case "CN":
-            tags_list = tags_cn
+            tags_list = TAGS_CN
         case "PT":
-            tags_list = tags_pt
+            tags_list = TAGS_PT
         case "IT":
-            tags_list = tags_it
+            tags_list = TAGS_IT
+    tag_1_out: int = 0
+    tag_2_out: int = 0
     for i in range(0, 16):
         if tags_list[i] == tag_1:
-            tag_1 = i
+            tag_1_out = i
         if tags_list[i] == tag_2:
-            tag_2 = i
-    return [tag_1, tag_2]
+            tag_2_out = i
+    return tag_1_out, tag_2_out
 
 
 def get_tag_name(tag_id: int, locale_to: str) -> str:
     match locale_to:
         case "ES":
-            return tags_es[tag_id]
+            return TAGS_ES[tag_id]
         case "EN":
-            return tags_en[tag_id]
+            return TAGS_EN[tag_id]
         case "CN":
-            return tags_cn[tag_id]
+            return TAGS_CN[tag_id]
         case "PT":
-            return tags_pt[tag_id]
+            return TAGS_PT[tag_id]
         case "IT":
-            return tags_it[tag_id]
+            return TAGS_IT[tag_id]

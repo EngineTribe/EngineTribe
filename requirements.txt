@@ -1,11 +1,14 @@
-peewee
 xpinyin
-requests
-pymysql
 discord
 uvicorn
-starlette<1.0.0
+starlette<1.0
 fastapi
 pydantic
 python-multipart
 aiohttp
+
+sqlalchemy[asyncio] >1.4, <2.0
+greenlet
+aiomysql
+
+# requests  # for filter, optional

@@ -1,111 +1,323 @@
-from peewee import *
 from config import *
-from locales import *
 import datetime
+from sqlalchemy import Column, Integer, UnicodeText, Text, Date, Boolean, ForeignKey
+from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy import select
 
-if DATABASE_ADAPTER == 'mysql':
-    db_instance = MySQLDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
-                                passwd=DATABASE_PASS, ssl_ca='/etc/ssl/certs/ca-certificates.crt')
-elif DATABASE_ADAPTER == 'postgresql':
-    db_instance = PostgresqlDatabase(DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER,
-                                     passwd=DATABASE_PASS)
-elif DATABASE_ADAPTER == 'sqlite':
-    db_instance = SqliteDatabase(DATABASE_HOST, user=DATABASE_USER, passwd=DATABASE_PASS)
+Base = declarative_base()
 
 
 class SMMWEDatabase:
     def __init__(self):
-        self.db_type = DATABASE_ADAPTER
-        db_instance.connect()
+        match DATABASE_ADAPTER:
+            case 'mysql':
+                database_type = 'mysql+aiomysql'
+            case 'postgresql':
+                database_type = 'postgresql+asyncpg'
+            case 'sqlite':
+                database_type = 'sqlite+aiosqlite'
+            case _:
+                raise ValueError('Invalid database adapter')
+        self.engine: AsyncEngine = create_async_engine(
+            url=f'{database_type}://{DATABASE_USER}:{DATABASE_PASS}@'
+                f'{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}',
+            echo=DATABASE_DEBUG, future=True,
+            connect_args={
+                'ssl': {'ca': '/etc/ssl/certs/ca-certificates.crt'}
+            }
+        )
+        # Base.metadata.create_all(self.engine)
+        self.session: sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
 
-    class DatabaseModel(Model):
-        class Meta:
-            database = db_instance
+    class Level(Base):
+        __table_args = {'mysql_charset': 'utf8mb4'}
+        __mapper_args__ = {"eager_defaults": True}
+        __tablename__ = "level_table"
 
-    class Level(DatabaseModel):
-        name = TextField()
-        likes = IntegerField()
-        dislikes = IntegerField()
-        plays = IntegerField()  # Play count
-        deaths = IntegerField()  # Death count
-        clears = IntegerField()  # Clear count
-        style = TextField()  # Game style
-        environment = TextField()  # Level environment
-        tag_1 = IntegerField()  # Tag 1
-        tag_2 = IntegerField()  # Tag 2
-        date = DateField()  # Upload date
-        author = TextField()  # Level maker
-        # archivo = TextField()  # Level file in storage backend   # deprecated
-        level_id = TextField()  # Level ID
-        non_latin = BooleanField()  # Whether the level name contains non-Latin characters
-        featured = BooleanField()  # Whether the level is in promising levels
-        record_user = TextField()  # Record user
-        record = IntegerField()  # Record
-        testing_client = BooleanField()  # For 3.3.0+ testing client
-        description = TextField()  # Level description
+        id = Column(Integer, primary_key=True)
 
-        # comments = IntegerField()  # Unimplemented in original server
+        name = Column(UnicodeText)  # Level name
+        likes = Column(Integer)  # Likes count
+        dislikes = Column(Integer)  # Dislikes count
+        plays = Column(Integer)  # Play count
+        deaths = Column(Integer)  # Death count
+        clears = Column(Integer)  # Clear count
+        style = Column(Integer)  # Game style
+        environment = Column(Integer)  # Level environment
+        tag_1 = Column(Integer)  # Tag 1
+        tag_2 = Column(Integer)  # Tag 2
+        date = Column(Date, server_default=func.today())  # Upload date
+        author = Column(Text)  # Level maker
+        level_id = Column(Text)  # Level ID
+        non_latin = Column(Boolean)  # Whether the level name contains non-Latin characters
+        featured = Column(Boolean)  # Whether the level is in promising levels
+        record_user = Column(Text)  # Record user
+        record = Column(Integer)  # Record
+        testing_client = Column(Boolean)  # For 3.3.0+ testing client
+        description = Column(UnicodeText)  # Level description
+        # archivo = Column(Text)  # Level file in storage backend   # deprecated
+        # comments = Column(Integer)  # Unimplemented in original server
+        like_users = relationship("LikeUsers", cascade="all, delete")
+        dislike_users = relationship("DislikeUsers", cascade="all, delete")
+        cleared_users = relationship("ClearedUsers", cascade="all, delete")
 
-        class Meta:
-            table_name = 'level_table'
+    class LikeUsers(Base):
+        __tablename__ = "likes_table"
 
-    class Stats(DatabaseModel):
-        level_id = TextField()
-        likes_users = TextField()  # Users that liked this level
-        dislikes_users = TextField()  # Users that disliked this level
+        id = Column(Integer, primary_key=True)
+        parent_id = Column(Integer, ForeignKey("level_table.id"))
 
-        class Meta:
-            table_name = 'stats_table'
+        username = Column(Text)
 
-    class User(DatabaseModel):
-        username = TextField()  # User name
-        user_id = TextField()  # Engine Bot is run across IMs, so use string user id
-        uploads = IntegerField()  # Upload levels count
-        password_hash = TextField()  # Password hash
-        is_admin = BooleanField()  # Is administrator
-        is_mod = BooleanField()  # Is moderator
-        is_booster = BooleanField()  # Is booster
-        is_valid = BooleanField()  # Is account valid (Engine-bot determines whether account is still in the QQ group)
-        is_banned = BooleanField()  # Is account banned
+    class DislikeUsers(Base):
+        __tablename__ = "dislikes_table"
 
-        class Meta:
-            table_name = 'user_table'
+        id = Column(Integer, primary_key=True)
+        parent_id = Column(Integer, ForeignKey("level_table.id"))
 
-    class LevelData(DatabaseModel):  # used in StorageProviderDatabase
-        level_id = TextField()  # Level id
-        level_data = BlobField()  # Leve data without checksum
-        level_checksum = FixedCharField(max_length=40)
+        username = Column(Text)
+
+    class ClearedUsers(Base):
+        __tablename__ = "clears_table"
+
+        id = Column(Integer, primary_key=True)
+        parent_id = Column(Integer, ForeignKey("level_table.id"))
+
+        username = Column(Text)
+
+    class User(Base):
+        __tablename__ = "user_table"
+
+        id = Column(Integer, primary_key=True)
+
+        username = Column(Text)  # User name
+        user_id = Column(Text)  # Engine Bot is run across IMs, so user id is string
+        uploads = Column(Integer)  # Upload levels count
+        password_hash = Column(Text)  # Password hash
+        is_admin = Column(Boolean)  # Is administrator
+        is_mod = Column(Boolean)  # Is moderator
+        is_booster = Column(Boolean)  # Is booster
+        is_valid = Column(Boolean)  # Is account valid (Engine-bot determines whether account is still in the QQ group)
+        is_banned = Column(Boolean)  # Is account banned
+
+    class LevelData(Base):  # used in StorageProviderDatabase
+        __tablename__ = "level_data_table"
+
+        id = Column(Integer, primary_key=True)
+
+        level_id = Column(Text)  # Level id
+        level_data = Column(Text)  # Leve data without checksum
+        level_checksum = Column(Text)  # SHA-1 HMAC checksum
 
         # Store the decoded level data and checksum separately to reduce database usage
 
-        class Meta:
-            table_name = 'level_data_table'
+    async def create_columns(self):
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    def add_level(self, name, style, environment, tags, author, level_id, non_latin, testing_client, description, locale):
+    async def add_level(self, name: str, style: int, environment: int, tag_1: int, tag_2: int, author: str,
+                        level_id: str, non_latin: bool, testing_client: bool, description: str):
         # add level metadata into database
-        tags_id = parse_tag_names(tags, locale)
-        level = self.Level(name=name, likes=0, dislikes=0, intentos=0, muertes=0, victorias=0,
-                           style=style, environment=environment, tag_1=tags_id[0], tag_2=tags_id[1],
+        level = self.Level(name=name, likes=0, dislikes=0, plays=0, deaths=0, clears=0,
+                           style=style, environment=environment, tag_1=tag_1, tag_2=tag_2,
                            date=datetime.date.today(), author=author,
                            level_id=level_id, non_latin=non_latin, record_user='', record=0,
-                           testing_client=testing_client, description=description)
-        level.save()
+                           testing_client=testing_client, description=description, featured=False)
+        async with self.session.begin() as session:
+            session.add(level)
+            await session.commit()
 
-    def add_user(self, username: str, password_hash: str, user_id):
+    async def update_user(self, user: User):
+        async with self.session.begin() as session:
+            session.add(user)
+            await session.commit()
+
+    async def add_user(self, username: str, password_hash: str, user_id: str):
         # register user
         user = self.User(username=username, password_hash=password_hash, user_id=user_id, uploads=0, is_admin=False,
                          is_mod=False, is_booster=False, is_valid=True, is_banned=False)
-        user.save()
+        async with self.session as session:
+            async with session.begin():
+                session.add(user)
+                await session.commit()
 
-    def get_like_type(self, level_id: str, username: str):
-        # get like type from database
-        try:
-            stat = self.Stats.get(self.Stats.level_id == level_id)  # get like data
-            if username + ',' in stat.likes_users:
+    async def execute_selection(self, selection) -> list:
+        async with self.session.begin() as session:
+            return (await session.execute(
+                selection
+            )).scalars().all()
+
+    async def get_like_type(self, level: Level, username: str) -> str:
+        # get user's like type (like or dislike or none) of a level
+        async with self.session.begin() as session:
+            like = (await session.execute(
+                select(self.LikeUsers).where(self.LikeUsers.parent_id == level.id,
+                                             self.LikeUsers.username == username)
+            )).scalars().first()
+            dislike = (await session.execute(
+                select(self.DislikeUsers).where(self.DislikeUsers.parent_id == level.id,
+                                                self.DislikeUsers.username == username)
+            )).scalars().first()
+            if like is not None:
                 return '0'  # like
-            elif username + ',' in stat.dislikes_users:
+            elif dislike is not None:
                 return '1'  # dislike
             else:
                 return '3'  # none
-        except DoesNotExist:
-            return '3'
+
+    async def add_like_to_level(self, username: str, level: Level):
+        # add like to level
+        async with self.session.begin() as session:
+            like = self.LikeUsers(parent_id=level.id, username=username)
+            level.likes += 1
+            session.add_all([like, level])
+            await session.commit()
+
+    async def add_dislike_to_level(self, username: str, level: Level):
+        # add dislike to level
+        async with self.session.begin() as session:
+            dislike = self.DislikeUsers(parent_id=level.id, username=username)
+            level.dislikes += 1
+            session.add_all([dislike, level])
+            await session.commit()
+
+    async def add_play_to_level(self, level: Level):
+        # add play to level
+        async with self.session.begin() as session:
+            level.plays += 1
+            session.add(level)
+            await session.commit()
+
+    async def add_death_to_level(self, level: Level):
+        # add death to level
+        async with self.session.begin() as session:
+            level.deaths += 1
+            session.add(level)
+            await session.commit()
+
+    async def add_clear_to_level(self, username: str, level: Level):
+        # add clear to level
+        async with self.session.begin() as session:
+            if (await session.execute(
+                    select(self.ClearedUsers).where(self.ClearedUsers.parent_id == level.id,
+                                                    self.ClearedUsers.username == username)
+            )).scalars().first() is None:
+                clear = self.ClearedUsers(parent_id=level.id, username=username)
+                session.add(clear)
+            level.clears += 1
+            session.add(level)
+            await session.commit()
+
+    async def update_record_to_level(self, username: str, level: Level, record: int):
+        # update record to level
+        async with self.session.begin() as session:
+            level.record_user = username
+            level.record = record
+            session.add(level)
+            await session.commit()
+
+    async def get_user_from_username(self, username: str) -> User | None:
+        # get user from username
+        async with self.session.begin() as session:
+            user = (await session.execute(
+                select(self.User).where(self.User.username == username)
+            )).scalars().first()
+            return user if (user is not None) else None
+
+    async def get_user_from_user_id(self, user_id: str) -> User | None:
+        # get user from user id
+        async with self.session.begin() as session:
+            user = (await session.execute(
+                select(self.User).where(self.User.user_id == user_id)
+            )).scalars().first()
+            return user if (user is not None) else None
+
+    async def get_level_from_level_id(self, level_id: str) -> Level | None:
+        # get level from level id
+        async with self.session.begin() as session:
+            level = (await session.execute(
+                select(self.Level).where(self.Level.level_id == level_id)
+            )).scalars().first()
+            return level if (level is not None) else None
+
+    async def get_clear_type(self, level: Level, username: str) -> str:
+        # get user's clear type (yes or no) of a level
+        async with self.session.begin() as session:
+            clear = (await session.execute(
+                select(self.ClearedUsers).where(self.ClearedUsers.parent_id == level.id,
+                                                self.ClearedUsers.username == username)
+            )).scalars().first()
+            if clear is not None:
+                return 'yes'
+            else:
+                return 'no'
+
+    async def get_liked_levels_by_user(self, username: str) -> list[LikeUsers]:
+        # get user's liked levels
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(self.LikeUsers).where(self.LikeUsers.username == username)
+                )
+            ).scalars().all()
+
+    async def get_disliked_levels_by_user(self, username: str) -> list[DislikeUsers]:
+        # get user's disliked levels
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(self.DislikeUsers).where(self.LikeUsers.username == username)
+                )
+            ).scalars().all()
+
+    async def add_level_data(self, level_id: str, level_data: str, level_checksum: str):
+        # add level data into database
+        async with self.session.begin() as session:
+            level_data_item = self.LevelData(
+                level_id=level_id,
+                level_data=level_data,
+                level_checksum=level_checksum
+            )
+            session.add(level_data_item)
+            await session.commit()
+
+    async def dump_level_data(self, level_id: str) -> LevelData | None:
+        async with self.session.begin() as session:
+            level_data_item = (await session.execute(
+                select(self.LevelData).where(self.LevelData.level_id == level_id)
+            )).scalars().first()
+            if level_data_item is not None:
+                return level_data_item
+            else:
+                return None
+
+    async def delete_level(self, level: Level):
+        async with self.session.begin() as session:
+            session.delete(level)
+            await session.commit()
+
+    async def delete_level_data(self, level_id: str):
+        async with self.session.begin() as session:
+            level_data_item = (await session.execute(
+                self.LevelData.where(self.LevelData.level_id == level_id)
+            )).scalars().first()
+            level_data_item.delete()
+            session.add(level_data_item)
+            await session.commit()
+
+    async def set_featured(self, level: Level, is_featured: bool):
+        async with self.session.begin() as session:
+            level.featured = is_featured
+            session.add(level)
+            await session.commit()
+
+    async def get_level_count(self, selection) -> int:
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(func.count()).select_from(selection)
+                )
+            ).scalars().first()

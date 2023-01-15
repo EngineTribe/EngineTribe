@@ -15,53 +15,90 @@ from config import (
     ENGINE_BOT_WEBHOOK_URLS
 )
 
+from models import LevelDetails, LevelDetailsUserData
 
-def level_db_to_dict(level_data, locale: str, generate_url_function, mobile: bool, like_type: str):
-    url = generate_url_function(level_data.level_id)
+
+@dataclass
+class Tokens:
+    PC_CN: str = 'SMMWEPCCN'
+    PC_ES: str = 'SMMWEPCES'
+    PC_EN: str = 'SMMWEPCEN'
+    Mobile_CN: str = 'SMMWEMBCN'
+    Mobile_ES: str = 'SMMWEMBES'
+    Mobile_EN: str = 'SMMWEMBEN'
+    PC_Legacy_CN: str = 'LEGACPCCN'
+    PC_Legacy_ES: str = 'LEGACPCES'
+    PC_Legacy_EN: str = 'LEGACPCEN'
+    Mobile_Legacy_CN: str = 'LEGACMBCN'
+    Mobile_Legacy_ES: str = 'LEGACMBES'
+    Mobile_Legacy_EN: str = 'LEGACMBEN'
+    PC_Testing_CN: str = 'TESTCPCCN'
+    PC_Testing_ES: str = 'TESTCPCES'
+    PC_Testing_EN: str = 'TESTCPCEN'
+    Mobile_Testing_CN: str = 'TESTCMBCN'
+    Mobile_Testing_ES: str = 'TESTCMBES'
+    Mobile_Testing_EN: str = 'TESTCMBEN'
+
+
+@dataclass
+class AuthCodeData:
+    username: str
+    platform: str
+    locale: str
+    locale_item: LocaleModel
+    legacy: bool
+    testing_client: bool
+
+
+def level_to_details(level_data, locale: str, generate_url_function, mobile: bool, like_type: str, clear_type: str):
     if mobile and level_data.non_latin:
         name: str = string_latinify(level_data.name)
         description: str = string_latinify(level_data.description)
     else:
         name: str = level_data.name
         description: str = level_data.description
-    # print(level_data.name)
     if level_data.record != 0:
         record = {'record': 'yes', 'alias': level_data.record_user, 'id': '10001', 'time': level_data.record}
     else:
         record = {'record': 'no'}
-    return {'name': name,
-            'likes': str(level_data.likes),
-            'dislikes': str(level_data.dislikes),
-            'comments': '0',
-            'intentos': str(level_data.plays),
-            'muertes': str(level_data.deaths),
-            'victorias': str(level_data.clears),
-            'apariencia': level_data.style,
-            'entorno': level_data.environment,
-            'etiquetas': get_tag_name(level_data.tag_1, locale) + ',' + get_tag_name(level_data.tag_2, locale),
-            'featured': int(level_data.featured),
-            'user_data': {'completed': 'no', 'liked': like_type},
-            'record': record,
-            'date': level_data.date.strftime("%m/%d/%Y"),
-            'author': level_data.author,
-            'description': description,
-            'archivo': url,
-            'id': level_data.level_id}
+    return LevelDetails(
+        name=name,
+        descripcion=description,
+        likes=str(level_data.likes),
+        dislikes=str(level_data.dislikes),
+        comments='0',
+        intentos=str(level_data.plays),
+        muertes=str(level_data.deaths),
+        victorias=str(level_data.clears),
+        apariencia=str(level_data.style),
+        entorno=str(level_data.environment),
+        etiquetas=f'{get_tag_name(level_data.tag_1, locale)},{get_tag_name(level_data.tag_2, locale)}',
+        featured=int(level_data.featured),
+        user_data=LevelDetailsUserData(
+            completed=clear_type,
+            liked=like_type
+        ),
+        date=level_data.date.strftime("%m/%d/%Y"),
+        author=level_data.author,
+        record=record,
+        archivo=generate_url_function(level_data.level_id),
+        id=level_data.level_id
+    )
 
 
-def gen_level_id_md5(data_swe: str):
-    return prettify_level_id(hashlib.md5(data_swe.encode()).hexdigest().upper()[8:24])
+def gen_level_id_md5(stripped_swe: str) -> str:
+    return prettify_level_id(hashlib.md5(stripped_swe.encode()).hexdigest().upper()[8:24])
 
 
-def gen_level_id_sha1(data_swe: str):
-    return prettify_level_id(hashlib.sha1(data_swe.encode()).hexdigest().upper()[8:24])
+def gen_level_id_sha1(stripped_swe: str) -> str:
+    return prettify_level_id(hashlib.sha1(stripped_swe.encode()).hexdigest().upper()[8:24])
 
 
-def gen_level_id_sha256(data_swe: str):
-    return prettify_level_id(hashlib.sha256(data_swe.encode()).hexdigest().upper()[8:24])
+def gen_level_id_sha256(stripped_swe: str) -> str:
+    return prettify_level_id(hashlib.sha256(stripped_swe.encode()).hexdigest().upper()[8:24])
 
 
-def strip_level(data_swe: str):
+def strip_level(data_swe: str) -> str:
     result = base64.b64decode(data_swe)[:-30].decode("UTF-8")
     regex_time = re.compile('"time": ".*?"')
     regex_date = re.compile('"date": ".*?"')
@@ -73,7 +110,7 @@ def prettify_level_id(level_id: str):
     return level_id[0:4] + '-' + level_id[4:8] + '-' + level_id[8:12] + '-' + level_id[12:16]
 
 
-def parse_auth_code(raw_auth_code: str):
+def parse_auth_code(raw_auth_code: str) -> AuthCodeData:
     auth_code_arr = raw_auth_code.split('|')
     locale = auth_code_arr[2]
     match locale:
@@ -138,6 +175,9 @@ def is_valid_user_agent(user_agent):
 
 
 async def push_to_engine_bot_qq(data: dict):
+    # This function is used to push messages to general Engine Bots
+    # (Not limited to QQ)
+    # You can construct your own Engine Bot with this API for other IMs
     for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
         async with aiohttp.request(
                 method="POST",
@@ -153,34 +193,3 @@ async def push_to_engine_bot_discord(message: str):
             webhook = discord.Webhook.from_url(url=webhook_url, session=session)
             message: str = message
             await webhook.send(message, username="Engine-bot", avatar_url=DISCORD_AVATAR_URL)
-
-
-class Tokens:
-    PC_CN: str = 'SMMWEPCCN'
-    PC_ES: str = 'SMMWEPCES'
-    PC_EN: str = 'SMMWEPCEN'
-    Mobile_CN: str = 'SMMWEMBCN'
-    Mobile_ES: str = 'SMMWEMBES'
-    Mobile_EN: str = 'SMMWEMBEN'
-    PC_Legacy_CN: str = 'LEGACPCCN'
-    PC_Legacy_ES: str = 'LEGACPCES'
-    PC_Legacy_EN: str = 'LEGACPCEN'
-    Mobile_Legacy_CN: str = 'LEGACMBCN'
-    Mobile_Legacy_ES: str = 'LEGACMBES'
-    Mobile_Legacy_EN: str = 'LEGACMBEN'
-    PC_Testing_CN: str = 'TESTCPCCN'
-    PC_Testing_ES: str = 'TESTCPCES'
-    PC_Testing_EN: str = 'TESTCPCEN'
-    Mobile_Testing_CN: str = 'TESTCMBCN'
-    Mobile_Testing_ES: str = 'TESTCMBES'
-    Mobile_Testing_EN: str = 'TESTCMBEN'
-
-
-@dataclass
-class AuthCodeData:
-    username: str
-    platform: str
-    locale: str
-    locale_item: LocaleModel
-    legacy: bool
-    testing_client: bool

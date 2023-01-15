@@ -27,10 +27,6 @@ connection_per_minute = 0
 
 start_time = datetime.datetime.now()
 
-# auto create table
-context.db.Level.create_table()
-context.db.User.create_table()
-context.db.Stats.create_table()
 
 if OFFENSIVE_WORDS_FILTER:
     # Load DFA filter
@@ -87,4 +83,4 @@ def timer_function():
 
 if __name__ == "__main__":
     threading.Timer(1, timer_function).start()
-    uvicorn.run(app, host=HOST, port=PORT)
+    uvicorn.run(app, host=HOST, port=PORT, headers=[("Server", "EngineTribe")])

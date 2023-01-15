@@ -161,3 +161,6 @@ cython_debug/
 
 # For debug
 utils/disable_accounts_config.py
+
+
+venv/
