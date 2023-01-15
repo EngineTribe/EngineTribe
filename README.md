@@ -11,20 +11,22 @@
 
 - 👥 User system, registration and logging in
 - ☁ OneDrive & local database storage providers
-- 🗄️ MySQL, PostgreSQL or SQLite database
+- 🗄️ Async MySQL, PostgreSQL or SQLite database
 - 📤 Uploading and deleting level
 - 🔍 Browsing level and detailed searching
 - ❤ Likes and dislikes
-- 🕰️ Time recording
+- 🕰️ Clear and time recording
 
 ### 🚵‍♀️ Roadmap
 
 - 🐛 Fixing bugs
 - 📗 Documents
 
+<!--
 ### 🕰️ Legacy Client Support
 
 Engine Tribe also has limited support to patched 3.1.1 "legacy" client. To play with 3.1.1 client, you have to modify legacy routes to 3.2.3 ones.
+-->
 
 ---
 
