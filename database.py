@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy import select
+import ssl
 
 Base = declarative_base()
 
@@ -14,20 +15,26 @@ class SMMWEDatabase:
     def __init__(self):
         match DATABASE_ADAPTER:
             case 'mysql':
-                database_type = 'mysql+aiomysql'
+                database_type = 'mysql+asyncmy'
             case 'postgresql':
                 database_type = 'postgresql+asyncpg'
             case 'sqlite':
                 database_type = 'sqlite+aiosqlite'
             case _:
                 raise ValueError('Invalid database adapter')
-        self.engine: AsyncEngine = create_async_engine(
-            url=f'{database_type}://{DATABASE_USER}:{DATABASE_PASS}@'
-                f'{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}',
-            echo=DATABASE_DEBUG, future=True,
-            connect_args={
-                'ssl': {'ca': '/etc/ssl/certs/ca-certificates.crt'}
+        url: str = f'{database_type}://{DATABASE_USER}:{DATABASE_PASS}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}'
+        if DATABASE_SSL:
+            ssl_ctx = ssl.create_default_context(cafile="/etc/ssl/certs/ca-certificates.crt")
+            ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+            connect_args = {
+                'ssl': ssl_ctx
             }
+        else:
+            connect_args = {}
+        self.engine: AsyncEngine = create_async_engine(
+            url=url,
+            echo=DATABASE_DEBUG, future=True,
+            connect_args=connect_args
         )
         # Base.metadata.create_all(self.engine)
         self.session: sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
@@ -321,3 +328,34 @@ class SMMWEDatabase:
                     select(func.count()).select_from(selection)
                 )
             ).scalars().first()
+
+    # Code below are for migration
+
+    class Stats(Base):
+        __tablename__ = "stats_table"
+
+        id = Column(Integer, primary_key=True)
+
+        level_id = Column(Text)  # Level id
+        likes_users = Column(Text)
+        dislikes_users = Column(Text)
+
+    async def get_old_stats(self):
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(self.Stats)
+                )
+            ).scalars().all()
+
+    async def add_like_user_only(self, level: Level, username: str):
+        async with self.session.begin() as session:
+            like = self.LikeUsers(parent_id=level.id, username=username)
+            session.add(like)
+            await session.commit()
+
+    async def add_dislike_user_only(self, level: Level, username: str):
+        async with self.session.begin() as session:
+            dislike = self.DislikeUsers(parent_id=level.id, username=username)
+            session.add(dislike)
+            await session.commit()

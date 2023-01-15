@@ -11,6 +11,7 @@ DATABASE_PORT = 3306  # Database port
 DATABASE_USER = 'enginetribe'  # Database user (not UNIX user)
 DATABASE_PASS = 'enginetribe'  # Database password (not UNIX password)
 DATABASE_NAME = 'enginetribe'  # Database name
+DATABASE_SSL = False  # Use SSL for database connection
 DATABASE_DEBUG = True  # Log SQL connections to stdout
 
 STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
