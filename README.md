@@ -34,4 +34,4 @@ Engine Tribe also has limited support to patched 3.1.1 "legacy" client. To play 
 
 ![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?style=flat&logo=tencentqq) [![DiscordChat](https://img.shields.io/badge/Discord-Chat-5865f2?style=flat&logo=discord)](https://discord.gg/enginekingdom)
 
-<div align="center">2022 YidaozhanYa and Engine Tribe Team with 💗</div>
+<div align="center">2022-2023 YidaozhanYa and Engine Tribe Team with 💗</div>
