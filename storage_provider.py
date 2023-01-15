@@ -129,7 +129,11 @@ class StorageProviderDatabase:
 
     async def dump_level_data(self, level_id: str) -> str | None:
         level = (await self.database.dump_level_data(level_id=level_id))
+        if isinstance(level.level_data, bytes):
+            level_data = level.level_data
+        else:
+            level_data = level.level_data.encode()
         if level is not None:
-            return f'{b64encode(level.level_data.encode()).decode()}{level.level_checksum}'
+            return f'{b64encode(level_data).decode()}{level.level_checksum}'
         else:
             return None

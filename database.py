@@ -1,6 +1,6 @@
 from config import *
 import datetime
-from sqlalchemy import Column, Integer, UnicodeText, Text, Date, Boolean
+from sqlalchemy import Column, Integer, UnicodeText, Text, Date, Boolean, LargeBinary
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -276,8 +276,10 @@ class SMMWEDatabase:
                 )
             ).scalars().all()
 
-    async def add_level_data(self, level_id: str, level_data: str, level_checksum: str):
-        # add level data into database
+    async def add_level_data(self, level_id: str, level_data, level_checksum: str):
+        # add level data into database as bytes
+        if isinstance(level_data, str):
+            level_data = level_data.encode()
         async with self.session.begin() as session:
             level_data_item = self.LevelData(
                 level_id=level_id,
