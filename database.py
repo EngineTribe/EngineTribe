@@ -67,6 +67,7 @@ class SMMWEDatabase:
         description = Column(UnicodeText)  # Level description
         # archivo = Column(Text)  # Level file in storage backend   # deprecated
         # comments = Column(Integer)  # Unimplemented in original server
+
     class LikeUsers(Base):
         __tablename__ = "likes_table"
 
@@ -112,7 +113,7 @@ class SMMWEDatabase:
         id = Column(Integer, primary_key=True)
 
         level_id = Column(Text)  # Level id
-        level_data = Column(Text)  # Leve data without checksum
+        level_data = Column(LargeBinary)  # Leve data without checksum
         level_checksum = Column(Text)  # SHA-1 HMAC checksum
 
         # Store the decoded level data and checksum separately to reduce database usage
