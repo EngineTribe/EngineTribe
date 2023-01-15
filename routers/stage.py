@@ -162,10 +162,8 @@ async def stages_detailed_search_handler(
                     level_data_ids_cleared.append(cleared_data.parent_id)
             if historial == "0":  # cleared
                 selection = selection.where(db.Level.id.in_(level_data_ids_cleared))
-                pass
-                selection = selection.where(db.Level.id.not_in(level_data_ids_cleared))
             if historial == "1":  # not cleared
-                pass
+                selection = selection.where(db.Level.id.not_in(level_data_ids_cleared))
         else:
             return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
 
