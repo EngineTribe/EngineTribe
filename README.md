@@ -15,7 +15,7 @@
 - 📤 Uploading and deleting level
 - 🔍 Browsing level and detailed searching
 - ❤ Likes and dislikes
-- 🕰️ Clear and time recording
+- 🕰️ Cleared levels and time recording
 
 ### 🚵‍♀️ Roadmap
 
