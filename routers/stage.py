@@ -125,6 +125,13 @@ async def stages_detailed_search_handler(
             case "antiguos":
                 selection = selection.order_by(db.Level.id.asc())
             case "popular":
+                # post-3.3.0
+                selection = selection.where(
+                    db.Level.date.between(
+                        datetime.date.today() + datetime.timedelta(days=-7),
+                        datetime.date.today(),
+                    )
+                )
                 selection = selection.order_by((db.Level.likes - db.Level.dislikes).desc())
             case _:
                 return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
