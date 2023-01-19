@@ -382,3 +382,12 @@ class SMMWEDatabase:
             dislike = self.DislikeUsers(parent_id=level.id, username=username)
             session.add(dislike)
             await session.commit()
+
+    async def get_all_level_datas_in(self, range_from, limit) -> list[LevelData]:
+        # use offset
+        async with self.session.begin() as session:
+            return (
+                await session.execute(
+                    select(self.LevelData).offset(range_from).limit(limit)
+                )
+            ).scalars().all()
