@@ -1,5 +1,5 @@
 HOST = '0.0.0.0'  # Engine Tribe Central Server
-PORT = 30000  # Default port that SMM_WE uses
+PORT = 35000  # Default port that SMM_WE uses
 API_KEY = "enginetribe"  # Engine-bot 's API key
 ROWS_PERPAGE = 5  # Levels per page
 UPLOAD_LIMIT = 25  # Max levels per account

@@ -37,7 +37,7 @@ class SMMWEDatabase:
             connect_args=connect_args
         )
         # Base.metadata.create_all(self.engine)
-        self.session: sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+        self.async_session: sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
 
     class Level(Base):
         __table_args = {'mysql_charset': 'utf8mb4'}
@@ -130,227 +130,252 @@ class SMMWEDatabase:
                            date=datetime.date.today(), author=author,
                            level_id=level_id, non_latin=non_latin, record_user='', record=0,
                            testing_client=testing_client, description=description, featured=False)
-        async with self.session.begin() as session:
-            session.add(level)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                session.add(level)
+                await session.commit()
 
     async def update_user(self, user: User):
-        async with self.session.begin() as session:
-            session.add(user)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                session.add(user)
+                await session.commit()
 
     async def add_user(self, username: str, password_hash: str, user_id: str):
         # register user
         user = self.User(username=username, password_hash=password_hash, user_id=user_id, uploads=0, is_admin=False,
                          is_mod=False, is_booster=False, is_valid=True, is_banned=False)
-        async with self.session.begin() as session:
-            session.add(user)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                session.add(user)
+                await session.commit()
 
     async def execute_selection(self, selection) -> list:
-        async with self.session.begin() as session:
-            return (await session.execute(
-                selection
-            )).scalars().all()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (await session.execute(
+                    selection
+                )).scalars().all()
 
     async def get_like_type(self, level: Level, username: str) -> str:
         # get user's like type (like or dislike or none) of a level
-        async with self.session.begin() as session:
-            like = (await session.execute(
-                select(self.LikeUsers).where(self.LikeUsers.parent_id == level.id,
-                                             self.LikeUsers.username == username)
-            )).scalars().first()
-            dislike = (await session.execute(
-                select(self.DislikeUsers).where(self.DislikeUsers.parent_id == level.id,
-                                                self.DislikeUsers.username == username)
-            )).scalars().first()
-            if like is not None:
-                return '0'  # like
-            elif dislike is not None:
-                return '1'  # dislike
-            else:
-                return '3'  # none
+        async with self.async_session() as session:
+            async with session.begin():
+                like = (await session.execute(
+                    select(self.LikeUsers).where(self.LikeUsers.parent_id == level.id,
+                                                 self.LikeUsers.username == username)
+                )).scalars().first()
+                dislike = (await session.execute(
+                    select(self.DislikeUsers).where(self.DislikeUsers.parent_id == level.id,
+                                                    self.DislikeUsers.username == username)
+                )).scalars().first()
+                if like is not None:
+                    return '0'  # like
+                elif dislike is not None:
+                    return '1'  # dislike
+                else:
+                    return '3'  # none
 
     async def add_like_to_level(self, username: str, level: Level):
         # add like to level
-        async with self.session.begin() as session:
-            like = self.LikeUsers(parent_id=level.id, username=username)
-            level.likes += 1
-            session.add_all([like, level])
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                like = self.LikeUsers(parent_id=level.id, username=username)
+                level.likes += 1
+                session.add_all([like, level])
+                await session.commit()
 
     async def add_dislike_to_level(self, username: str, level: Level):
         # add dislike to level
-        async with self.session.begin() as session:
-            dislike = self.DislikeUsers(parent_id=level.id, username=username)
-            level.dislikes += 1
-            session.add_all([dislike, level])
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                dislike = self.DislikeUsers(parent_id=level.id, username=username)
+                level.dislikes += 1
+                session.add_all([dislike, level])
+                await session.commit()
 
     async def add_play_to_level(self, level: Level):
         # add play to level
-        async with self.session.begin() as session:
-            level.plays += 1
-            session.add(level)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                level.plays += 1
+                session.add(level)
+                await session.commit()
 
     async def add_death_to_level(self, level: Level):
         # add death to level
-        async with self.session.begin() as session:
-            level.deaths += 1
-            session.add(level)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                level.deaths += 1
+                session.add(level)
+                await session.commit()
 
     async def add_clear_to_level(self, username: str, level: Level):
         # add clear to level
-        async with self.session.begin() as session:
-            if (await session.execute(
-                    select(self.ClearedUsers).where(self.ClearedUsers.parent_id == level.id,
-                                                    self.ClearedUsers.username == username)
-            )).scalars().first() is None:
-                clear = self.ClearedUsers(parent_id=level.id, username=username)
-                session.add(clear)
-            level.clears += 1
-            session.add(level)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                if (await session.execute(
+                        select(self.ClearedUsers).where(self.ClearedUsers.parent_id == level.id,
+                                                        self.ClearedUsers.username == username)
+                )).scalars().first() is None:
+                    clear = self.ClearedUsers(parent_id=level.id, username=username)
+                    session.add(clear)
+                level.clears += 1
+                session.add(level)
+                await session.commit()
 
     async def update_record_to_level(self, username: str, level: Level, record: int):
         # update record to level
-        async with self.session.begin() as session:
-            level.record_user = username
-            level.record = record
-            session.add(level)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                level.record_user = username
+                level.record = record
+                session.add(level)
+                await session.commit()
 
     async def get_user_from_username(self, username: str) -> User | None:
         # get user from username
-        async with self.session.begin() as session:
-            user = (await session.execute(
-                select(self.User).where(self.User.username == username)
-            )).scalars().first()
-            return user if (user is not None) else None
+        async with self.async_session() as session:
+            async with session.begin():
+                user = (await session.execute(
+                    select(self.User).where(self.User.username == username)
+                )).scalars().first()
+                return user if (user is not None) else None
 
     async def get_user_from_user_id(self, user_id: str) -> User | None:
         # get user from user id
-        async with self.session.begin() as session:
-            user = (await session.execute(
-                select(self.User).where(self.User.user_id == user_id)
-            )).scalars().first()
-            return user if (user is not None) else None
+        async with self.async_session() as session:
+            async with session.begin():
+                user = (await session.execute(
+                    select(self.User).where(self.User.user_id == user_id)
+                )).scalars().first()
+                return user if (user is not None) else None
 
     async def get_level_from_level_id(self, level_id: str) -> Level | None:
         # get level from level id
-        async with self.session.begin() as session:
-            level = (await session.execute(
-                select(self.Level).where(self.Level.level_id == level_id)
-            )).scalars().first()
-            return level if (level is not None) else None
+        async with self.async_session() as session:
+            async with session.begin():
+                level = (await session.execute(
+                    select(self.Level).where(self.Level.level_id == level_id)
+                )).scalars().first()
+                return level if (level is not None) else None
 
     async def get_clear_type(self, level: Level, username: str) -> str:
         # get user's clear type (yes or no) of a level
-        async with self.session.begin() as session:
-            clear = (await session.execute(
-                select(self.ClearedUsers).where(self.ClearedUsers.parent_id == level.id,
-                                                self.ClearedUsers.username == username)
-            )).scalars().first()
-            if clear is not None:
-                return 'yes'
-            else:
-                return 'no'
+        async with self.async_session() as session:
+            async with session.begin():
+                clear = (await session.execute(
+                    select(self.ClearedUsers).where(self.ClearedUsers.parent_id == level.id,
+                                                    self.ClearedUsers.username == username)
+                )).scalars().first()
+                if clear is not None:
+                    return 'yes'
+                else:
+                    return 'no'
 
     async def get_liked_levels_by_user(self, username: str) -> list[LikeUsers]:
         # get user's liked levels
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(self.LikeUsers).where(self.LikeUsers.username == username)
-                )
-            ).scalars().all()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(self.LikeUsers).where(self.LikeUsers.username == username)
+                    )
+                ).scalars().all()
 
     async def get_disliked_levels_by_user(self, username: str) -> list[DislikeUsers]:
         # get user's disliked levels
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(self.DislikeUsers).where(self.DislikeUsers.username == username)
-                )
-            ).scalars().all()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(self.DislikeUsers).where(self.DislikeUsers.username == username)
+                    )
+                ).scalars().all()
 
     async def get_cleared_levels_by_user(self, username: str) -> list[ClearedUsers]:
         # get user's cleared levels
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(self.ClearedUsers).where(self.ClearedUsers.username == username)
-                )
-            ).scalars().all()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(self.ClearedUsers).where(self.ClearedUsers.username == username)
+                    )
+                ).scalars().all()
 
     async def add_level_data(self, level_id: str, level_data, level_checksum: str):
         # add level data into database as bytes
         if isinstance(level_data, str):
             level_data = level_data.encode()
-        async with self.session.begin() as session:
-            level_data_item = self.LevelData(
-                level_id=level_id,
-                level_data=level_data,
-                level_checksum=level_checksum
-            )
-            session.add(level_data_item)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                level_data_item = self.LevelData(
+                    level_id=level_id,
+                    level_data=level_data,
+                    level_checksum=level_checksum
+                )
+                session.add(level_data_item)
+                await session.commit()
 
     async def dump_level_data(self, level_id: str) -> LevelData | None:
-        async with self.session.begin() as session:
-            level_data_item = (await session.execute(
-                select(self.LevelData).where(self.LevelData.level_id == level_id)
-            )).scalars().first()
-            if level_data_item is not None:
-                return level_data_item
-            else:
-                return None
+        async with self.async_session() as session:
+            async with session.begin():
+                level_data_item = (await session.execute(
+                    select(self.LevelData).where(self.LevelData.level_id == level_id)
+                )).scalars().first()
+                if level_data_item is not None:
+                    return level_data_item
+                else:
+                    return None
 
     async def delete_level(self, level: Level):
-        async with self.session.begin() as session:
-            session.delete(level)
-            await session.execute(
-                delete(self.LikeUsers).where(self.LikeUsers.parent_id == level.id)
-            )
-            await session.execute(
-                delete(self.DislikeUsers).where(self.LikeUsers.parent_id == level.id)
-            )
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                session.delete(level)
+                await session.execute(
+                    delete(self.LikeUsers).where(self.LikeUsers.parent_id == level.id)
+                )
+                await session.execute(
+                    delete(self.DislikeUsers).where(self.LikeUsers.parent_id == level.id)
+                )
+                await session.commit()
 
     async def delete_level_data(self, level_id: str):
-        async with self.session.begin() as session:
-            level_data_item = (await session.execute(
-                self.LevelData.where(self.LevelData.level_id == level_id)
-            )).scalars().first()
-            level_data_item.delete()
-            session.add(level_data_item)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                level_data_item = (await session.execute(
+                    self.LevelData.where(self.LevelData.level_id == level_id)
+                )).scalars().first()
+                level_data_item.delete()
+                session.add(level_data_item)
+                await session.commit()
 
     async def set_featured(self, level: Level, is_featured: bool):
-        async with self.session.begin() as session:
-            level.featured = is_featured
-            session.add(level)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                level.featured = is_featured
+                session.add(level)
+                await session.commit()
 
     async def get_level_count(self, selection=None) -> int:
         if selection is None:
             selection = select(self.Level)
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(func.count()).select_from(selection)
-                )
-            ).scalars().first()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(func.count()).select_from(selection)
+                    )
+                ).scalars().first()
 
     async def get_player_count(self) -> int:
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(func.count()).select_from(self.User)
-                )
-            ).scalars().first()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(func.count()).select_from(self.User)
+                    )
+                ).scalars().first()
 
     # Code below are for migration
 
@@ -364,30 +389,34 @@ class SMMWEDatabase:
         dislikes_users = Column(Text)
 
     async def get_old_stats(self) -> list[Stats]:
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(self.Stats)
-                )
-            ).scalars().all()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(self.Stats)
+                    )
+                ).scalars().all()
 
     async def add_like_user_only(self, level: Level, username: str):
-        async with self.session.begin() as session:
-            like = self.LikeUsers(parent_id=level.id, username=username)
-            session.add(like)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                like = self.LikeUsers(parent_id=level.id, username=username)
+                session.add(like)
+                await session.commit()
 
     async def add_dislike_user_only(self, level: Level, username: str):
-        async with self.session.begin() as session:
-            dislike = self.DislikeUsers(parent_id=level.id, username=username)
-            session.add(dislike)
-            await session.commit()
+        async with self.async_session() as session:
+            async with session.begin():
+                dislike = self.DislikeUsers(parent_id=level.id, username=username)
+                session.add(dislike)
+                await session.commit()
 
     async def get_all_level_datas_in(self, range_from, limit) -> list[LevelData]:
         # use offset
-        async with self.session.begin() as session:
-            return (
-                await session.execute(
-                    select(self.LevelData).offset(range_from).limit(limit)
-                )
-            ).scalars().all()
+        async with self.async_session() as session:
+            async with session.begin():
+                return (
+                    await session.execute(
+                        select(self.LevelData).offset(range_from).limit(limit)
+                    )
+                ).scalars().all()

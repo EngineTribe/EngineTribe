@@ -2,7 +2,6 @@ import datetime
 import re
 from math import ceil
 
-import aiohttp
 from fastapi import APIRouter, Form, Depends
 from fastapi.responses import RedirectResponse, Response
 from typing import Optional
