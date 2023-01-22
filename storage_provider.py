@@ -6,7 +6,8 @@ from time import time
 from hashlib import md5
 from base64 import b64encode, b64decode
 
-from database import SMMWEDatabase
+from database.db import Database
+from database.db_access import DBAccessLayer
 
 
 class StorageProviderOneDriveCF:
@@ -104,17 +105,21 @@ class StorageProviderOneManager:
 
 
 class StorageProviderDatabase:
-    def __init__(self, base_url: str, database: SMMWEDatabase):
+    def __init__(self, base_url: str, database: Database):
         self.base_url = base_url
-        self.database = database
+        self.db = database
         self.type = "database"
 
     async def upload_file(self, level_data: str, level_id: str):
-        await self.database.add_level_data(
-            level_id=level_id,
-            level_data=b64decode(level_data[:-40].encode()).decode(),
-            level_checksum=level_data[-40:]
-        )
+        async with self.db.async_session() as session:
+            async with session.begin():
+                dal = DBAccessLayer(session)
+                await dal.add_level_data(
+                    level_id=level_id,
+                    level_data=b64decode(level_data[:-40].encode()).decode(),
+                    level_checksum=level_data[-40:]
+                )
+                await dal.commit()
 
     def generate_url(self, level_id: str):
         return f'{self.base_url}stage/{level_id}/file'
@@ -123,17 +128,24 @@ class StorageProviderDatabase:
         return f'{self.base_url}stage/{level_id}/file'
 
     async def delete_level(self, name: str, level_id: str):
-        await self.database.delete_level_data(level_id=level_id)
-        print(f"Deleted level {name} {level_id} from database")
-        return
+        async with self.db.async_session() as session:
+            async with session.begin():
+                dal = DBAccessLayer(session)
+                await dal.delete_level_data(level_id=level_id)
+                await dal.commit()
+                print(f"Deleted level {name} {level_id} from database")
+                return
 
     async def dump_level_data(self, level_id: str) -> str | None:
-        level = (await self.database.dump_level_data(level_id=level_id))
-        if isinstance(level.level_data, bytes):
-            level_data = level.level_data
-        else:
-            level_data = level.level_data.encode()
-        if level is not None:
-            return f'{b64encode(level_data).decode()}{level.level_checksum}'
-        else:
-            return None
+        async with self.db.async_session() as session:
+            async with session.begin():
+                dal = DBAccessLayer(session)
+                level = (await dal.dump_level_data(level_id=level_id))
+                if isinstance(level.level_data, bytes):
+                    level_data = level.level_data
+                else:
+                    level_data = level.level_data.encode()
+                if level is not None:
+                    return f'{b64encode(level_data).decode()}{level.level_checksum}'
+                else:
+                    return None

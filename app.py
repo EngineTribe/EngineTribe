@@ -10,7 +10,8 @@ import uvicorn
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import RedirectResponse, JSONResponse
 
-import context
+import context as ctx
+from database.db_access import DBAccessLayer
 import routers
 from config import *
 from dfa_filter import DFAFilter
@@ -47,7 +48,7 @@ if OFFENSIVE_WORDS_FILTER:
 
 @app.on_event("startup")
 async def startup_event():
-    await context.db.create_columns()
+    await ctx.db.create_columns()
 
 
 @app.get("/")
@@ -58,14 +59,17 @@ async def readme_handler() -> RedirectResponse:  # Redirect to Engine Tribe READ
 # get server status
 @app.get("/server_stats")
 async def server_stats() -> dict:
-    return {
-        "os": platform.platform().replace('-', ' '),
-        "python": platform.python_version(),
-        "player_count": await context.db.get_player_count(),
-        "level_count": await context.db.get_level_count(),
-        "uptime": datetime.datetime.now() - start_time,
-        "connection_per_minute": connection_per_minute,
-    }
+    async with ctx.db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            return {
+                "os": platform.platform().replace('-', ' '),
+                "python": platform.python_version(),
+                "player_count": await dal.get_player_count(),
+                "level_count": await dal.get_level_count(),
+                "uptime": datetime.datetime.now() - start_time,
+                "connection_per_minute": connection_per_minute,
+            }
 
 
 @app.exception_handler(ErrorMessageException)
@@ -81,8 +85,8 @@ async def error_message_exception_handler(request: Request, exc: ErrorMessageExc
 
 def timer_function():
     global connection_per_minute
-    connection_per_minute = context.connection_count
-    context.connection_count = 0
+    connection_per_minute = ctx.connection_count
+    ctx.connection_count = 0
     threading.Timer(60, timer_function).start()
 
 

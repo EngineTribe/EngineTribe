@@ -1,8 +1,8 @@
 from config import STORAGE_URL, STORAGE_AUTH_KEY, STORAGE_PROXIED, STORAGE_PROVIDER
-from database import SMMWEDatabase
+from database.db import Database
 from storage_provider import StorageProviderOneDriveCF, StorageProviderOneManager, StorageProviderDatabase
 
-db: SMMWEDatabase = SMMWEDatabase()
+db: Database = Database()
 
 connection_count: int = 0
 
