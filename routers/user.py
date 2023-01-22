@@ -199,7 +199,7 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody) -> E
         case _:
             return ErrorMessage(error_type="255", message="Permission does not exist.")
 
-    await db.update_permissions_to_user(user=user)
+    await db.update_user(user=user)
 
     if key_permission_changed:
         if ENABLE_ENGINE_BOT_WEBHOOK:

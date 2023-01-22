@@ -355,8 +355,8 @@ async def stages_upload_handler(
     tag_1, tag_2 = parse_tag_names(tags, auth_data.locale)
     await db.add_level(
         name=name,
-        style=aparience,
-        environment=entorno,
+        style=int(aparience),
+        environment=int(entorno),
         tag_1=tag_1,
         tag_2=tag_2,
         author=auth_data.username,

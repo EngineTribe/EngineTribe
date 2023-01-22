@@ -2,7 +2,7 @@ from config import STORAGE_URL, STORAGE_AUTH_KEY, STORAGE_PROXIED, STORAGE_PROVI
 from database import SMMWEDatabase
 from storage_provider import StorageProviderOneDriveCF, StorageProviderOneManager, StorageProviderDatabase
 
-db = SMMWEDatabase()
+db: SMMWEDatabase = SMMWEDatabase()
 
 connection_count: int = 0
 
