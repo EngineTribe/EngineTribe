@@ -4,6 +4,7 @@ API_KEY = "enginetribe"  # Engine-bot 's API key
 ROWS_PERPAGE = 5  # Levels per page
 UPLOAD_LIMIT = 25  # Max levels per account
 BOOSTERS_EXTRA_LIMIT = 10  # Privileges of boosters
+RECORD_CLEAR_USERS = False  # Record and display cleared users
 
 DATABASE_ADAPTER = 'mysql'  # Database adapter to use, mysql, postgresql and sqlite is supported
 DATABASE_HOST = 'localhost'  # Database host (or file name when using sqlite)

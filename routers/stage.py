@@ -16,7 +16,8 @@ from config import (
     BOOSTERS_EXTRA_LIMIT,
     UPLOAD_LIMIT,
     OFFENSIVE_WORDS_FILTER,
-    ROWS_PERPAGE
+    ROWS_PERPAGE,
+    RECORD_CLEAR_USERS
 )
 from depends import connection_count_inc, is_valid_user
 from locales import ES, parse_tag_names  # for fallback messages
@@ -166,6 +167,8 @@ async def stages_detailed_search_handler(
                         return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
 
             if historial:
+                if not RECORD_CLEAR_USERS:
+                    return ErrorMessage(error_type="255", message=auth_data.locale_item.NOT_IMPLEMENTED)
                 if historial in ["0", "1"]:
                     level_data_ids_cleared: list[int] = []  # Cleared levels' data ids
                     for cleared_data in await dal.get_cleared_levels_by_user(auth_data.username):

@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Level, LevelData, User, ClearedUsers, LikeUsers, DislikeUsers, Stats
 import datetime
 from sqlalchemy import func, select, delete
+from config import RECORD_CLEAR_USERS
 
 
 class DBAccessLayer:
@@ -81,12 +82,13 @@ class DBAccessLayer:
 
     async def add_clear_to_level(self, username: str, level: Level):
         # add clear to level
-        if (await self.session.execute(
-                select(ClearedUsers).where(ClearedUsers.parent_id == level.id,
-                                           ClearedUsers.username == username)
-        )).scalars().first() is None:
-            clear = ClearedUsers(parent_id=level.id, username=username)
-            self.session.add(clear)
+        if RECORD_CLEAR_USERS:
+            if (await self.session.execute(
+                    select(ClearedUsers).where(ClearedUsers.parent_id == level.id,
+                                               ClearedUsers.username == username)
+            )).scalars().first() is None:
+                clear = ClearedUsers(parent_id=level.id, username=username)
+                self.session.add(clear)
         level.clears += 1
         self.session.add(level)
         await self.session.flush()
@@ -121,12 +123,15 @@ class DBAccessLayer:
 
     async def get_clear_type(self, level: Level, username: str) -> str:
         # get user's clear type (yes or no) of a level
-        clear = (await self.session.execute(
-            select(ClearedUsers).where(ClearedUsers.parent_id == level.id,
-                                       ClearedUsers.username == username)
-        )).scalars().first()
-        if clear is not None:
-            return 'yes'
+        if RECORD_CLEAR_USERS:
+            clear = (await self.session.execute(
+                select(ClearedUsers).where(ClearedUsers.parent_id == level.id,
+                                           ClearedUsers.username == username)
+            )).scalars().first()
+            if clear is not None:
+                return 'yes'
+            else:
+                return 'no'
         else:
             return 'no'
 
