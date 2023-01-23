@@ -12,7 +12,7 @@ DATABASE_USER = 'enginetribe'  # Database user (not UNIX user)
 DATABASE_PASS = 'enginetribe'  # Database password (not UNIX password)
 DATABASE_NAME = 'enginetribe'  # Database name
 DATABASE_SSL = False  # Use SSL for database connection
-DATABASE_DEBUG = True  # Log SQL connections to stdout
+DATABASE_DEBUG = False  # Log SQL connections to stdout
 
 STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
 # The official instance of Engine Tribe used OneDrive to store levels, so the first two storage providers are

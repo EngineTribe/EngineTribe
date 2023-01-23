@@ -67,7 +67,7 @@ async def server_stats() -> dict:
                 "python": platform.python_version(),
                 "player_count": await dal.get_player_count(),
                 "level_count": await dal.get_level_count(),
-                "uptime": datetime.datetime.now() - start_time,
+                "uptime": (datetime.datetime.now() - start_time).seconds,
                 "connection_per_minute": connection_per_minute,
             }
 

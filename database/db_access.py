@@ -181,7 +181,7 @@ class DBAccessLayer:
             delete(LikeUsers).where(LikeUsers.parent_id == level.id)
         )
         await self.session.execute(
-            delete(DislikeUsers).where(LikeUsers.parent_id == level.id)
+            delete(DislikeUsers).where(DislikeUsers.parent_id == level.id)
         )
         await self.session.flush()
 

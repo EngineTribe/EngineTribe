@@ -8,15 +8,15 @@ connection_count: int = 0
 
 match STORAGE_PROVIDER:
     case "onedrive-cf":
-        storage = StorageProviderOneDriveCF(
+        storage: StorageProviderOneDriveCF = StorageProviderOneDriveCF(
             url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED
         )
     case "onemanager":
-        storage = StorageProviderOneManager(
+        storage: StorageProviderOneManager = StorageProviderOneManager(
             url=STORAGE_URL, admin_password=STORAGE_AUTH_KEY
         )
     case "database":
-        storage = StorageProviderDatabase(
+        storage: StorageProviderDatabase = StorageProviderDatabase(
             base_url=STORAGE_URL,
             database=db
         )

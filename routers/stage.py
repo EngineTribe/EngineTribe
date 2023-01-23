@@ -517,6 +517,8 @@ async def stage_delete_handler(level_id: str) -> StageSuccessMessage | ErrorMess
             user.uploads -= 1
             await dal.update_user(user=user)
             await dal.commit()
+            if storage.type == 'database':
+                await storage.delete_level(level_id=level_id)
 
             return StageSuccessMessage(
                 success="Successfully deleted level", type="stage", id=level_id

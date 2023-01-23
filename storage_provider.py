@@ -127,13 +127,13 @@ class StorageProviderDatabase:
     def generate_download_url(self, level_id: str):
         return f'{self.base_url}stage/{level_id}/file'
 
-    async def delete_level(self, name: str, level_id: str):
+    async def delete_level(self, level_id: str):
         async with self.db.async_session() as session:
             async with session.begin():
                 dal = DBAccessLayer(session)
                 await dal.delete_level_data(level_id=level_id)
                 await dal.commit()
-                print(f"Deleted level {name} {level_id} from database")
+                print(f"Deleted level {level_id} from database")
                 return
 
     async def dump_level_data(self, level_id: str) -> str | None:
