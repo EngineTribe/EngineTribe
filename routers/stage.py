@@ -13,6 +13,7 @@ from config import (
     ENABLE_DISCORD_WEBHOOK,
     ENABLE_ENGINE_BOT_WEBHOOK,
     ENABLE_ENGINE_BOT_COUNTER_WEBHOOK,
+    ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK,
     BOOSTERS_EXTRA_LIMIT,
     UPLOAD_LIMIT,
     OFFENSIVE_WORDS_FILTER,
@@ -49,10 +50,29 @@ router = APIRouter(
 )
 
 
+async def get_author_name_by_level(level: Level, dal: DBAccessLayer) -> str:
+    author_user = await dal.get_user_by_id(level.author_id)
+    if author_user is None:
+        return "Unknown"
+    else:
+        return author_user.username
+
+
+async def get_record_user_name_by_level(level: Level, dal: DBAccessLayer) -> str:
+    if level.record_user_id == 0:
+        return "None"
+    else:
+        record_user = await dal.get_user_by_id(level.record_user_id)
+        if record_user is None:
+            return "Unknown"
+        else:
+            return record_user.username
+
+
 # router.post("s/detailed_search") == stages/detailed_search
 @router.post("s/detailed_search")
 async def stages_detailed_search_handler(
-        auth_code: str = Form("EngineBot|PC|CN"),
+        auth_code: str = Form("0|PC|CN"),
         featured: Optional[str] = Form(None),
         page: Optional[str] = Form("1"),
         title: Optional[str] = Form(None),
@@ -142,13 +162,13 @@ async def stages_detailed_search_handler(
                         return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
             if liked:
                 level_data_ids: list[int] = []  # Liked levels' data ids
-                for liked_data in await dal.get_liked_levels_by_user(auth_data.username):
+                for liked_data in await dal.get_liked_levels_by_user(auth_data.user_id):
                     if liked_data.parent_id not in level_data_ids:
                         level_data_ids.append(liked_data.parent_id)
                 selection = selection.where(Level.id.in_(level_data_ids))
             elif disliked:
                 level_data_ids: list[int] = []  # Disliked levels' data ids
-                for disliked_data in await dal.get_disliked_levels_by_user(auth_data.username):
+                for disliked_data in await dal.get_disliked_levels_by_user(auth_data.user_id):
                     if disliked_data.parent_id not in level_data_ids:
                         level_data_ids.append(disliked_data.parent_id)
                 selection = selection.where(Level.id.in_(level_data_ids))
@@ -165,21 +185,21 @@ async def stages_detailed_search_handler(
                         selection = selection.where((Level.clears / Level.deaths).between(0.0, 0.3))  # Expert
                     case _:
                         return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
-
             if historial:
                 if not RECORD_CLEAR_USERS:
                     return ErrorMessage(error_type="255", message=auth_data.locale_item.NOT_IMPLEMENTED)
-                if historial in ["0", "1"]:
-                    level_data_ids_cleared: list[int] = []  # Cleared levels' data ids
-                    for cleared_data in await dal.get_cleared_levels_by_user(auth_data.username):
-                        if cleared_data.parent_id not in level_data_ids_cleared:
-                            level_data_ids_cleared.append(cleared_data.parent_id)
-                    if historial == "0":  # cleared
-                        selection = selection.where(Level.id.in_(level_data_ids_cleared))
-                    if historial == "1":  # not cleared
-                        selection = selection.where(Level.id.not_in(level_data_ids_cleared))
                 else:
-                    return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
+                    if historial in ["0", "1"]:
+                        level_data_ids_cleared: list[int] = []  # Cleared levels' data ids
+                        for cleared_data in await dal.get_cleared_levels_by_user(auth_data.user_id):
+                            if cleared_data.parent_id not in level_data_ids_cleared:
+                                level_data_ids_cleared.append(cleared_data.parent_id)
+                        if historial == "0":  # cleared
+                            selection = selection.where(Level.id.in_(level_data_ids_cleared))
+                        if historial == "1":  # not cleared
+                            selection = selection.where(Level.id.not_in(level_data_ids_cleared))
+                    else:
+                        return ErrorMessage(error_type="031", message=auth_data.locale_item.UNKNOWN_QUERY_MODE)
 
             # get numbers
             num_rows: int = await dal.get_level_count(selection)
@@ -199,14 +219,18 @@ async def stages_detailed_search_handler(
 
             for level in levels:
                 try:
+                    author_name: str = await get_author_name_by_level(level, dal)
+                    record_user_name: str = await get_record_user_name_by_level(level, dal)
                     results.append(
                         level_to_details(
                             level_data=level,
                             locale=auth_data.locale,
                             generate_url_function=storage.generate_url,
                             mobile=mobile,
-                            like_type=await dal.get_like_type(level, auth_data.username),
-                            clear_type=await dal.get_clear_type(level, auth_data.username)
+                            like_type=await dal.get_like_type(level, auth_data.user_id),
+                            clear_type=await dal.get_clear_type(level, auth_data.user_id),
+                            author=author_name,
+                            record_user=record_user_name
                         )
                     )
                 except Exception as e:
@@ -218,9 +242,9 @@ async def stages_detailed_search_handler(
                 )  # No level found
             else:
                 return DetailedSearchResults(
-                    num_rows=str(num_rows),
-                    rows_perpage=str(rows_perpage),
-                    pages=str(pages),
+                    num_rows=num_rows,
+                    rows_perpage=rows_perpage,
+                    pages=pages,
                     result=results
                 )
 
@@ -234,19 +258,20 @@ async def stats_likes_handler(
         async with session.begin():
             dal = DBAccessLayer(session)
             auth_data = parse_auth_code(auth_code)
-            username = auth_data.username
-            level = await dal.get_level_from_level_id(level_id)
+            level: Level = await dal.get_level_by_level_id(level_id)
             if level is not None:
-                await dal.add_like_to_level(username=username, level=level)
+                await dal.add_like_to_level(user_id=auth_data.user_id, level=level)
                 await dal.commit()
             else:
                 return ErrorMessage(
                     error_type="029", message=auth_data.locale_item.LEVEL_NOT_FOUND
                 )  # No level found
             if level.likes == 100 or level.likes == 1000:
+                if ENABLE_DISCORD_WEBHOOK or (ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK):
+                    author_name: str = await get_author_name_by_level(level, dal)
                 if ENABLE_DISCORD_WEBHOOK:
                     await push_to_engine_bot_discord(
-                        f"🎉 Felicidades, el **{level.name}** de **{level.author}** tiene **{level.likes}** me gusta!\n"
+                        f"🎉 Felicidades, el **{level.name}** de **{author_name}** tiene **{level.likes}** me gusta!\n"
                         f"> ID: `{level_id}`"
                     )
                 if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
@@ -254,7 +279,7 @@ async def stats_likes_handler(
                         "type": f"{level.likes}_likes",
                         "level_id": level_id,
                         "level_name": level.name,
-                        "author": level.author,
+                        "author": author_name,
                     })
             return StageSuccessMessage(success="Successfully updated likes", type="stats", id=level_id)
 
@@ -268,10 +293,9 @@ async def stats_dislikes_handler(
         async with session.begin():
             dal = DBAccessLayer(session)
             auth_data = parse_auth_code(auth_code)
-            username = auth_data.username
-            level = await dal.get_level_from_level_id(level_id)
+            level = await dal.get_level_by_level_id(level_id)
             if level is not None:
-                await dal.add_dislike_to_level(username=username, level=level)
+                await dal.add_dislike_to_level(user_id=auth_data.user_id, level=level)
                 await dal.commit()
                 return StageSuccessMessage(success="Successfully updated dislikes", type="stats", id=level_id)
             else:
@@ -294,12 +318,12 @@ async def stages_upload_handler(
         async with session.begin():
             dal = DBAccessLayer(session)
             auth_data: AuthCodeData = parse_auth_code(auth_code)
-            user = await dal.get_user_from_username(username=auth_data.username)
+            user: User | None = await dal.get_user_by_id(auth_data.user_id)
             if user is None:
                 return UserErrorMessage(
                     error_type="006",
                     message="User not found",
-                    username=auth_data.username
+                    user_id=auth_data.user_id
                 )
             if user.is_booster:
                 upload_limit: int = UPLOAD_LIMIT + BOOSTERS_EXTRA_LIMIT
@@ -343,17 +367,17 @@ async def stages_upload_handler(
 
             # generate level id and check if duplicate
             level_id: str = gen_level_id_md5(stripped_swe)
-            if await dal.get_level_from_level_id(level_id) is None:
+            if await dal.get_level_by_level_id(level_id) is None:
                 print("md5: not duplicated")
             else:
                 print("md5: duplicated, fallback to sha1")
                 level_id = gen_level_id_sha1(stripped_swe)
-                if await dal.get_level_from_level_id(level_id) is None:
+                if await dal.get_level_by_level_id(level_id) is None:
                     print("sha1: not duplicated")
                 else:
                     print("sha1: duplicated, fallback to sha256")
                     level_id = gen_level_id_sha256(stripped_swe)
-                    if await dal.get_level_from_level_id(level_id) is None:
+                    if await dal.get_level_by_level_id(level_id) is None:
                         print("sha256: not duplicated")
                     else:
                         print("sha256: duplicated, is a duplicated level")
@@ -378,24 +402,23 @@ async def stages_upload_handler(
                 environment=int(entorno),
                 tag_1=tag_1,
                 tag_2=tag_2,
-                author=auth_data.username,
+                author_id=auth_data.user_id,
                 level_id=level_id,
                 non_latin=non_latin,
-                testing_client=testing_client,
-                description=descripcion
+                testing_client=testing_client
             )  # add new level to database
             if ENABLE_DISCORD_WEBHOOK:
                 await push_to_engine_bot_discord(
-                    f'📤 **{auth_data.username}** subió un nuevo nivel: **{name}**\n'
+                    f'📤 **{user.username}** subió un nuevo nivel: **{name}**\n'
                     f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
                     f'> Descargar: {storage.generate_download_url(level_id=level_id)}'
                 )
-            if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
+            if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK:
                 await push_to_engine_bot_qq({
                     "type": "new_arrival",
                     "level_id": level_id,
                     "level_name": name,
-                    "author": auth_data.username,
+                    "author": user.username,
                 })
             await dal.commit()
             return StageSuccessMessage(success="Successfully uploaded level", type="upload", id=level_id)
@@ -403,7 +426,7 @@ async def stages_upload_handler(
 
 @router.post("/random")
 async def stage_id_random_handler(
-        auth_code: str = Form("EngineBot|PC|CN"),
+        auth_code: str = Form("0|PC|CN"),
         dificultad: Optional[str] = Form(None)
 ) -> ErrorMessage | SingleLevelDetails:  # Random level
     async with db.async_session() as session:
@@ -411,7 +434,7 @@ async def stage_id_random_handler(
             dal = DBAccessLayer(session)
             auth_data = parse_auth_code(auth_code)
             mobile: bool = True if auth_data.platform == "MB" else False
-            username: str = auth_data.username
+            user_id: int = auth_data.user_id
             selection = select(Level).order_by(func.random()).limit(1)
             if dificultad:
                 selection = selection.where(Level.deaths != 0)
@@ -426,7 +449,9 @@ async def stage_id_random_handler(
                         selection = selection.where((Level.clears / Level.deaths).between(0.0, 0.3))  # Expert
                     case _:
                         return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
-            level = (await dal.execute_selection(selection))[0]
+            level: Level = (await dal.execute_selection(selection))[0]
+            author_name: str = await get_author_name_by_level(level, dal)
+            record_user_name: str = await get_record_user_name_by_level(level, dal)
             return SingleLevelDetails(
                 type="random",
                 result=level_to_details(
@@ -434,8 +459,10 @@ async def stage_id_random_handler(
                     locale=auth_data.locale,
                     generate_url_function=storage.generate_url,
                     mobile=mobile,
-                    like_type=await dal.get_like_type(level=level, username=username),
-                    clear_type=await dal.get_clear_type(level=level, username=username)
+                    like_type=await dal.get_like_type(level=level, user_id=user_id),
+                    clear_type=await dal.get_clear_type(level=level, user_id=user_id),
+                    author=author_name,
+                    record_user=record_user_name
                 )
             )
 
@@ -443,16 +470,18 @@ async def stage_id_random_handler(
 @router.post("/{level_id}")
 async def stage_id_search_handler(
         level_id: str,
-        auth_code: str = Form("EngineBot|PC|CN")
+        auth_code: str = Form("0|PC|CN")
 ) -> ErrorMessage | SingleLevelDetails:  # Level ID search
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
             auth_data = parse_auth_code(auth_code)
             mobile: bool = True if auth_data.platform == "MB" else False
-            username: str = auth_data.username
-            level = await dal.get_level_from_level_id(level_id=level_id)
+            user_id: int = auth_data.user_id
+            level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
             if level is not None:
+                author_name: str = await get_author_name_by_level(level, dal)
+                record_user_name: str = await get_record_user_name_by_level(level, dal)
                 return SingleLevelDetails(
                     type="id",
                     result=level_to_details(
@@ -460,8 +489,10 @@ async def stage_id_search_handler(
                         locale=auth_data.locale,
                         generate_url_function=storage.generate_url,
                         mobile=mobile,
-                        like_type=await dal.get_like_type(level=level, username=username),
-                        clear_type=await dal.get_clear_type(level=level, username=username)
+                        like_type=await dal.get_like_type(level=level, user_id=user_id),
+                        clear_type=await dal.get_clear_type(level=level, user_id=user_id),
+                        author=author_name,
+                        record_user=record_user_name
                     )
                 )
             else:
@@ -481,7 +512,7 @@ async def stage_file_handler(level_id: str):  # Return level data
             async with db.async_session() as session:
                 async with session.begin():
                     dal = DBAccessLayer(session)
-                    level_name: str = (await dal.get_level_from_level_id(level_id=level_id)).name
+                    level_name: str = (await dal.get_level_by_level_id(level_id=level_id)).name
                     level_content = await storage.dump_level_data(level_id=level_id)
                     if level_content is None:
                         return ErrorMessage(
@@ -502,17 +533,17 @@ async def stage_delete_handler(level_id: str) -> StageSuccessMessage | ErrorMess
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
-            level = await dal.get_level_from_level_id(level_id)
+            level: Level | None = await dal.get_level_by_level_id(level_id)
             if level is None:
                 return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
 
             # get user and check exists
-            user = await dal.get_user_from_username(level.author)
+            user = await dal.get_user_by_id(level.author_id)
             if user is None:
                 return UserErrorMessage(
                     error_type="006",
                     message="User not found",
-                    username=level.author
+                    user_id=level.author_id
                 )
 
             # if user exists then perform db query
@@ -534,16 +565,18 @@ async def switch_promising_handler(level_id: str) -> StageSuccessMessage | Error
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
-            level = await dal.get_level_from_level_id(level_id)
+            level: Level | None = await dal.get_level_by_level_id(level_id)
             if level is None:
                 return ErrorMessage(error_type="029", message="Level not found")
             if not level.featured:
                 await dal.set_featured(level=level, is_featured=True)
                 await dal.commit()
                 print(level_id + " added to featured")
+                if ENABLE_DISCORD_WEBHOOK or (ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK):
+                    author_name: str = await get_author_name_by_level(level, dal)
                 if ENABLE_DISCORD_WEBHOOK:
                     await push_to_engine_bot_discord(
-                        f"🌟 El **{level.name}** por **{level.author}** se agrega a niveles prometedores! \n"
+                        f"🌟 El **{level.name}** por **{author_name}** se agrega a niveles prometedores! \n"
                         f"> ID: `{level_id}`"
                     )
                 if ENABLE_ENGINE_BOT_WEBHOOK:
@@ -551,7 +584,7 @@ async def switch_promising_handler(level_id: str) -> StageSuccessMessage | Error
                         "type": "new_featured",
                         "level_id": level_id,
                         "level_name": level.name,
-                        "author": level.author,
+                        "author": author_name,
                     })
                 return StageSuccessMessage(
                     success="Successfully updated featured level", type="promising", id=level_id
@@ -575,15 +608,17 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | StageSuccessMe
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
-            level = await dal.get_level_from_level_id(level_id=level_id)
+            level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
             if level is None:
                 return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
             await dal.add_play_to_level(level=level)
             await dal.commit()
             if level.plays == 100 or level.plays == 1000:
+                if ENABLE_DISCORD_WEBHOOK or (ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK):
+                    author_name: str = await get_author_name_by_level(level, dal)
                 if ENABLE_DISCORD_WEBHOOK:
                     await push_to_engine_bot_discord(
-                        f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha sido reproducido **{level.plays}** veces!\n"
+                        f"🎉 Felicidades, el **{level.name}** de **{author_name}** ha sido reproducido **{level.plays}** veces!\n"
                         f"> ID: `{level_id}`"
                     )
                 if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
@@ -591,7 +626,7 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | StageSuccessMe
                         "type": f"{level.plays}_plays",
                         "level_id": level_id,
                         "level_name": level.name,
-                        "author": level.author,
+                        "author": author_name,
                     })
             return StageSuccessMessage(
                 success="Successfully updated plays", id=level_id, type="stats"
@@ -602,24 +637,26 @@ async def stats_intentos_handler(level_id: str) -> ErrorMessage | StageSuccessMe
 async def stats_victorias_handler(
         level_id: str,
         tiempo: str = Form(),
-        auth_code: str = Form("EngineBot|PC|CN"),
+        auth_code: str = Form("0|PC|CN"),
 ) -> ErrorMessage | StageSuccessMessage:
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
-            level = await dal.get_level_from_level_id(level_id=level_id)
+            level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
             if level is None:
                 return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
             auth_data = parse_auth_code(auth_code)
-            await dal.add_clear_to_level(level=level, username=auth_data.username)
+            await dal.add_clear_to_level(level=level, user_id=auth_data.user_id)
             new_record: int = int(tiempo)
             if level.record == 0 or level.record > new_record:
-                await dal.update_record_to_level(username=auth_data.username, level=level, record=new_record)
+                await dal.update_record_to_level(user_id=auth_data.user_id, level=level, record=new_record)
             await dal.commit()
             if level.clears == 100 or level.clears == 1000:
+                if ENABLE_DISCORD_WEBHOOK or (ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK):
+                    author_name: str = await get_author_name_by_level(level, dal)
                 if ENABLE_DISCORD_WEBHOOK:
                     await push_to_engine_bot_discord(
-                        f"🎉 Felicidades, el **{level.name}** de **{level.author}** ha salido victorioso **{level.clears}** veces!\n"
+                        f"🎉 Felicidades, el **{level.name}** de **{author_name}** ha salido victorioso **{level.clears}** veces!\n"
                         f"> ID: `{level_id}`"
                     )
                 if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
@@ -627,7 +664,7 @@ async def stats_victorias_handler(
                         "type": f"{level.clears}_clears",
                         "level_id": level_id,
                         "level_name": level.name,
-                        "author": level.author,
+                        "author": author_name,
                     })
             return StageSuccessMessage(
                 success="Successfully updated clears", id=level_id, type="stats"
@@ -639,18 +676,19 @@ async def stats_muertes_handler(level_id: str) -> ErrorMessage | StageSuccessMes
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
-            level = await dal.get_level_from_level_id(level_id=level_id)
+            level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
             if level is None:
                 return ErrorMessage(error_type="029", message=ES.LEVEL_NOT_FOUND)
             await dal.add_death_to_level(level=level)
             await dal.commit()
             if level.deaths == 100 or level.deaths == 1000:
                 if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
+                    author_name: str = await get_author_name_by_level(level, dal)
                     await push_to_engine_bot_qq({
                         "type": f"{level.deaths}_deaths",
                         "level_id": level_id,
                         "level_name": level.name,
-                        "author": level.author,
+                        "author": author_name,
                     })
                     # No discord push of deaths xd
             return StageSuccessMessage(

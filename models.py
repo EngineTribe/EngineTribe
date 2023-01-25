@@ -1,5 +1,5 @@
 from pydantic import BaseModel as PydanticModel
-from typing import Optional
+from typing import Optional, Union
 
 
 class ErrorMessage(PydanticModel):
@@ -14,7 +14,7 @@ class APIKeyErrorMessage(ErrorMessage):
 
 
 class UserErrorMessage(ErrorMessage):
-    user_id: Optional[str]
+    user_id: Optional[str | int]
     username: Optional[str]
 
 
@@ -80,18 +80,18 @@ class LevelDetailsUserData(PydanticModel):
 
 class LevelDetails(PydanticModel):
     name: str
-    likes: str
-    dislikes: str
-    comments: Optional[str] = "0"
-    intentos: str
-    muertes: str
-    victorias: str
-    apariencia: str
-    entorno: str
+    likes: int
+    dislikes: int
+    comments: Optional[int] = 0
+    intentos: int
+    muertes: int
+    victorias: int
+    apariencia: int
+    entorno: int
     etiquetas: str
-    featured: str
+    featured: int
     user_data: LevelDetailsUserData
-    record: dict[str, str]
+    record: dict[str, Union[str, int]]
     date: str
     author: str
     descripcion: str
@@ -101,9 +101,9 @@ class LevelDetails(PydanticModel):
 
 class DetailedSearchResults(PydanticModel):
     type: Optional[str] = "detailed_search"
-    num_rows: str
-    rows_perpage: str
-    pages: str
+    num_rows: int
+    rows_perpage: int
+    pages: int
     result: list[LevelDetails]
 
 
@@ -126,13 +126,13 @@ class RegisterRequestBody(PydanticModel):
     api_key: str
     username: str
     password_hash: str
-    user_id: str
+    user_id: str | int
 
 
 class UpdatePermissionRequestBody(PydanticModel):
     api_key: str
     username: Optional[str]
-    user_id: Optional[str]
+    user_id: Optional[str | int]
     permission: str
     value: bool
 
@@ -141,9 +141,9 @@ class UpdatePasswordRequestBody(PydanticModel):
     api_key: str
     username: str
     password_hash: str
-    user_id: str
+    user_id: str | int
 
 
 class UserInfoRequestBody(PydanticModel):
     username: Optional[str]
-    user_id: Optional[str]
+    user_id: Optional[str | int]

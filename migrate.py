@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # Migrate from older versions of Engine Tribe
+# SOME CODES WILL NOT WORK AS EXPECTED
 import database
-from database import SMMWEDatabase
+from database.db import Database
+from database.db_access import DBAccessLayer
+from database.db_migration import DBMigrationAccessLayer
 import asyncio
 
-db = SMMWEDatabase()
+db = Database()
 
 
 async def migrate_from_old_to_new():
@@ -77,4 +80,132 @@ def remove_duplicates():
         f.write(json.dumps(level_datas))
 
 
-asyncio.run(import_level_data_database())
+###
+
+async def old_users_to_new_users():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for old_user in await dal_migrate.get_all_old_users():
+                print(f"trying to import user with name: {old_user.username}")
+                await dal_migrate.add_user(
+                    username=old_user.username,
+                    password_hash=old_user.password_hash,
+                    im_id=int(old_user.user_id),
+                    uploads=old_user.uploads,
+                    is_admin=old_user.is_admin,
+                    is_mod=old_user.is_mod,
+                    is_banned=old_user.is_banned,
+                    is_valid=old_user.is_valid,
+                    is_booster=old_user.is_booster
+                )
+                print(f"imported user with id: {old_user.user_id}")
+            await dal.commit()
+
+
+async def old_levels_to_new_levels():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for old_level in await dal_migrate.get_all_old_levels():
+                print(f"trying to import level with id: {old_level.level_id}")
+                author = await dal.get_user_by_username(old_level.author)
+                if author is None:
+                    print(f"author {old_level.author} not found")
+                    author_id = 0
+                else:
+                    author_id = author.id
+                record_user = await dal.get_user_by_username(old_level.record_user)
+                if record_user is None:
+                    print(f"record user {old_level.record_user} not found")
+                    record_user_id = 0
+                else:
+                    record_user_id = record_user.id
+                await dal_migrate.add_level(
+                    level_id=old_level.level_id,
+                    name=old_level.name,
+                    style=old_level.style,
+                    environment=old_level.environment,
+                    tag_1=old_level.tag_1,
+                    tag_2=old_level.tag_2,
+                    non_latin=old_level.non_latin,
+                    testing_client=old_level.testing_client,
+                    record=old_level.record,
+                    author_id=author_id,
+                    record_user_id=record_user_id,
+                )
+                print(f"imported level with id: {old_level.level_id}")
+            await dal.commit()
+
+
+async def old_level_data_to_new_level_data():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for old_level_data in await dal_migrate.get_all_old_level_datas():
+                print(f"trying to import level data with id: {old_level_data.level_id}")
+                if isinstance(old_level_data.level_data, str):
+                    level_data = old_level_data.level_data.encode()
+                else:
+                    level_data = old_level_data.level_data
+                await dal.add_level_data(
+                    level_id=old_level_data.level_id,
+                    level_data=level_data,
+                    level_checksum=old_level_data.level_checksum
+                )
+                print(f"imported level data with id: {old_level_data.level_id}")
+            await dal.commit()
+
+
+async def old_likes_to_new_likes():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for old_like in await dal_migrate.get_all_old_likes():
+                print(f"trying to import like with id: {old_like.id} {old_like.parent_id}")
+                old_level = await dal_migrate.get_old_level_from_parent_id(old_like.parent_id)
+                if old_level is None:
+                    print(f"level with parent id {old_like.parent_id} not found")
+                    continue
+                new_level = await dal.get_level_by_level_id(old_level.level_id)
+                print(f"old level id: {old_like.parent_id} -> new level id: {new_level.id}")
+                user = await dal.get_user_by_username(old_like.username)
+                if user is None:
+                    print(f"user with username {old_like.username} not found")
+                    continue
+                await dal_migrate.add_like_user_only(
+                    user_id=user.id,
+                    parent_id=new_level.id
+                )
+            await session.commit()
+
+
+async def old_dislikes_to_new_dislikes():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for old_dislike in await dal_migrate.get_all_old_dislikes():
+                print(f"trying to import dislike with id: {old_dislike.id} {old_dislike.parent_id}")
+                old_level = await dal_migrate.get_old_level_from_parent_id(old_dislike.parent_id)
+                if old_level is None:
+                    print(f"level with parent id {old_dislike.parent_id} not found")
+                    continue
+                new_level = await dal.get_level_by_level_id(old_level.level_id)
+                print(f"old level id: {old_dislike.parent_id} -> new level id: {new_level.id}")
+                user = await dal.get_user_by_username(old_dislike.username)
+                if user is None:
+                    print(f"user with username {old_dislike.username} not found")
+                    continue
+                await dal_migrate.add_dislike_user_only(
+                    user_id=user.id,
+                    parent_id=new_level.id
+                )
+            await session.commit()
+
+
+asyncio.run(old_dislikes_to_new_dislikes())

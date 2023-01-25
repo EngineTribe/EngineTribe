@@ -15,6 +15,8 @@ from config import (
     ENGINE_BOT_WEBHOOK_URLS
 )
 
+from database.models import Level
+
 from models import LevelDetails, LevelDetailsUserData
 
 
@@ -42,7 +44,7 @@ class Tokens:
 
 @dataclass
 class AuthCodeData:
-    username: str
+    user_id: int
     platform: str
     locale: str
     locale_item: LocaleModel
@@ -50,28 +52,29 @@ class AuthCodeData:
     testing_client: bool
 
 
-def level_to_details(level_data, locale: str, generate_url_function, mobile: bool, like_type: str, clear_type: str):
+def level_to_details(level_data: Level, locale: str, generate_url_function, mobile: bool, like_type: str, clear_type: str,
+                     author: str, record_user: str):
     if mobile and level_data.non_latin:
         name: str = string_latinify(level_data.name)
-        description: str = string_latinify(level_data.description)
     else:
         name: str = level_data.name
-        description: str = level_data.description
     if level_data.record != 0:
-        record = {'record': 'yes', 'alias': level_data.record_user, 'id': '10001', 'time': level_data.record}
+        record = {'record': 'yes',
+                  'alias': record_user,
+                  'id': level_data.record_user_id,
+                  'time': level_data.record}
     else:
         record = {'record': 'no'}
     return LevelDetails(
         name=name,
-        descripcion=description,
-        likes=str(level_data.likes),
-        dislikes=str(level_data.dislikes),
-        comments='0',
-        intentos=str(level_data.plays),
-        muertes=str(level_data.deaths),
-        victorias=str(level_data.clears),
-        apariencia=str(level_data.style),
-        entorno=str(level_data.environment),
+        likes=level_data.likes,
+        dislikes=level_data.dislikes,
+        comments=0,
+        intentos=level_data.plays,
+        muertes=level_data.deaths,
+        victorias=level_data.clears,
+        apariencia=level_data.style,
+        entorno=level_data.environment,
         etiquetas=f'{get_tag_name(level_data.tag_1, locale)},{get_tag_name(level_data.tag_2, locale)}',
         featured=int(level_data.featured),
         user_data=LevelDetailsUserData(
@@ -79,10 +82,11 @@ def level_to_details(level_data, locale: str, generate_url_function, mobile: boo
             liked=like_type
         ),
         date=level_data.date.strftime("%m/%d/%Y"),
-        author=level_data.author,
+        author=author,
         record=record,
         archivo=generate_url_function(level_data.level_id),
-        id=level_data.level_id
+        id=level_data.level_id,
+        descripcion='Sin descripción',
     )
 
 
@@ -144,8 +148,8 @@ def parse_auth_code(raw_auth_code: str) -> AuthCodeData:
         # 3.2.3 client
         legacy = False
         testing_client = False
-    return AuthCodeData(username=auth_code_arr[0], platform=auth_code_arr[1], locale=locale, locale_item=locale_item,
-                        legacy=legacy, testing_client=testing_client)
+    return AuthCodeData(user_id=int(auth_code_arr[0]), platform=auth_code_arr[1], locale=locale,
+                        locale_item=locale_item, legacy=legacy, testing_client=testing_client)
 
 
 def calculate_password_hash(password: str):

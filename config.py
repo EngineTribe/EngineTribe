@@ -1,7 +1,7 @@
 HOST = '0.0.0.0'  # Engine Tribe Central Server
 PORT = 35000  # Default port that SMM_WE uses
 API_KEY = "enginetribe"  # Engine-bot 's API key
-ROWS_PERPAGE = 5  # Levels per page
+ROWS_PERPAGE = 10  # Levels per page
 UPLOAD_LIMIT = 25  # Max levels per account
 BOOSTERS_EXTRA_LIMIT = 10  # Privileges of boosters
 RECORD_CLEAR_USERS = False  # Record and display cleared users
@@ -27,6 +27,7 @@ STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
 
 ENABLE_ENGINE_BOT_WEBHOOK = False
 ENABLE_ENGINE_BOT_COUNTER_WEBHOOK = False
+ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK = True
 ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe']
 
 ENABLE_DISCORD_WEBHOOK = False
