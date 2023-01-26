@@ -260,4 +260,19 @@ async def remove_duplicate_levels():
                     levels[level.name] = level.author_id
 
 
-asyncio.run(remove_duplicate_levels())
+async def sync_featured_from_old_level():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for level in await dal_migrate.get_all_old_featured_levels():
+                print(f"trying to sync featured level with id: {level.id}")
+                new_level = await dal.get_level_by_level_id(level.level_id)
+                if new_level is None:
+                    print(f"level with id {level.level_id} not found")
+                    continue
+                await dal.set_featured(level=new_level, is_featured=True)
+            await session.commit()
+
+
+asyncio.run(sync_featured_from_old_level())

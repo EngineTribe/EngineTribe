@@ -114,3 +114,8 @@ class DBMigrationAccessLayer:
         return (await self.session.execute(
             select(Level)
         )).scalars().all()
+
+    async def get_all_old_featured_levels(self) -> list[OldLevel]:
+        return (await self.session.execute(
+            select(OldLevel).where(OldLevel.featured == True)
+        )).scalars().all()
