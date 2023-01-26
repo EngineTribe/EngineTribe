@@ -89,3 +89,28 @@ class DBMigrationAccessLayer:
                       testing_client=testing_client, featured=False)
         self.session.add(level)
         await self.session.flush()
+
+    async def delete_level(self, level_id: int):
+        # remove level metadata from database
+        await self.session.execute(
+            delete(Level).where(Level.id == level_id)
+        )
+
+    async def delete_level_data(self, level_id: str):
+        # remove level data from database
+        await self.session.execute(
+            delete(LevelData).where(LevelData.level_id == level_id)
+        )
+
+    async def delete_stats(self, level_id):
+        await self.session.execute(
+            delete(LikeUsers).where(LikeUsers.parent_id == level_id)
+        )
+        await self.session.execute(
+            delete(DislikeUsers).where(DislikeUsers.parent_id == level_id)
+        )
+
+    async def get_all_levels(self) -> list[Level]:
+        return (await self.session.execute(
+            select(Level)
+        )).scalars().all()

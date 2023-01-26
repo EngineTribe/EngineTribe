@@ -237,4 +237,26 @@ async def old_clears_to_new_clears():
                 )
 
 
-asyncio.run(old_clears_to_new_clears())
+async def remove_duplicate_levels():
+    levels: dict[str, int] = {}  # level name -> author id
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for level in await dal_migrate.get_all_levels():
+                if level.name in levels and levels[level.name] == level.author_id:
+                    print(f"found duplicate level: {level.name}, deleting")
+                    await dal_migrate.delete_level(level.id)
+                    try:
+                        await dal_migrate.delete_level_data(level.level_id)
+                    except Exception as e:
+                        print(f"could not delete corresponding level data: {e}")
+                    try:
+                        await dal_migrate.delete_stats(level.id)
+                    except Exception as e:
+                        print(f"could not delete corresponding stats: {e}")
+                else:
+                    levels[level.name] = level.author_id
+
+
+asyncio.run(remove_duplicate_levels())
