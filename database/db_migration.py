@@ -25,6 +25,10 @@ class DBMigrationAccessLayer:
         dislike = DislikeUsers(parent_id=parent_id, user_id=user_id)
         self.session.add(dislike)
 
+    async def add_clear_user_only(self, parent_id: int, user_id: int):
+        clear = ClearedUsers(parent_id=parent_id, user_id=user_id)
+        self.session.add(clear)
+
     async def get_all_level_datas_in(self, range_from, limit) -> list[LevelData]:
         # use offset
         return (await self.session.execute(
@@ -56,6 +60,11 @@ class DBMigrationAccessLayer:
             select(OldDislikeUsers)
         )).scalars().all()
 
+    async def get_all_old_clears(self) -> list[OldClearedUsers]:
+        return (await self.session.execute(
+            select(OldClearedUsers)
+        )).scalars().all()
+
     async def get_old_level_from_parent_id(self, level_id: int) -> OldLevel:
         return (await self.session.execute(
             select(OldLevel).where(OldLevel.id == level_id)
@@ -70,9 +79,10 @@ class DBMigrationAccessLayer:
         await self.session.flush()
 
     async def add_level(self, name: str, style: int, environment: int, tag_1: int, tag_2: int, author_id: int,
-                        level_id: str, non_latin: bool, testing_client: bool, record_user_id: int, record: int):
+                        level_id: str, non_latin: bool, testing_client: bool, record_user_id: int, record: int,
+                        likes: int, dislikes: int, plays: int, deaths: int, clears: int):
         # add level metadata into database
-        level = Level(name=name, likes=0, dislikes=0, plays=0, deaths=0, clears=0,
+        level = Level(name=name, likes=likes, dislikes=dislikes, plays=plays, deaths=deaths, clears=clears,
                       style=style, environment=environment, tag_1=tag_1, tag_2=tag_2,
                       date=datetime.date.today(), author_id=author_id,
                       level_id=level_id, non_latin=non_latin, record_user_id=record_user_id, record=record,

@@ -61,7 +61,6 @@ class OldLevel(Base):
 # archivo = Column(Text)  # Level file in storage backend   # deprecated
 # comments = Column(Integer)  # Unimplemented in original server
 
-
 '''
 class OldLikeUsers(Base):
     __tablename__ = "old_likes_table"
@@ -70,6 +69,7 @@ class OldLikeUsers(Base):
     parent_id = Column(Integer)
 
     username = Column(Text)
+
 '''
 
 
@@ -100,6 +100,17 @@ class DislikeUsers(Base):
     parent_id = Column(Integer)
 
     user_id = Column(Integer)
+
+
+'''
+class OldClearedUsers(Base):
+    __tablename__ = "old_clears_table"
+
+    id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer)
+
+    username = Column(Text)
+'''
 
 
 class ClearedUsers(Base):
@@ -134,7 +145,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
 
-    username = Column(String(25))  # User name
+    username = Column(String(30))  # User name
     im_id = Column(BigInteger)  # User ID (Discord / QQ)
     uploads = Column(Integer)  # Upload levels count
     password_hash = Column(String(64))  # Password SHA256 hash
@@ -170,7 +181,7 @@ class LevelData(Base):  # used in StorageProviderDatabase
 '''
 class Stats(Base):
     __tablename__ = "stats_table"
-    
+
     id = Column(Integer, primary_key=True)
 
     level_id = Column(Text)  # Level id

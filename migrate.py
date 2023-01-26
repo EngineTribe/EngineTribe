@@ -135,6 +135,11 @@ async def old_levels_to_new_levels():
                     record=old_level.record,
                     author_id=author_id,
                     record_user_id=record_user_id,
+                    likes=old_level.likes,
+                    dislikes=old_level.dislikes,
+                    clears=old_level.clears,
+                    deaths=old_level.deaths,
+                    plays=old_level.plays
                 )
                 print(f"imported level with id: {old_level.level_id}")
             await dal.commit()
@@ -151,12 +156,13 @@ async def old_level_data_to_new_level_data():
                     level_data = old_level_data.level_data.encode()
                 else:
                     level_data = old_level_data.level_data
-                await dal.add_level_data(
-                    level_id=old_level_data.level_id,
-                    level_data=level_data,
-                    level_checksum=old_level_data.level_checksum
-                )
-                print(f"imported level data with id: {old_level_data.level_id}")
+                if dal.get_level_by_level_id(old_level_data.level_id) is not None:
+                    await dal.add_level_data(
+                        level_id=old_level_data.level_id,
+                        level_data=level_data,
+                        level_checksum=old_level_data.level_checksum
+                    )
+                    print(f"imported level data with id: {old_level_data.level_id}")
             await dal.commit()
 
 
@@ -208,4 +214,27 @@ async def old_dislikes_to_new_dislikes():
             await session.commit()
 
 
-asyncio.run(old_dislikes_to_new_dislikes())
+async def old_clears_to_new_clears():
+    async with db.async_session() as session:
+        async with session.begin():
+            dal = DBAccessLayer(session)
+            dal_migrate = DBMigrationAccessLayer(session)
+            for old_clear in await dal_migrate.get_all_old_clears():
+                print(f"trying to import clear with id: {old_clear.id} {old_clear.parent_id}")
+                old_level = await dal_migrate.get_old_level_from_parent_id(old_clear.parent_id)
+                if old_level is None:
+                    print(f"level with parent id {old_clear.parent_id} not found")
+                    continue
+                new_level = await dal.get_level_by_level_id(old_level.level_id)
+                print(f"old level id: {old_clear.parent_id} -> new level id: {new_level.id}")
+                user = await dal.get_user_by_username(old_clear.username)
+                if user is None:
+                    print(f"user with username {old_clear.username} not found")
+                    continue
+                await dal_migrate.add_clear_user_only(
+                    user_id=user.id,
+                    parent_id=new_level.id
+                )
+
+
+asyncio.run(old_clears_to_new_clears())
