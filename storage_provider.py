@@ -141,11 +141,11 @@ class StorageProviderDatabase:
             async with session.begin():
                 dal = DBAccessLayer(session)
                 level = (await dal.dump_level_data(level_id=level_id))
-                if isinstance(level.level_data, str):
-                    level_data = level.level_data.encode()
-                else:
-                    level_data = level.level_data
                 if level is not None:
+                    if isinstance(level.level_data, str):
+                        level_data = level.level_data.encode()
+                    else:
+                        level_data = level.level_data
                     return f'{b64encode(level_data).decode()}{level.level_checksum}'
                 else:
                     return None
