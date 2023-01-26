@@ -139,7 +139,8 @@ async def old_levels_to_new_levels():
                     dislikes=old_level.dislikes,
                     clears=old_level.clears,
                     deaths=old_level.deaths,
-                    plays=old_level.plays
+                    plays=old_level.plays,
+                    featured=old_level.featured
                 )
                 print(f"imported level with id: {old_level.level_id}")
             await dal.commit()

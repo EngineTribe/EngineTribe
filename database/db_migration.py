@@ -80,13 +80,13 @@ class DBMigrationAccessLayer:
 
     async def add_level(self, name: str, style: int, environment: int, tag_1: int, tag_2: int, author_id: int,
                         level_id: str, non_latin: bool, testing_client: bool, record_user_id: int, record: int,
-                        likes: int, dislikes: int, plays: int, deaths: int, clears: int):
+                        likes: int, dislikes: int, plays: int, deaths: int, clears: int, featured: bool):
         # add level metadata into database
         level = Level(name=name, likes=likes, dislikes=dislikes, plays=plays, deaths=deaths, clears=clears,
                       style=style, environment=environment, tag_1=tag_1, tag_2=tag_2,
                       date=datetime.date.today(), author_id=author_id,
                       level_id=level_id, non_latin=non_latin, record_user_id=record_user_id, record=record,
-                      testing_client=testing_client, featured=False)
+                      testing_client=testing_client, featured=featured)
         self.session.add(level)
         await self.session.flush()
 
