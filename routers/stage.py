@@ -132,7 +132,12 @@ async def stages_detailed_search_handler(
             if title:
                 selection = selection.where(Level.name.contains(title))
             if author:
-                selection = selection.where(Level.author == author)
+                _author = await dal.get_user_by_username(author)
+                if _author is not None:
+                    author_id: int = _author.id
+                    selection = selection.where(Level.author_id == author_id)
+                else:
+                    return ErrorMessage(error_type="006", message=auth_data.locale_item.ACCOUNT_NOT_FOUND)
             if aparience:
                 selection = selection.where(Level.style == int(aparience))
             if entorno:
