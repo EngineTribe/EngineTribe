@@ -179,7 +179,6 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody) -> E
     # username/user_id, permission, value, api_key
     if request.api_key != API_KEY:
         return APIKeyErrorMessage(api_key=request.api_key)
-    im_id: int = int(request.user_id)
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
@@ -192,12 +191,13 @@ async def user_set_permission_handler(request: UpdatePermissionRequestBody) -> E
                         username=request.username
                     )
             elif request.user_id:
+                im_id: int = int(request.user_id)
                 user = await dal.get_user_by_im_id(im_id=im_id)
                 if user is None:
                     return UserErrorMessage(
                         error_type="006",
                         message="User not found.",
-                        user_id=request.user_id
+                        user_id=im_id
                     )
             else:
                 return ErrorMessage(error_type="255", message="API error.")
@@ -302,7 +302,6 @@ async def user_update_password_handler(request: UpdatePasswordRequestBody) -> Er
 
 @router.post("/info")  # Get user info
 async def user_info_handler(request: UserInfoRequestBody):
-    im_id: int = int(request.user_id)
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
@@ -315,12 +314,13 @@ async def user_info_handler(request: UserInfoRequestBody):
                         username=request.username
                     )
             elif request.user_id:
+                im_id: int = int(request.user_id)
                 user = await dal.get_user_by_im_id(im_id=im_id)
                 if user is None:
                     return UserErrorMessage(
                         error_type="006",
                         message="User not found.",
-                        user_id=request.user_id
+                        user_id=im_id
                     )
             else:
                 return ErrorMessage(error_type="255", message="API error.")
