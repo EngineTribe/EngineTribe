@@ -178,16 +178,16 @@ async def stages_detailed_search_handler(
                         level_data_ids.append(disliked_data.parent_id)
                 selection = selection.where(Level.id.in_(level_data_ids))
             if dificultad:
-                selection = selection.where(Level.deaths != 0)
+                selection = selection.where(Level.plays != 0)
                 match dificultad:
                     case "0":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.2, 10.0))  # Easy
+                        selection = selection.where((Level.clears / Level.plays).between(0.2, 10.0))  # Easy
                     case "1":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.08, 0.2))  # Normal
+                        selection = selection.where((Level.clears / Level.plays).between(0.08, 0.2))  # Normal
                     case "2":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.01, 0.08))  # Hard
+                        selection = selection.where((Level.clears / Level.plays).between(0.01, 0.08))  # Hard
                     case "3":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.0, 0.01))  # Expert
+                        selection = selection.where((Level.clears / Level.plays).between(0.0, 0.01))  # Expert
                     case _:
                         return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
             if historial:
@@ -442,16 +442,16 @@ async def stage_id_random_handler(
             user_id: int = auth_data.user_id
             selection = select(Level).order_by(func.random()).limit(1)
             if dificultad:
-                selection = selection.where(Level.deaths != 0)
+                selection = selection.where(Level.plays != 0)
                 match dificultad:
                     case "0":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.2, 10.0))  # Easy
+                        selection = selection.where((Level.clears / Level.plays).between(0.2, 10.0))  # Easy
                     case "1":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.08, 0.2))  # Normal
+                        selection = selection.where((Level.clears / Level.plays).between(0.08, 0.2))  # Normal
                     case "2":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.01, 0.08))  # Hard
+                        selection = selection.where((Level.clears / Level.plays).between(0.01, 0.08))  # Hard
                     case "3":
-                        selection = selection.where((Level.clears / Level.deaths).between(0.0, 0.01))  # Expert
+                        selection = selection.where((Level.clears / Level.plays).between(0.0, 0.01))  # Expert
                     case _:
                         return ErrorMessage(error_type="030", message=auth_data.locale_item.UNKNOWN_DIFFICULTY)
             level: Level = (await dal.execute_selection(selection))[0]
