@@ -4,7 +4,7 @@ API_KEY = "enginetribe"  # Engine-bot 's API key
 ROWS_PERPAGE = 10  # Levels per page
 UPLOAD_LIMIT = 25  # Max levels per account
 BOOSTERS_EXTRA_LIMIT = 10  # Privileges of boosters
-RECORD_CLEAR_USERS = False  # Record and display cleared users
+RECORD_CLEAR_USERS = True  # Record and display cleared users
 
 DATABASE_ADAPTER = 'mysql'  # Database adapter to use, mysql, postgresql and sqlite is supported
 DATABASE_HOST = 'localhost'  # Database host (or file name when using sqlite)
@@ -27,7 +27,7 @@ STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
 
 ENABLE_ENGINE_BOT_WEBHOOK = False
 ENABLE_ENGINE_BOT_COUNTER_WEBHOOK = False
-ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK = True
+ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK = False
 ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe']
 
 ENABLE_DISCORD_WEBHOOK = False
