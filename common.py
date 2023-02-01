@@ -22,9 +22,9 @@ from models import LevelDetails, LevelDetailsUserData
 
 
 class ClientType(Enum):
-    Stable = 1
-    Testing = 2
-    Legacy = 3
+    STABLE = 1
+    TESTING = 2
+    LEGACY = 3
 
 
 @dataclass
@@ -61,7 +61,7 @@ def level_to_details(level_data: Level, locale: str, generate_url_function, mobi
         victorias=level_data.clears,
         apariencia=level_data.style,
         entorno=level_data.environment,
-        etiquetas=f'{get_tag_name(level_data.tag_1, locale)},{get_tag_name(level_data.tag_2, locale)}',
+        etiquetas=f'{prettify_tag_name(level_data.tag_1, locale)},{prettify_tag_name(level_data.tag_2, locale)}',
         featured=int(level_data.featured),
         user_data=LevelDetailsUserData(
             completed=clear_type,
@@ -126,8 +126,12 @@ def is_valid_user_agent(user_agent):
         return False
 
 
-def session_id_to_string(session_id: int) -> str:
+def prettify_session_id(session_id: int) -> str:
     return hex(session_id)[2:].upper()
+
+
+def numeric_session_id(session_id: str) -> int:
+    return int(session_id, 16)
 
 
 async def push_to_engine_bot_qq(data: dict):

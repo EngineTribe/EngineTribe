@@ -159,7 +159,7 @@ def parse_tag_names(tag_names: str, locale: str) -> tuple[int, int]:
     return tag_1_out, tag_2_out
 
 
-def get_tag_name(tag_id: int, locale_to: str) -> str:
+def prettify_tag_name(tag_id: int, locale_to: str) -> str:
     match locale_to:
         case "ES":
             return TAGS_ES[tag_id]

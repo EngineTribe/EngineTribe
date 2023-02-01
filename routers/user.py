@@ -20,7 +20,7 @@ from common import (
     calculate_password_hash,
     push_to_engine_bot_qq,
     push_to_engine_bot_discord,
-    session_id_to_string
+    prettify_session_id
 )
 from config import (
     ENABLE_DISCORD_WEBHOOK,
@@ -88,7 +88,7 @@ async def user_login_handler(
             async with session_db.async_session() as session_session:
                 async with session_session.begin():
                     session_dal = SessionDBAccessLayer(session_session)
-                    auth_code: str = session_id_to_string(
+                    auth_code: str = prettify_session_id(
                         (await session_dal.new_session(
                             username=alias,
                             user_id=user_id,
@@ -98,7 +98,7 @@ async def user_login_handler(
                         )).id
                     )
 
-            if client_type is ClientType.Legacy:
+            if client_type is ClientType.LEGACY:
                 # 3.1.x return data
                 return LegacyUserLoginProfile(
                     alias=alias,
