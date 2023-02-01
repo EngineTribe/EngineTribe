@@ -8,7 +8,6 @@ from typing import Optional
 from sqlalchemy import select, func
 
 from context import db, storage
-import dfa_filter
 from config import (
     ENABLE_DISCORD_WEBHOOK,
     ENABLE_ENGINE_BOT_WEBHOOK,
@@ -16,7 +15,6 @@ from config import (
     ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK,
     BOOSTERS_EXTRA_LIMIT,
     UPLOAD_LIMIT,
-    OFFENSIVE_WORDS_FILTER,
     ROWS_PERPAGE,
     RECORD_CLEAR_USERS
 )
@@ -348,11 +346,6 @@ async def stages_upload_handler(
             # https://github.com/encode/starlette/issues/425
 
             print("Uploading level " + name)
-
-            if OFFENSIVE_WORDS_FILTER:  # Apply filter
-                name_filtered = dfa_filter.DFAFilter().filter(name)
-                if name_filtered != name.lower():
-                    name: str = name_filtered
 
             # check non-Latin
             non_latin: bool = False

@@ -14,7 +14,6 @@ import context as ctx
 from database.db_access import DBAccessLayer
 import routers
 from config import *
-from dfa_filter import DFAFilter
 from models import ErrorMessage, ErrorMessageException
 from smmwe_lib import *
 
@@ -26,24 +25,6 @@ app.include_router(routers.user.router)
 connection_per_minute = 0
 
 start_time = datetime.datetime.now()
-
-if OFFENSIVE_WORDS_FILTER:
-    import requests
-
-    # Load DFA filter
-    dfa_filter = DFAFilter()
-    wordlist = None
-    for url in OFFENSIVE_WORDS_LIST:
-        wordlist = requests.get(url=url).text.replace("\r", "").split("\n")
-    for word in wordlist:
-        if len(word) > 1 and len(word.encode("utf-8")) > 2:
-            dfa_filter.add(word)
-    for url in OFFENSIVE_WORDS_LIST_CN_ONLY:
-        wordlist = requests.get(url=url).text.replace("\r", "").split("\n")
-        for word in wordlist:
-            if len(re.findall(re.compile(r"[A-Za-z]", re.S), word)) == 0:
-                if len(word) > 1 and len(word.encode("utf-8")) > 2:
-                    dfa_filter.add(word)
 
 
 @app.on_event("startup")
