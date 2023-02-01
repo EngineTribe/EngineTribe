@@ -15,14 +15,10 @@ DATABASE_NAME = 'enginetribe'  # Database name
 DATABASE_SSL = False  # Use SSL for database connection
 DATABASE_DEBUG = False  # Log SQL connections to stdout
 
-ENABLE_SESSION = True  # Enable session
-
 STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
-# The official instance of Engine Tribe used OneDrive to store levels, so the first two storage providers are
-# implemented. If you host Engine Tribe yourself, you can choose the third one.
+# - database: use database to store levels  (recommended)
 # - onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
 # - onemanager: https://github.com/qkqpttgf/OneManager-php
-# - database: use database to store levels  (recommended)
 STORAGE_URL = 'http://enginetribe.gq:30000/'  # Storage url with '/'
 STORAGE_AUTH_KEY = ''  # Storage auth key, onedrive-cf and onemanager only
 STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
