@@ -117,6 +117,22 @@ class IT(LocaleModel):
     NOT_IMPLEMENTED: str = 'Non implementato.'
 
 
+def get_locale_model(locale: str = "ES"):
+    match locale:
+        case "ES":
+            return ES
+        case "EN":
+            return EN
+        case "CN":
+            return CN
+        case "PT":
+            return PT
+        case "IT":
+            return IT
+        case _:
+            return ES
+
+
 def parse_tag_names(tag_names: str, locale: str) -> tuple[int, int]:
     tags = tag_names.split(',')
     tag_1 = tags[0].strip()

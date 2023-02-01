@@ -15,6 +15,8 @@ DATABASE_NAME = 'enginetribe'  # Database name
 DATABASE_SSL = False  # Use SSL for database connection
 DATABASE_DEBUG = False  # Log SQL connections to stdout
 
+ENABLE_SESSION = True  # Enable session
+
 STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
 # The official instance of Engine Tribe used OneDrive to store levels, so the first two storage providers are
 # implemented. If you host Engine Tribe yourself, you can choose the third one.

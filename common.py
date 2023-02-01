@@ -1,5 +1,6 @@
 import base64
 from dataclasses import dataclass
+from enum import Enum
 import hashlib
 import aiohttp
 import discord
@@ -20,26 +21,10 @@ from database.models import Level
 from models import LevelDetails, LevelDetailsUserData
 
 
-@dataclass
-class Tokens:
-    PC_CN: str = 'SMMWEPCCN'
-    PC_ES: str = 'SMMWEPCES'
-    PC_EN: str = 'SMMWEPCEN'
-    Mobile_CN: str = 'SMMWEMBCN'
-    Mobile_ES: str = 'SMMWEMBES'
-    Mobile_EN: str = 'SMMWEMBEN'
-    PC_Legacy_CN: str = 'LEGACPCCN'
-    PC_Legacy_ES: str = 'LEGACPCES'
-    PC_Legacy_EN: str = 'LEGACPCEN'
-    Mobile_Legacy_CN: str = 'LEGACMBCN'
-    Mobile_Legacy_ES: str = 'LEGACMBES'
-    Mobile_Legacy_EN: str = 'LEGACMBEN'
-    PC_Testing_CN: str = 'TESTCPCCN'
-    PC_Testing_ES: str = 'TESTCPCES'
-    PC_Testing_EN: str = 'TESTCPCEN'
-    Mobile_Testing_CN: str = 'TESTCMBCN'
-    Mobile_Testing_ES: str = 'TESTCMBES'
-    Mobile_Testing_EN: str = 'TESTCMBEN'
+class ClientType(Enum):
+    Stable = 1
+    Testing = 2
+    Legacy = 3
 
 
 @dataclass
@@ -52,7 +37,8 @@ class AuthCodeData:
     testing_client: bool
 
 
-def level_to_details(level_data: Level, locale: str, generate_url_function, mobile: bool, like_type: str, clear_type: str,
+def level_to_details(level_data: Level, locale: str, generate_url_function, mobile: bool, like_type: str,
+                     clear_type: str,
                      author: str, record_user: str):
     if mobile and level_data.non_latin:
         name: str = string_latinify(level_data.name)
@@ -114,44 +100,6 @@ def prettify_level_id(level_id: str):
     return level_id[0:4] + '-' + level_id[4:8] + '-' + level_id[8:12] + '-' + level_id[12:16]
 
 
-def parse_auth_code(raw_auth_code: str) -> AuthCodeData:
-    auth_code_arr = raw_auth_code.split('|')
-    locale = auth_code_arr[2]
-    match locale:
-        case 'CN':
-            locale_item = CN
-        case 'ES':
-            locale_item = ES
-        case 'EN':
-            locale_item = EN
-        case 'PT':
-            locale_item = PT
-        case 'IT':
-            locale_item = IT
-        case _:
-            locale = 'ES'
-            locale_item = ES
-    if len(auth_code_arr) == 4:
-        if auth_code_arr[3] == 'L':
-            # 3.1.5 client
-            legacy = True
-            testing_client = False
-        elif auth_code_arr[3] == 'T':
-            # 3.3.0+ testing client
-            legacy = False
-            testing_client = True
-        else:
-            # other client
-            legacy = False
-            testing_client = False
-    else:
-        # 3.2.3 client
-        legacy = False
-        testing_client = False
-    return AuthCodeData(user_id=int(auth_code_arr[0]), platform=auth_code_arr[1], locale=locale,
-                        locale_item=locale_item, legacy=legacy, testing_client=testing_client)
-
-
 def calculate_password_hash(password: str):
     return hashlib.sha256(base64.b64encode(password.encode('utf-8'))).hexdigest()
 
@@ -176,6 +124,10 @@ def is_valid_user_agent(user_agent):
             return False
     else:
         return False
+
+
+def session_id_to_string(session_id: int) -> str:
+    return hex(session_id)[2:].upper()
 
 
 async def push_to_engine_bot_qq(data: dict):

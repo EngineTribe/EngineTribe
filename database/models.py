@@ -188,3 +188,15 @@ class Stats(Base):
     likes_users = Column(Text)
     dislikes_users = Column(Text)
 '''
+
+
+class Token(Base):  # Client tokens
+    __tablename__ = "token_table"
+
+    id = Column(Integer, primary_key=True)
+
+    token = Column(String(9))  # Token
+    valid = Column(Boolean)  # Whether the token is valid
+    type = Column(SmallInteger)  # Client types
+    locale = Column(String(2))  # Locale
+    mobile = Column(Boolean)  # Is mobile client

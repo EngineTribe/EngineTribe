@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Form, Depends
 
-from context import db
+from context import db, session_db
 from config import API_KEY
 from depends import connection_count_inc
 from models import (
@@ -14,28 +14,22 @@ from models import (
     UserInfoMessage,
     UserInfo
 )
-from smmwe_lib import (
-    Tokens,
-    AuthCodeData,
+from locales import get_locale_model
+from common import (
+    ClientType,
     calculate_password_hash,
     push_to_engine_bot_qq,
-    push_to_engine_bot_discord, parse_auth_code
+    push_to_engine_bot_discord,
+    session_id_to_string
 )
 from config import (
     ENABLE_DISCORD_WEBHOOK,
     ENABLE_ENGINE_BOT_WEBHOOK
 )
 from database.db_access import DBAccessLayer
-from database.models import User
-
-AVAILABLE_TOKENS = [
-    Tokens.PC_CN, Tokens.PC_ES, Tokens.PC_EN,
-    Tokens.Mobile_CN, Tokens.Mobile_ES, Tokens.Mobile_EN,
-    Tokens.PC_Legacy_CN, Tokens.PC_Legacy_ES, Tokens.PC_Legacy_EN,
-    Tokens.Mobile_Legacy_CN, Tokens.Mobile_Legacy_ES, Tokens.Mobile_Legacy_EN,
-    Tokens.PC_Testing_CN, Tokens.PC_Testing_ES, Tokens.PC_Testing_EN,
-    Tokens.Mobile_Testing_CN, Tokens.Mobile_Testing_ES, Tokens.Mobile_Testing_EN
-]
+from database.models import User, Token
+from session.db_access import SessionDBAccessLayer
+from session.models import Session
 
 router = APIRouter(prefix="/user", dependencies=[Depends(connection_count_inc)])
 
@@ -61,62 +55,50 @@ async def user_login_handler(
     async with db.async_session() as session:
         async with session.begin():
             dal = DBAccessLayer(session)
-
             password = password.encode("latin1").decode("utf-8")
             # Fix for Starlette
             # https://github.com/encode/starlette/issues/425
 
             # match the token
-            if token not in AVAILABLE_TOKENS:
+            client: Token | None = await dal.get_token(token=token)
+            if (client is None) or (not client.valid):
                 return ErrorMessage(error_type="003", message="Illegal client.")
-
-            mobile: bool = True if "MB" in token else False
+            locale_model = get_locale_model(client.locale)
 
             user: User = await dal.get_user_by_username(username=alias)
             user_id: int = user.id if user else 0
 
-            # match auth_code to generate token
-            tokens_auth_code_match = {
-                Tokens.PC_CN: f"{user_id}|PC|CN",
-                Tokens.PC_ES: f"{user_id}|PC|ES",
-                Tokens.PC_EN: f"{user_id}|PC|EN",
-                Tokens.Mobile_CN: f"{user_id}|MB|CN",
-                Tokens.Mobile_ES: f"{user_id}|MB|ES",
-                Tokens.Mobile_EN: f"{user_id}|MB|EN",
-                Tokens.PC_Legacy_CN: f"{user_id}|PC|CN|L",
-                Tokens.PC_Legacy_ES: f"{user_id}|PC|ES|L",
-                Tokens.PC_Legacy_EN: f"{user_id}|PC|EN|L",
-                Tokens.Mobile_Legacy_CN: f"{user_id}|MB|CN|L",
-                Tokens.Mobile_Legacy_ES: f"{user_id}|MB|ES|L",
-                Tokens.Mobile_Legacy_EN: f"{user_id}|MB|EN|L",
-                Tokens.PC_Testing_CN: f"{user_id}|PC|CN|T",
-                Tokens.PC_Testing_ES: f"{user_id}|PC|ES|T",
-                Tokens.PC_Testing_EN: f"{user_id}|PC|EN|T",
-                Tokens.Mobile_Testing_CN: f"{user_id}|MB|CN|T",
-                Tokens.Mobile_Testing_ES: f"{user_id}|MB|ES|T",
-                Tokens.Mobile_Testing_EN: f"{user_id}|MB|EN|T",
-            }
-
-            auth_code = tokens_auth_code_match[token]
-            auth_data: AuthCodeData = parse_auth_code(auth_code)
-
             if user_id == 0:
                 return ErrorMessage(
-                    error_type="006", message=auth_data.locale_item.ACCOUNT_NOT_FOUND
+                    error_type="006", message=locale_model.ACCOUNT_NOT_FOUND
                 )
             if not user.is_valid:
                 return ErrorMessage(
-                    error_type="011", message=auth_data.locale_item.ACCOUNT_IS_NOT_VALID
+                    error_type="011", message=locale_model.ACCOUNT_IS_NOT_VALID
                 )
             if user.is_banned:
                 return ErrorMessage(
-                    error_type="005", message=auth_data.locale_item.ACCOUNT_BANNED
+                    error_type="005", message=locale_model.ACCOUNT_BANNED
                 )
             if user.password_hash != calculate_password_hash(password):
                 return ErrorMessage(
-                    error_type="007", message=auth_data.locale_item.ACCOUNT_ERROR_PASSWORD
+                    error_type="007", message=locale_model.ACCOUNT_ERROR_PASSWORD
                 )
-            if "|L" in auth_code:
+            client_type = ClientType(client.type)
+            async with session_db.async_session() as session_session:
+                async with session_session.begin():
+                    session_dal = SessionDBAccessLayer(session_session)
+                    auth_code: str = session_id_to_string(
+                        (await session_dal.new_session(
+                            username=alias,
+                            user_id=user_id,
+                            mobile=client.mobile,
+                            client_type=client_type,
+                            locale=client.locale
+                        )).id
+                    )
+
+            if client_type is ClientType.Legacy:
                 # 3.1.x return data
                 return LegacyUserLoginProfile(
                     alias=alias,
@@ -135,7 +117,7 @@ async def user_login_handler(
                     alias=alias,
                     id=user.im_id,
                     uploads=user.uploads,
-                    mobile=mobile,
+                    mobile=client.mobile,
                     auth_code=auth_code,
                 )
 

@@ -1,5 +1,6 @@
 from config import STORAGE_URL, STORAGE_AUTH_KEY, STORAGE_PROXIED, STORAGE_PROVIDER
 from database.db import Database
+from session.db import SessionDatabase
 from storage_provider import StorageProviderOneDriveCF, StorageProviderOneManager, StorageProviderDatabase
 
 db: Database = Database()
@@ -20,3 +21,5 @@ match STORAGE_PROVIDER:
             base_url=STORAGE_URL,
             database=db
         )
+
+session_db: SessionDatabase = SessionDatabase()

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.models import Level, LevelData, User, ClearedUsers, LikeUsers, DislikeUsers
+from database.models import Level, LevelData, User, ClearedUsers, LikeUsers, DislikeUsers, Token
 import datetime
 from sqlalchemy import func, select, delete
 from config import RECORD_CLEAR_USERS
@@ -225,6 +225,11 @@ class DBAccessLayer:
                 select(func.count()).select_from(User)
             )
         ).scalars().first()
+
+    async def get_token(self, token: str) -> Token | None:
+        return (await self.session.execute(
+            select(Token).where(Token.token == token)
+        )).scalars().first()
 
     async def commit(self):
         await self.session.commit()

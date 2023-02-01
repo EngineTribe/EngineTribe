@@ -28,8 +28,7 @@ from models import (
     DetailedSearchResults,
     UserErrorMessage
 )
-from smmwe_lib import (
-    parse_auth_code,
+from common import (
     strip_level,
     gen_level_id_md5,
     gen_level_id_sha1,

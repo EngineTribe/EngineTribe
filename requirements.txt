@@ -10,5 +10,6 @@ aiohttp
 sqlalchemy[asyncio] >1.4, <2.0
 greenlet
 asyncmy
+aiosqlite
 
 # requests  # for filter, optional

@@ -15,7 +15,7 @@ from database.db_access import DBAccessLayer
 import routers
 from config import *
 from models import ErrorMessage, ErrorMessageException
-from smmwe_lib import *
+from common import *
 
 app = FastAPI()
 
@@ -30,6 +30,7 @@ start_time = datetime.datetime.now()
 @app.on_event("startup")
 async def startup_event():
     await ctx.db.create_columns()
+    await ctx.session_db.create_columns()
 
 
 @app.get("/")
