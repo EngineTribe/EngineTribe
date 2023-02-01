@@ -14,7 +14,7 @@ class APIKeyErrorMessage(ErrorMessage):
 
 
 class UserErrorMessage(ErrorMessage):
-    user_id: Optional[str | int]
+    im_id: Optional[str | int]
     username: Optional[str]
 
 
@@ -28,7 +28,7 @@ class UserSuccessMessage(PydanticModel):
     success: str
     type: Optional[str] = "user"
     username: Optional[str]
-    user_id: Optional[str]
+    im_id: Optional[str]
 
 
 class UserPermissionSuccessMessage(UserSuccessMessage):
@@ -59,7 +59,7 @@ class LegacyUserLoginProfile(PydanticModel):
 
 class UserInfo(PydanticModel):
     username: str
-    user_id: str
+    im_id: int
     uploads: int
     is_admin: bool
     is_mod: bool
@@ -122,17 +122,10 @@ class ErrorMessageException(Exception):
         self.message = message
 
 
-class RegisterRequestBody(PydanticModel):
-    api_key: str
-    username: str
-    password_hash: str
-    user_id: str | int
-
-
 class UpdatePermissionRequestBody(PydanticModel):
     api_key: str
     username: Optional[str]
-    user_id: Optional[str | int]
+    im_id: Optional[str | int]
     permission: str
     value: bool
 
@@ -141,9 +134,9 @@ class UpdatePasswordRequestBody(PydanticModel):
     api_key: str
     username: str
     password_hash: str
-    user_id: str | int
+    im_id: str | int
 
 
 class UserInfoRequestBody(PydanticModel):
     username: Optional[str]
-    user_id: Optional[str | int]
+    im_id: Optional[str | int]
