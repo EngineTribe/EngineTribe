@@ -190,12 +190,12 @@ class Stats(Base):
 '''
 
 
-class Token(Base):  # Client tokens
-    __tablename__ = "token_table"
+class Client(Base):  # Client tokens
+    __tablename__ = "client_table"
 
     id = Column(Integer, primary_key=True)
 
-    token = Column(String(9))  # Token
+    token = Column(String(9))  # Client
     valid = Column(Boolean)  # Whether the token is valid
     type = Column(SmallInteger)  # Client types
     locale = Column(String(2))  # Locale

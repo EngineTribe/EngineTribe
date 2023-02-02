@@ -1,12 +1,23 @@
-from session.db import Base
-from sqlalchemy import Column, Integer, Boolean, String, BigInteger, SmallInteger
+from pydantic import BaseModel as PydanticModel
+import json
 
 
-class Session(Base):
-    __tablename__ = "session_table"
-    id = Column(Integer, primary_key=True)
-    username = Column(String(30))
-    user_id = Column(Integer)  # User ID
-    mobile = Column(Boolean)  # Is mobile client
-    type = Column(SmallInteger)  # Client types
-    locale = Column(String(2))  # Client locale
+class Session(PydanticModel):
+    session_id: str
+    username: str
+    user_id: int  # User ID
+    mobile: bool  # Is mobile client
+    client_type: int  # Client types
+    locale: str  # Client locale
+
+    def serialize(self) -> str:
+        return json.dumps(
+            self.dict(),
+            separators=(',', ':')
+        )
+
+
+def deserialize_session(data: str) -> Session:
+    return Session.parse_obj(
+        json.loads(data)
+    )

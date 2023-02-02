@@ -25,6 +25,7 @@ class ClientType(Enum):
     STABLE = 1
     TESTING = 2
     LEGACY = 3
+    ENGINE_BOT = 4
 
 
 @dataclass
@@ -124,14 +125,6 @@ def is_valid_user_agent(user_agent):
             return False
     else:
         return False
-
-
-def prettify_session_id(session_id: int) -> str:
-    return hex(session_id)[2:].upper()
-
-
-def numeric_session_id(session_id: str) -> int:
-    return int(session_id, 16)
 
 
 async def push_to_engine_bot_qq(data: dict):

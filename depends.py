@@ -1,13 +1,8 @@
-import context
-
-from fastapi import Header
+from fastapi import Header, Request
 from typing import Optional
 
+from database.db_access import DBAccessLayer
 from models import ErrorMessageException
-
-
-def connection_count_inc():
-    context.connection_count += 1
 
 
 def is_valid_user(user_agent: str | None = Header(default=None)):
@@ -23,3 +18,9 @@ def is_valid_user(user_agent: str | None = Header(default=None)):
         raise ErrorMessageException(
             error_type="005",
             message="Illegal client.")
+
+
+async def create_dal(request: Request):
+    async with request.app.state.db.async_session() as session:
+        async with session.begin():
+            yield DBAccessLayer(session)

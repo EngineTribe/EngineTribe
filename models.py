@@ -14,6 +14,8 @@ class APIKeyErrorMessage(ErrorMessage):
 
 
 class UserErrorMessage(ErrorMessage):
+    error_type: Optional[str] = "006"
+    message: Optional[str] = "User not found."
     im_id: Optional[str | int]
     username: Optional[str]
 

@@ -15,6 +15,12 @@ DATABASE_NAME = 'enginetribe'  # Database name
 DATABASE_SSL = False  # Use SSL for database connection
 DATABASE_DEBUG = False  # Log SQL connections to stdout
 
+SESSION_REDIS_HOST = 'localhost'  # Redis host
+SESSION_REDIS_PORT = 6379  # Redis port
+SESSION_REDIS_DB_1 = 0  # Redis database
+SESSION_REDIS_DB_2 = 1  # Redis database
+SESSION_REDIS_PASS = 'foobared'  # Redis password
+
 STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
 # - database: use database to store levels  (recommended)
 # - onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
