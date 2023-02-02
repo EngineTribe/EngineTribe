@@ -128,15 +128,14 @@ async def user_login_handler(
 
 @router.post("/register")  # Register account
 async def user_register_handler(
-        api_key: str = Form(""),
-        im_id: str = Form(""),
-        username: str = Form(""),
-        password_hash: str = Form(""),
+        api_key: str = Form(),
+        im_id: int = Form(),
+        username: str = Form(),
+        password_hash: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
 ) -> ErrorMessage | UserSuccessMessage:
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
-    im_id: int = int(im_id)
     expected_user = await dal.get_user_by_im_id(im_id=im_id)
     if expected_user is not None:
         return UserErrorMessage(
@@ -171,7 +170,7 @@ async def user_register_handler(
 async def user_set_permission_handler(
         user_identifier: str,
         permission: str,
-        api_key: str = Form(""),
+        api_key: str = Form(),
         value: bool = Form(False),
         dal: DBAccessLayer = Depends(create_dal)
 ) -> ErrorMessage | UserSuccessMessage:
@@ -259,9 +258,9 @@ async def user_set_permission_handler(
 @router.post("/{user_identifier}/update_password")  # Update password
 async def user_update_password_handler(
         user_identifier: str,
-        im_id: int = Form(0),
-        password_hash: str = Form(""),
-        api_key: str = Form(""),
+        im_id: int = Form(),
+        password_hash: str = Form(),
+        api_key: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
 ) -> ErrorMessage | UserSuccessMessage:
     if api_key != API_KEY:
