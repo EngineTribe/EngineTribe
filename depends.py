@@ -2,6 +2,7 @@ from fastapi import Header, Request
 from typing import Optional
 
 from database.db_access import DBAccessLayer
+from session.session_access import get_session_by_id
 from models import ErrorMessageException
 
 
@@ -24,3 +25,19 @@ async def create_dal(request: Request):
     async with request.app.state.db.async_session() as session:
         async with session.begin():
             yield DBAccessLayer(session)
+
+
+async def verify_and_get_session(request: Request):
+    auth_code = (await request.form()).get("auth_code")
+    if auth_code is None:
+        raise ErrorMessageException(
+            error_type="034",
+            message="Permission denied."
+        )
+    session = await get_session_by_id(request.app.state.redis, auth_code)
+    if session is None:
+        raise ErrorMessageException(
+            error_type="002",
+            message="Session expired."
+        )
+    return session

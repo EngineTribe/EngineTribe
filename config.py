@@ -1,39 +1,39 @@
-HOST = '0.0.0.0'  # Engine Tribe Central Server
-PORT = 35000  # Default port that SMM_WE uses
-API_KEY = "enginetribe"  # Engine-bot 's API key
-ROWS_PERPAGE = 10  # Levels per page
-UPLOAD_LIMIT = 25  # Max levels per account
-BOOSTERS_EXTRA_LIMIT = 10  # Privileges of boosters
-RECORD_CLEAR_USERS = True  # Record and display cleared users
+import yaml
 
-DATABASE_ADAPTER = 'mysql'  # Database adapter to use, mysql, postgresql and sqlite is supported
-DATABASE_HOST = 'localhost'  # Database host (or file name when using sqlite)
-DATABASE_PORT = 3306  # Database port
-DATABASE_USER = 'enginetribe'  # Database user (not UNIX user)
-DATABASE_PASS = 'enginetribe'  # Database password (not UNIX password)
-DATABASE_NAME = 'enginetribe'  # Database name
-DATABASE_SSL = False  # Use SSL for database connection
-DATABASE_DEBUG = False  # Log SQL connections to stdout
+_config = yaml.safe_load(open("config.yml", "r"))
 
-SESSION_REDIS_HOST = 'localhost'  # Redis host
-SESSION_REDIS_PORT = 6379  # Redis port
-SESSION_REDIS_DB_1 = 0  # Redis database
-SESSION_REDIS_DB_2 = 1  # Redis database
-SESSION_REDIS_PASS = 'foobared'  # Redis password
+HOST = _config["enginetribe"]["host"]
+PORT = _config["enginetribe"]["port"]
+API_KEY = _config["enginetribe"]["api_key"]
+ROWS_PERPAGE = _config["enginetribe"]["rows_perpage"]
+UPLOAD_LIMIT = _config["enginetribe"]["upload_limit"]
+BOOSTERS_EXTRA_LIMIT = _config["enginetribe"]["booster_extra_limit"]
+RECORD_CLEAR_USERS = _config["enginetribe"]["record_clear_users"]
 
-STORAGE_PROVIDER = 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
-# - database: use database to store levels  (recommended)
-# - onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
-# - onemanager: https://github.com/qkqpttgf/OneManager-php
-STORAGE_URL = 'http://enginetribe.gq:30000/'  # Storage url with '/'
-STORAGE_AUTH_KEY = ''  # Storage auth key, onedrive-cf and onemanager only
-STORAGE_PROXIED = True  # Proxy levels via CloudFlare CDN, onedrive-cf only
+DATABASE_ADAPTER = _config['database']['adapter']
+DATABASE_HOST = _config['database']['host']
+DATABASE_PORT = _config['database']['port']
+DATABASE_USER = _config['database']['user']
+DATABASE_PASS = _config['database']['password']
+DATABASE_NAME = _config['database']['database']
+DATABASE_SSL = _config['database']['ssl']
+DATABASE_DEBUG = _config['database']['debug']
 
-ENABLE_ENGINE_BOT_WEBHOOK = False
-ENABLE_ENGINE_BOT_COUNTER_WEBHOOK = False
-ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK = False
-ENGINE_BOT_WEBHOOK_URLS = ['http://bot.enginetribe.gq/enginetribe']
+SESSION_REDIS_HOST = _config['redis']['host']
+SESSION_REDIS_PORT = _config['redis']['port']
+SESSION_REDIS_DB = _config['redis']['database']
+SESSION_REDIS_PASS = _config['redis']['password']
 
-ENABLE_DISCORD_WEBHOOK = False
-DISCORD_WEBHOOK_URLS = ['WEBHOOK_URL']
-DISCORD_AVATAR_URL = 'https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine-bot.png'
+STORAGE_PROVIDER = _config['storage']['provider']
+STORAGE_URL = _config['storage']['url']
+STORAGE_AUTH_KEY = _config['storage']['auth_key']
+STORAGE_PROXIED = _config['storage']['proxied']
+
+ENABLE_ENGINE_BOT_WEBHOOK = _config['push']['engine_bot']['enabled']
+ENABLE_ENGINE_BOT_COUNTER_WEBHOOK = _config['push']['engine_bot']['enable_counter']
+ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK = _config['push']['engine_bot']['enable_new_arrival']
+ENGINE_BOT_WEBHOOK_URLS = _config['push']['engine_bot']['urls']
+
+ENABLE_DISCORD_WEBHOOK = _config['push']['discord']['enabled']
+DISCORD_WEBHOOK_URLS = _config['push']['discord']['urls']
+DISCORD_AVATAR_URL = _config['push']['discord']['avatar']

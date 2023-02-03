@@ -19,7 +19,8 @@ from config import (
 )
 from depends import (
     is_valid_user,
-    create_dal
+    create_dal,
+    verify_and_get_session
 )
 from locales import parse_tag_names  # for fallback messages
 from models import (
@@ -43,10 +44,7 @@ from common import (
 )
 from database.db_access import DBAccessLayer
 from database.models import *
-from session.session_access import (
-    get_session_by_id,
-    get_session_data
-)
+from session.models import Session
 
 router = APIRouter(
     prefix="/stage",
@@ -77,7 +75,6 @@ async def get_record_user_name_by_level(level: Level, dal: DBAccessLayer) -> str
 @router.post("s/detailed_search")
 async def stages_detailed_search_handler(
         request: Request,
-        auth_code: str = Form(),
         featured: Optional[str] = Form(None),
         page: Optional[str] = Form("1"),
         title: Optional[str] = Form(None),
@@ -91,15 +88,16 @@ async def stages_detailed_search_handler(
         historial: Optional[str] = Form(None),
         dificultad: Optional[str] = Form(None),
         dal: DBAccessLayer = Depends(create_dal),
+        auth_code: str = Form(),
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | DetailedSearchResults:  # Detailed search (level list)
     # Fixes for Starlette
     # https://github.com/encode/starlette/issues/425
     if title:
         title = title.encode("latin1").decode("utf-8")
     storage = request.app.state.storage
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
+    client_type = ClientType(session.client_type)
+    locale_model = get_locale_model(session.locale)
 
     results: list[LevelDetails] = []
 
@@ -171,13 +169,13 @@ async def stages_detailed_search_handler(
                 return ErrorMessage(error_type="031", message=locale_model.UNKNOWN_QUERY_MODE)
     if liked:
         level_data_ids: list[int] = []  # Liked levels' data ids
-        for liked_data in await dal.get_liked_levels_by_user(session_data.user_id):
+        for liked_data in await dal.get_liked_levels_by_user(session.user_id):
             if liked_data.parent_id not in level_data_ids:
                 level_data_ids.append(liked_data.parent_id)
         selection = selection.where(Level.id.in_(level_data_ids))
     elif disliked:
         level_data_ids: list[int] = []  # Disliked levels' data ids
-        for disliked_data in await dal.get_disliked_levels_by_user(session_data.user_id):
+        for disliked_data in await dal.get_disliked_levels_by_user(session.user_id):
             if disliked_data.parent_id not in level_data_ids:
                 level_data_ids.append(disliked_data.parent_id)
         selection = selection.where(Level.id.in_(level_data_ids))
@@ -200,7 +198,7 @@ async def stages_detailed_search_handler(
         else:
             if historial in ["0", "1"]:
                 level_data_ids_cleared: list[int] = []  # Cleared levels' data ids
-                for cleared_data in await dal.get_cleared_levels_by_user(session_data.user_id):
+                for cleared_data in await dal.get_cleared_levels_by_user(session.user_id):
                     if cleared_data.parent_id not in level_data_ids_cleared:
                         level_data_ids_cleared.append(cleared_data.parent_id)
                 if historial == "0":  # cleared
@@ -234,11 +232,11 @@ async def stages_detailed_search_handler(
             results.append(
                 level_to_details(
                     level_data=level,
-                    locale=session_data.locale,
+                    locale=session.locale,
                     generate_url_function=storage.generate_url,
-                    mobile=session_data.mobile,
-                    like_type=await dal.get_like_type(level, session_data.user_id),
-                    clear_type=await dal.get_clear_type(level, session_data.user_id),
+                    mobile=session.mobile,
+                    like_type=await dal.get_like_type(level, session.user_id),
+                    clear_type=await dal.get_clear_type(level, session.user_id),
                     author=author_name,
                     record_user=record_user_name
                 )
@@ -261,17 +259,15 @@ async def stages_detailed_search_handler(
 
 @router.post("/{level_id}/stats/likes")
 async def stats_likes_handler(
-        request: Request,
         level_id: str,
-        auth_code: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
+        auth_code: str = Form(),
+        session: Session = Depends(verify_and_get_session)
 ) -> StageSuccessMessage | ErrorMessage:
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
+    locale_model = get_locale_model(session.locale)
     level: Level = await dal.get_level_by_level_id(level_id)
     if level is not None:
-        await dal.add_like_to_level(user_id=session_data.user_id, level=level)
+        await dal.add_like_to_level(user_id=session.user_id, level=level)
         await dal.commit()
     else:
         return ErrorMessage(
@@ -297,17 +293,14 @@ async def stats_likes_handler(
 
 @router.post("/{level_id}/stats/dislikes", dependencies=[Depends(is_valid_user)])
 async def stats_dislikes_handler(
-        request: Request,
         level_id: str,
-        auth_code: str = Form(""),
         dal: DBAccessLayer = Depends(create_dal),
+        session: Session = Depends(verify_and_get_session)
 ) -> StageSuccessMessage | ErrorMessage:
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
+    locale_model = get_locale_model(session.locale)
     level = await dal.get_level_by_level_id(level_id)
     if level is not None:
-        await dal.add_dislike_to_level(user_id=session_data.user_id, level=level)
+        await dal.add_dislike_to_level(user_id=session.user_id, level=level)
         await dal.commit()
         return StageSuccessMessage(success="Successfully updated dislikes", type="stats", id=level_id)
     else:
@@ -319,24 +312,24 @@ async def stats_dislikes_handler(
 @router.post("/upload")
 async def stages_upload_handler(
         request: Request,
-        auth_code: str = Form(),
         swe: str = Form(),
         name: str = Form(),
         aparience: str = Form(),
         entorno: str = Form(),
         tags: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
+        auth_code: str = Form(),
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | StageSuccessMessage:
     storage = request.app.state.storage
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
-    user: User | None = await dal.get_user_by_id(session_data.user_id)
+    client_type = ClientType(session.client_type)
+    locale_model = get_locale_model(session.locale)
+    user: User | None = await dal.get_user_by_id(session.user_id)
     if user is None:
         return UserErrorMessage(
             error_type="006",
             message="User not found",
-            user_id=session_data.user_id
+            user_id=session.user_id
         )
     if user.is_booster:
         upload_limit: int = UPLOAD_LIMIT + BOOSTERS_EXTRA_LIMIT
@@ -361,9 +354,6 @@ async def stages_upload_handler(
     non_latin: bool = False
     if re.sub("[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]", "", name) != name:
         non_latin: bool = True
-
-    # check testing client
-    testing_client: bool = True if session_data.testing_client else False
 
     if len(swe.encode()) > 4 * 1024 * 1024:  # 4MB limit
         return ErrorMessage(
@@ -403,17 +393,17 @@ async def stages_upload_handler(
             error_type="010", message=locale_model.UPLOAD_CONNECT_ERROR
         )
 
-    tag_1, tag_2 = parse_tag_names(tags, session_data.locale)
+    tag_1, tag_2 = parse_tag_names(tags, session.locale)
     await dal.add_level(
         name=name,
         style=int(aparience),
         environment=int(entorno),
         tag_1=tag_1,
         tag_2=tag_2,
-        author_id=session_data.user_id,
+        author_id=session.user_id,
         level_id=level_id,
         non_latin=non_latin,
-        testing_client=testing_client
+        testing_client=(True if client_type is ClientType.TESTING else False)
     )  # add new level to database
     if ENABLE_DISCORD_WEBHOOK:
         await push_to_engine_bot_discord(
@@ -435,15 +425,14 @@ async def stages_upload_handler(
 @router.post("/random")
 async def stage_id_random_handler(
         request: Request,
-        auth_code: str = Form(),
         dificultad: Optional[str] = Form(None),
-        dal: DBAccessLayer = Depends(create_dal)
+        dal: DBAccessLayer = Depends(create_dal),
+        auth_code: str = Form(),
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | SingleLevelDetails:  # Random level
     storage = request.app.state.storage
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
-    user_id: int = session_data.user_id
+    locale_model = get_locale_model(session.locale)
+    user_id: int = session.user_id
     selection = select(Level).order_by(func.random()).limit(1)
     if dificultad:
         selection = selection.where(Level.plays != 0)
@@ -465,9 +454,9 @@ async def stage_id_random_handler(
         type="random",
         result=level_to_details(
             level_data=level,
-            locale=session_data.locale,
+            locale=session.locale,
             generate_url_function=storage.generate_url,
-            mobile=session_data.mobile,
+            mobile=session.mobile,
             like_type=await dal.get_like_type(level=level, user_id=user_id),
             clear_type=await dal.get_clear_type(level=level, user_id=user_id),
             author=author_name,
@@ -480,14 +469,13 @@ async def stage_id_random_handler(
 async def stage_id_search_handler(
         request: Request,
         level_id: str,
+        dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
-        dal: DBAccessLayer = Depends(create_dal)
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | SingleLevelDetails:  # Level ID search
     storage = request.app.state.storage
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
-    user_id: int = session_data.user_id
+    locale_model = get_locale_model(session.locale)
+    user_id: int = session.user_id
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is not None:
         author_name: str = await get_author_name_by_level(level, dal)
@@ -496,9 +484,9 @@ async def stage_id_search_handler(
             type="id",
             result=level_to_details(
                 level_data=level,
-                locale=session_data.locale,
+                locale=session.locale,
                 generate_url_function=storage.generate_url,
-                mobile=session_data.mobile,
+                mobile=session.mobile,
                 like_type=await dal.get_like_type(level=level, user_id=user_id),
                 clear_type=await dal.get_clear_type(level=level, user_id=user_id),
                 author=author_name,
@@ -544,12 +532,10 @@ async def stage_file_handler(
 async def stage_delete_handler(
         request: Request,
         level_id: str,
-        auth_code: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
+        auth_code: str = Form(),
+        session: Session = Depends(verify_and_get_session)
 ) -> StageSuccessMessage | ErrorMessage:  # Delete level
-    session_data = await get_session_by_id(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
     storage = request.app.state.storage
     level: Level | None = await dal.get_level_by_level_id(level_id)
     if level is None:
@@ -581,16 +567,23 @@ async def stage_delete_handler(
 
 @router.post("/{level_id}/switch/promising")
 async def switch_promising_handler(
-        request: Request,
         level_id: str,
-        auth_code: str = Form(),
-        dal: DBAccessLayer = Depends(create_dal)
+        dal: DBAccessLayer = Depends(create_dal),
+        session: Session = Depends(verify_and_get_session)
 ) -> StageSuccessMessage | ErrorMessage:
     # Switch featured (promising) level
-    session_data = await get_session_by_id(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
     level: Level | None = await dal.get_level_by_level_id(level_id)
+    user: User | None = await dal.get_user_by_id(session.user_id)
+    if user is None:
+        return UserErrorMessage(
+            error_type="006",
+            message="User not found",
+            user_id=session.user_id
+        )
+    if not user.is_mod:
+        return ErrorMessage(
+            error_type="037", message="Permission denied."
+        )
     if level is None:
         return ErrorMessage(
             error_type="029", message="Level not found."
@@ -598,7 +591,6 @@ async def switch_promising_handler(
     if not level.featured:
         await dal.set_featured(level=level, is_featured=True)
         await dal.commit()
-        print(level_id + " added to featured")
         if ENABLE_DISCORD_WEBHOOK or (ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK):
             author_name: str = await get_author_name_by_level(level, dal)
             if ENABLE_DISCORD_WEBHOOK:
@@ -630,21 +622,19 @@ async def switch_promising_330_handler(
         request: Request,
         level_id: str,
         auth_code: str = Form(),
-        dal: DBAccessLayer = Depends(create_dal)
+        dal: DBAccessLayer = Depends(create_dal),
+        session: Session = Depends(verify_and_get_session)
 ) -> StageSuccessMessage | ErrorMessage:
-    return await switch_promising_handler(request, level_id, auth_code, dal)
+    return await switch_promising_handler(request, level_id, auth_code, dal, session)
 
 
 @router.post("/{level_id}/stats/intentos")
 async def stats_intentos_handler(
         level_id: str,
-        request: Request,
+        dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
-        dal: DBAccessLayer = Depends(create_dal)
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | StageSuccessMessage:
-    session_data = await get_session_by_id(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is None:
         return ErrorMessage(
@@ -674,24 +664,21 @@ async def stats_intentos_handler(
 
 @router.post("/{level_id}/stats/victorias")
 async def stats_victorias_handler(
-        request: Request,
         level_id: str,
         tiempo: str = Form(),
+        dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
-        dal: DBAccessLayer = Depends(create_dal)
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | StageSuccessMessage:
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is None:
         return ErrorMessage(
             error_type="029", message="Level not found."
         )  # No level found
-    await dal.add_clear_to_level(level=level, user_id=session_data.user_id)
+    await dal.add_clear_to_level(level=level, user_id=session.user_id)
     new_record: int = int(tiempo)
     if level.record == 0 or level.record > new_record:
-        await dal.update_record_to_level(user_id=session_data.user_id, level=level, record=new_record)
+        await dal.update_record_to_level(user_id=session.user_id, level=level, record=new_record)
     await dal.commit()
     if level.clears == 100 or level.clears == 1000:
         if ENABLE_DISCORD_WEBHOOK or (ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK):
@@ -715,14 +702,11 @@ async def stats_victorias_handler(
 
 @router.post("/{level_id}/stats/muertes")
 async def stats_muertes_handler(
-        request: Request,
         level_id: str,
+        dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
-        dal: DBAccessLayer = Depends(create_dal)
+        session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | StageSuccessMessage:
-    session_data, client_type, locale_model = await get_session_data(request.app.state.redis_1, auth_code)
-    if session_data is None:
-        return ErrorMessage(error_type="002", message="Session expired.")
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is None:
         return ErrorMessage(

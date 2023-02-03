@@ -48,19 +48,11 @@ async def startup_event():
             database=app.state.db
         )
     }[STORAGE_PROVIDER]
-    app.state.redis_1 = redis.Redis(
+    app.state.redis = redis.Redis(
         connection_pool=redis.ConnectionPool(
             host=SESSION_REDIS_HOST,
             port=SESSION_REDIS_PORT,
-            db=SESSION_REDIS_DB_1,
-            password=SESSION_REDIS_PASS
-        )
-    )
-    app.state.redis_2 = redis.Redis(
-        connection_pool=redis.ConnectionPool(
-            host=SESSION_REDIS_HOST,
-            port=SESSION_REDIS_PORT,
-            db=SESSION_REDIS_DB_2,
+            db=SESSION_REDIS_DB,
             password=SESSION_REDIS_PASS
         )
     )
@@ -68,6 +60,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    await app.state.redis.flushdb()
     await app.state.redis.close()
 
 
@@ -103,14 +96,17 @@ async def error_message_exception_handler(request: Request, exc: ErrorMessageExc
 
 @app.exception_handler(status.HTTP_404_NOT_FOUND)
 async def route_not_found_handler(request: Request, exc: ErrorMessageException):
-    return JSONResponse(
-        status_code=404,
-        content={
-            "error_type": "001",
-            "message": "Route not found.",
-        },
+    raise ErrorMessageException(
+        error_type="001",
+        message="Route not found."
     )
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=HOST, port=PORT, headers=[("Server", "EngineTribe")])
+    uvicorn.run(
+        app, host=HOST, port=PORT,
+        headers=[
+            ("Server", "EngineTribe"),
+            ("X-Powered-By", "EngineTribe")
+        ]
+    )

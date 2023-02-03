@@ -1,0 +1,44 @@
+enginetribe:
+  - host: '127.0.0.1'  # Engine Tribe server host
+  - port: 30000  # Default port that SMM_WE uses
+  - api_key: "Y0UR_AP1_k3Y"  # Engine Bot's API key
+  - rows_perpage: 32  # Levels per page
+  - upload_limit: 25  # Max levels per account
+  - booster_extra_limit: 10  # Privileges of boosters
+  - record_clear_users: true  # Record and display cleared users
+
+database:
+  - adapter: 'mysql'  # Database adapter to use, mysql, postgresql and sqlite is supported
+  - host: 'localhost'  # Database host (or file name when using sqlite)
+  - port: 3306  # Database port
+  - user: 'enginetribe'  # Database user
+  - password: 'P455W0RD'  # Database password
+  - database: 'enginetribe'  # Database name
+  - ssl: false  # Use SSL for database connection
+  - debug: false  # Log SQL connections to stdout
+
+redis:
+  - host: 'localhost'  # Redis host
+  - port: 6379  # Redis port
+  - database: 0  # Redis database
+  - password: 'P455W0RD'  # Redis password
+
+storage:
+  - provider: 'database'  # Storage provider to use, onemanager, onedrive-cf and database are supported now
+  # - database: use database to store levels  (recommended)
+  # - onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
+  # - onemanager: https://github.com/qkqpttgf/OneManager-php
+  - url: 'http://enginetribe.gq:30000/'  # Storage url with '/'
+  - auth_key: ''  # Storage auth key, onedrive-cf and onemanager only
+  - proxied: true  # Proxy levels via CloudFlare CDN, onedrive-cf only
+
+push:
+  engine_bot:
+    - enabled: false  # Enable push to Engine Bot
+    - enable_counter: false  # Enable counter (100 / 1000 plays, death, etc.) push
+    - enable_new_arrival: false  # Enable new level push
+    - urls: [ 'http://engine_bot/enginetribe' ]  # Engine Bot webhook url
+  discord:
+    - enabled: false  # Enable push to Discord
+    - urls: [ 'https://discord.com/api/webhooks/my_awesome_webhook' ]  # Discord webhook url
+    - avatar: 'https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine-bot.png'
