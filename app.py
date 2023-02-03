@@ -14,11 +14,10 @@ from config import *
 from models import ErrorMessage, ErrorMessageException
 from common import *
 from database.db import Database
-from storage_provider import (
-    StorageProviderOneDriveCF,
-    StorageProviderOneManager,
-    StorageProviderDatabase
-)
+from storage.onedrive_cf import StorageProviderOneDriveCF
+from storage.onemanager import StorageProviderOneManager
+from storage.database import StorageProviderDatabase
+from storage.discord import StorageProviderDiscord
 from depends import (
     create_dal
 )
@@ -44,8 +43,14 @@ async def startup_event():
             url=STORAGE_URL, admin_password=STORAGE_AUTH_KEY
         ),
         "database": StorageProviderDatabase(
-            base_url=STORAGE_URL,
+            base_url=API_ROOT,
             database=app.state.db
+        ),
+        "discord": StorageProviderDiscord(
+            api_url=STORAGE_URL,
+            base_url=API_ROOT,
+            database=app.state.db,
+            attachment_channel=STORAGE_ATTACHMENT_CHANNEL_ID
         )
     }[STORAGE_PROVIDER]
     app.state.redis = redis.Redis(

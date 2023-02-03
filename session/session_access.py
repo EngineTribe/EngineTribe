@@ -21,7 +21,8 @@ async def new_session(
         user_id: int,
         mobile: bool,
         client_type: ClientType,
-        locale: str
+        locale: str,
+        proxied: bool
 ) -> Session:
     session = Session(
         session_id=generate_session_id(user_id),
@@ -29,7 +30,8 @@ async def new_session(
         user_id=user_id,
         mobile=mobile,
         client_type=client_type.value,
-        locale=locale
+        locale=locale,
+        proxied=proxied
     )
     # Drop previous session
     await drop_session_by_id(redis, await get_session_id_by_user_id(redis, user_id))

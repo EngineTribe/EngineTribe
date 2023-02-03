@@ -1,7 +1,8 @@
 enginetribe:
   host: '127.0.0.1'  # Engine Tribe server host
   port: 30000  # Default port that SMM_WE uses
-  api_key: "Y0UR_AP1_k3Y"  # Engine Bot's API key
+  api_root: 'http://enginetribe.gq:30000/'  # Used in level links
+  api_key: "Y0UR_AP1_k3Y"  # Engine Bot API key
   verify_user_agent: true  # Verify user agent
   rows_perpage: 32  # Levels per page
   upload_limit: 25  # Max levels per account
@@ -29,9 +30,11 @@ storage:
   # database: use database to store levels  (recommended)
   # onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
   # onemanager: https://github.com/qkqpttgf/OneManager-php
+  # discord: send level attachments to Discord bot
   url: 'http://enginetribe.gq:30000/'  # Storage url with '/'
   auth_key: ''  # Storage auth key, onedrive-cf and onemanager only
   proxied: true  # Proxy levels via CloudFlare CDN, onedrive-cf only
+  attachment_channel_id: 0  # Channel ID to receive level attachments, discord only
 
 push:
   engine_bot:
@@ -41,5 +44,6 @@ push:
     urls: [ 'http://engine_bot/enginetribe' ]  # Engine Bot webhook url
   discord:
     enabled: false  # Enable push to Discord
+    enable_new_arrival: false  # Enable new level push
     urls: [ 'https://discord.com/api/webhooks/my_awesome_webhook' ]  # Discord webhook url
     avatar: 'https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine-bot.png'

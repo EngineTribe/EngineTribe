@@ -178,6 +178,15 @@ class LevelData(Base):  # used in StorageProviderDatabase
     level_checksum = Column(String(40))  # SHA-1 HMAC checksum
 
 
+class LevelDiscord(Base):
+    __tablename__ = "level_discord_table"
+
+    id = Column(Integer, primary_key=True)
+
+    level_db_id = Column(Integer)  # Level id (db)
+    attachment_id = Column(BigInteger)  # Discord attachment ID
+
+
 '''
 class Stats(Base):
     __tablename__ = "stats_table"
@@ -200,3 +209,4 @@ class Client(Base):  # Client tokens
     type = Column(SmallInteger)  # Client types
     locale = Column(String(2))  # Locale
     mobile = Column(Boolean)  # Is mobile client
+    proxied = Column(Boolean)  # Whether to proxy level data

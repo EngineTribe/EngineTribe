@@ -9,6 +9,7 @@ class Session(PydanticModel):
     mobile: bool  # Is mobile client
     client_type: int  # Client types
     locale: str  # Client locale
+    proxied: bool  # Is proxied
 
     def serialize(self) -> str:
         return json.dumps(

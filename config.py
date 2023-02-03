@@ -4,6 +4,7 @@ _config = yaml.safe_load(open("config.yml", "r"))
 
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]
+API_ROOT = _config["enginetribe"]["api_root"]
 VERIFY_USER_AGENT = _config["enginetribe"]["verify_user_agent"]
 API_KEY = _config["enginetribe"]["api_key"]
 ROWS_PERPAGE = _config["enginetribe"]["rows_perpage"]
@@ -29,6 +30,7 @@ STORAGE_PROVIDER = _config['storage']['provider']
 STORAGE_URL = _config['storage']['url']
 STORAGE_AUTH_KEY = _config['storage']['auth_key']
 STORAGE_PROXIED = _config['storage']['proxied']
+STORAGE_ATTACHMENT_CHANNEL_ID = _config['storage']['attachment_channel_id']
 
 ENABLE_ENGINE_BOT_WEBHOOK = _config['push']['engine_bot']['enabled']
 ENABLE_ENGINE_BOT_COUNTER_WEBHOOK = _config['push']['engine_bot']['enable_counter']
@@ -36,5 +38,6 @@ ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK = _config['push']['engine_bot']['enable_new_ar
 ENGINE_BOT_WEBHOOK_URLS = _config['push']['engine_bot']['urls']
 
 ENABLE_DISCORD_WEBHOOK = _config['push']['discord']['enabled']
+ENABLE_DISCORD_ARRIVAL_WEBHOOK = _config['push']['discord']['enable_new_arrival']
 DISCORD_WEBHOOK_URLS = _config['push']['discord']['urls']
 DISCORD_AVATAR_URL = _config['push']['discord']['avatar']

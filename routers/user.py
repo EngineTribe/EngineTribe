@@ -87,8 +87,15 @@ async def user_login_handler(
 
     # add session to redis
     client_type = ClientType(client.type)
-    session = await new_session(redis=request.app.state.redis, username=alias, user_id=user_id, mobile=client.mobile,
-                                client_type=client_type, locale=client.locale)
+    session = await new_session(
+        redis=request.app.state.redis,
+        username=alias,
+        user_id=user_id,
+        mobile=client.mobile,
+        client_type=client_type,
+        locale=client.locale,
+        proxied=client.proxied
+    )
     auth_code: str = session.session_id
 
     if client_type is ClientType.LEGACY:

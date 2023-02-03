@@ -38,7 +38,7 @@ class AuthCodeData:
     testing_client: bool
 
 
-def level_to_details(level_data: Level, locale: str, generate_url_function, mobile: bool, like_type: str,
+def level_to_details(level_data: Level, locale: str, level_file_url: str, mobile: bool, like_type: str,
                      clear_type: str,
                      author: str, record_user: str):
     if mobile and level_data.non_latin:
@@ -71,7 +71,7 @@ def level_to_details(level_data: Level, locale: str, generate_url_function, mobi
         date=level_data.date.strftime("%m/%d/%Y"),
         author=author,
         record=record,
-        archivo=generate_url_function(level_data.level_id),
+        archivo=level_file_url,
         id=level_data.level_id,
         descripcion='Sin descripción',
     )
