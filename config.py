@@ -4,6 +4,7 @@ _config = yaml.safe_load(open("config.yml", "r"))
 
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]
+VERIFY_USER_AGENT = _config["enginetribe"]["verify_user_agent"]
 API_KEY = _config["enginetribe"]["api_key"]
 ROWS_PERPAGE = _config["enginetribe"]["rows_perpage"]
 UPLOAD_LIMIT = _config["enginetribe"]["upload_limit"]

@@ -117,16 +117,6 @@ def string_latinify(t):
     return t2
 
 
-def is_valid_user_agent(user_agent):
-    if user_agent:
-        if 'GameMaker' in user_agent or 'Android' in user_agent or 'EngineBot' in user_agent:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
 async def push_to_engine_bot_qq(data: dict):
     # This function is used to push messages to general Engine Bots
     # (Not limited to QQ)
