@@ -30,9 +30,15 @@ from session.session_access import (
     get_session_by_id,
     new_session
 )
-from depends import create_dal
+from depends import (
+    create_dal,
+    connection_count_inc
+)
 
-router = APIRouter(prefix="/user")
+router = APIRouter(
+    prefix="/user",
+    dependencies=[Depends(connection_count_inc)]
+)
 
 
 async def get_user_from_identifier(

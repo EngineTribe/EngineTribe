@@ -22,7 +22,8 @@ from config import (
 from depends import (
     is_valid_user,
     create_dal,
-    verify_and_get_session
+    verify_and_get_session,
+    connection_count_inc
 )
 from locales import parse_tag_names  # for fallback messages
 from models import (
@@ -50,7 +51,10 @@ from session.models import Session
 
 router = APIRouter(
     prefix="/stage",
-    dependencies=[Depends(is_valid_user)],
+    dependencies=[
+        Depends(is_valid_user),
+        Depends(connection_count_inc)
+    ],
 )
 
 

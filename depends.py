@@ -47,3 +47,7 @@ async def verify_and_get_session(request: Request):
             message="Session expired."
         )
     return session
+
+
+def connection_count_inc(request: Request):
+    request.app.state.connection_count += 1

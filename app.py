@@ -7,6 +7,7 @@ import uvicorn
 from fastapi import FastAPI, Form, Request, status, Depends
 from fastapi.responses import RedirectResponse, JSONResponse
 from redis import asyncio as redis
+import asyncio
 
 from database.db_access import DBAccessLayer
 import routers
@@ -21,6 +22,13 @@ from storage.discord import StorageProviderDiscord
 from depends import (
     create_dal
 )
+
+
+async def connection_per_minute_record():
+    await asyncio.sleep(60)
+    app.state.connection_per_minute = app.state.connection_count
+    app.state.connection_count = 0
+
 
 app = FastAPI()
 
@@ -61,6 +69,9 @@ async def startup_event():
             password=SESSION_REDIS_PASS
         )
     )
+    app.state.connection_count = 0
+    app.state.connection_per_minute = 0
+    asyncio.create_task(connection_per_minute_record())
 
 
 @app.on_event("shutdown")
@@ -85,6 +96,7 @@ async def server_stats(
         "player_count": await dal.get_player_count(),
         "level_count": await dal.get_level_count(),
         "uptime": (datetime.datetime.now() - start_time).seconds,
+        "connection_per_minute": app.state.connection_per_minute,
     }
 
 
