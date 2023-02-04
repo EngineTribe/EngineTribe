@@ -249,5 +249,25 @@ class DBAccessLayer:
             select(Client).where(Client.token == token)
         )).scalars().first()
 
+    async def new_client(self, token: str, client_type: int, locale: str, mobile: bool, proxied: bool):
+        client = Client(
+            token=token,
+            type=client_type,
+            locale=locale,
+            mobile=mobile,
+            proxied=proxied
+        )
+        self.session.add(client)
+        await self.session.flush()
+
+    async def revoke_client(self, client: Client):
+        client.valid = False
+        self.session.add(client)
+        await self.session.flush()
+
+    async def delete_client(self, client: Client):
+        await self.session.delete(client)
+        await self.session.flush()
+
     async def commit(self):
         await self.session.commit()

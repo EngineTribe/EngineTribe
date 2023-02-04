@@ -20,13 +20,18 @@ class UserErrorMessage(ErrorMessage):
     username: Optional[str]
 
 
-class StageSuccessMessage(PydanticModel):
+class SuccessMessage(PydanticModel):
+    success: str
+    type: str
+
+
+class StageSuccessMessage(SuccessMessage):
     success: str
     type: Optional[str] = "stage"
     id: Optional[str]
 
 
-class UserSuccessMessage(PydanticModel):
+class UserSuccessMessage(SuccessMessage):
     success: str
     type: Optional[str] = "user"
     username: Optional[str]
@@ -36,6 +41,16 @@ class UserSuccessMessage(PydanticModel):
 class UserPermissionSuccessMessage(UserSuccessMessage):
     permission: str
     value: bool
+
+
+class ClientSuccessMessage(SuccessMessage):
+    success: str
+    type: Optional[str] = "client"
+    token: str
+    client_type: Optional[str]
+    locale: Optional[str]
+    mobile: Optional[bool]
+    proxied: Optional[bool]
 
 
 class UserLoginProfile(PydanticModel):
