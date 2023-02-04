@@ -113,9 +113,12 @@ async def error_message_exception_handler(request: Request, exc: ErrorMessageExc
 
 @app.exception_handler(status.HTTP_404_NOT_FOUND)
 async def route_not_found_handler(request: Request, exc: ErrorMessageException):
-    raise ErrorMessageException(
-        error_type="001",
-        message="Route not found."
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error_type": "001",
+            "message": "Route not found.",
+        },
     )
 
 
