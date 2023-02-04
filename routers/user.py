@@ -85,28 +85,29 @@ async def user_login_handler(
         user: User = await dal.get_user_by_username(username=alias)
         user_id: int = user.id if user else 0
 
-    if user_id == 0 and client_type != ClientType.ENGINE_BOT:
-        return ErrorMessage(
-            error_type="006", message=locale_model.ACCOUNT_NOT_FOUND
-        )
-    if not user.is_valid:
-        return ErrorMessage(
-            error_type="011", message=locale_model.ACCOUNT_IS_NOT_VALID
-        )
-    if user.is_banned:
-        return ErrorMessage(
-            error_type="005", message=locale_model.ACCOUNT_BANNED
-        )
-    if user.password_hash != calculate_password_hash(password):
-        return ErrorMessage(
-            error_type="007", message=locale_model.ACCOUNT_ERROR_PASSWORD
-        )
+    if client_type != ClientType.ENGINE_BOT:
+        if user_id == 0:
+            return ErrorMessage(
+                error_type="006", message=locale_model.ACCOUNT_NOT_FOUND
+            )
+        if not user.is_valid:
+            return ErrorMessage(
+                error_type="011", message=locale_model.ACCOUNT_IS_NOT_VALID
+            )
+        if user.is_banned:
+            return ErrorMessage(
+                error_type="005", message=locale_model.ACCOUNT_BANNED
+            )
+        if user.password_hash != calculate_password_hash(password):
+            return ErrorMessage(
+                error_type="007", message=locale_model.ACCOUNT_ERROR_PASSWORD
+            )
 
     # add session to redis
     client_type = ClientType(client.type)
     session = await new_session(
         redis=request.app.state.redis,
-        username=alias,
+        username=user.username,
         user_id=user_id,
         mobile=client.mobile,
         client_type=client_type,

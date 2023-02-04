@@ -89,6 +89,7 @@ async def stages_detailed_search_handler(
         disliked: Optional[str] = Form(None),
         historial: Optional[str] = Form(None),
         dificultad: Optional[str] = Form(None),
+        rows_perpage: Optional[str] = Form(None),
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
@@ -220,10 +221,10 @@ async def stages_detailed_search_handler(
     levels = await dal.execute_selection(selection)
 
     if num_rows > ROWS_PERPAGE:
-        rows_perpage = ROWS_PERPAGE
-        pages = ceil(num_rows / ROWS_PERPAGE)
+        rows_perpage: int = int(rows_perpage) if rows_perpage is not None else ROWS_PERPAGE
+        pages = ceil(num_rows / rows_perpage)
     else:
-        rows_perpage = num_rows
+        rows_perpage: int = num_rows
         pages = 1
 
     # get results
