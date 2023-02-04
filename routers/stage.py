@@ -408,7 +408,7 @@ async def stages_upload_handler(
             non_latin=non_latin,
             testing_client=(True if client_type is ClientType.TESTING else False)
         )  # add new level to database
-        level_author = await dal.get_user_by_id(session.user_id)
+        level_author: User = await dal.get_user_by_id(session.user_id)
         try:
             await storage.upload_file(
                 level_data=swe,
@@ -416,6 +416,7 @@ async def stages_upload_handler(
                 level_db_id=level.id,
                 level_name=name,
                 level_author=level_author.username,
+                level_author_im_id=level_author.id,
                 level_tags=tags
             )
         except ConnectionError:

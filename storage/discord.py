@@ -19,6 +19,7 @@ class StorageProviderDiscord:
             level_db_id: int,
             level_name: str,
             level_author: str,
+            level_author_im_id: int,
             level_tags: str
     ):
         async with aiohttp.request(
@@ -29,6 +30,7 @@ class StorageProviderDiscord:
                     'level_id': level_id,
                     'level_name': level_name,
                     'level_author': level_author,
+                    'level_author_im_id': level_author_im_id,
                     'level_tags': level_tags
                 }
         ) as response:

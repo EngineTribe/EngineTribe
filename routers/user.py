@@ -65,10 +65,27 @@ async def user_login_handler(
         return ErrorMessage(error_type="003", message="Illegal client.")
     locale_model = get_locale_model(client.locale)
 
-    user: User = await dal.get_user_by_username(username=alias)
-    user_id: int = user.id if user else 0
+    client_type = ClientType(client.type)
 
-    if user_id == 0:
+    if client_type == ClientType.ENGINE_BOT:
+        user: User = User(
+            id=0,
+            username="EngineBot",
+            im_id=0,
+            password_hash="",
+            uploads=0,
+            is_valid=True,
+            is_banned=False,
+            is_admin=False,
+            is_mod=True,
+            is_booster=False,
+        )
+        user_id = 0
+    else:
+        user: User = await dal.get_user_by_username(username=alias)
+        user_id: int = user.id if user else 0
+
+    if user_id == 0 and client_type != ClientType.ENGINE_BOT:
         return ErrorMessage(
             error_type="006", message=locale_model.ACCOUNT_NOT_FOUND
         )
