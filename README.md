@@ -9,24 +9,14 @@
 
 ### ✅ Features
 
-- 👥 User system, registration and logging in
-- ☁ OneDrive & local database storage providers
+- 👥 All APIs in original Engine-bot
+- 🌐 Localization, multi-client and multi-IM support
+- ☁ Local database, OneDrive or Discord storage provider
 - 🗄️ Async MySQL, PostgreSQL or SQLite database
-- 📤 Uploading and deleting level
-- 🔍 Browsing level and detailed searching
-- ❤ Likes and dislikes
-- 🕰️ Cleared levels and time recording
 
 ### 🚵‍♀️ Roadmap
 
-- 🐛 Fixing bugs
 - 📗 Documents
-
-<!--
-### 🕰️ Legacy Client Support
-
-Engine Tribe also has limited support to patched 3.1.1 "legacy" client. To play with 3.1.1 client, you have to modify legacy routes to 3.2.3 ones.
--->
 
 ---
 
