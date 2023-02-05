@@ -127,7 +127,8 @@ def run():
         app, host=HOST, port=PORT,
         headers=[
             ("Server", "EngineTribe"),
-            ("X-Powered-By", "EngineTribe")
+            ("X-Powered-By", "EngineTribe"),
+            ("Access-Control-Allow-Origin", "www.enginetribe.gq"),
         ]
     )
 
