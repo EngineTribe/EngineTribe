@@ -1,6 +1,10 @@
+import os
+
 import yaml
 
-_config = yaml.safe_load(open("config.yml", "r"))
+config_path = os.getenv("CONFIG_PATH", "config.yml")
+
+_config = yaml.safe_load(open(config_path, "r"))
 
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]

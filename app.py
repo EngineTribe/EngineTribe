@@ -122,7 +122,7 @@ async def route_not_found_handler(request: Request, exc: ErrorMessageException):
     )
 
 
-if __name__ == "__main__":
+def run():
     uvicorn.run(
         app, host=HOST, port=PORT,
         headers=[
@@ -130,3 +130,7 @@ if __name__ == "__main__":
             ("X-Powered-By", "EngineTribe")
         ]
     )
+
+
+if __name__ == "__main__":
+    run()
