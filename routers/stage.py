@@ -654,6 +654,7 @@ async def stage_delete_handler(
 @router.post("/{level_id}/switch/promising")
 async def switch_promising_handler(
         level_id: str,
+        auth_code: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
         session: Session = Depends(verify_and_get_session)
 ) -> StageSuccessMessage | ErrorMessage:
