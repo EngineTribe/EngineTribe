@@ -12,9 +12,12 @@ from common import (
 )
 from database.db_access import DBAccessLayer
 from database.models import Client
-from depends import create_dal
+from depends import create_dal, connection_count_inc
 
-router = APIRouter(prefix="/client")
+router = APIRouter(
+    prefix="/client",
+    dependencies=[Depends(connection_count_inc)]
+)
 
 
 @router.post("/new")

@@ -34,6 +34,7 @@ app = FastAPI()
 
 app.include_router(routers.stage.router)
 app.include_router(routers.user.router)
+app.include_router(routers.client.router)
 
 start_time = datetime.datetime.now()
 
