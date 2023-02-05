@@ -124,7 +124,10 @@ async def route_not_found_handler(request: Request, exc: ErrorMessageException):
 
 def run():
     uvicorn.run(
-        app, host=HOST, port=PORT,
+        app=app,
+        host=HOST,
+        port=PORT,
+        workers=WORKERS,
         headers=[
             ("Server", "EngineTribe"),
             ("X-Powered-By", "EngineTribe"),
