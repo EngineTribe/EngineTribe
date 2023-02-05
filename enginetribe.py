@@ -82,7 +82,7 @@ async def shutdown_event():
 
 @app.get("/")
 async def readme_handler() -> RedirectResponse:  # Redirect to Engine Tribe README
-    return RedirectResponse("https://web.enginetribe.gq/index.html")
+    return RedirectResponse("https://www.enginetribe.gq/")
 
 
 # get server status
