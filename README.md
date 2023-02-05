@@ -3,7 +3,7 @@
   <br>
 </div>
 
-📡 **Engine Tribe** project is an open source reimplementation for SMM:WE online server v3.2.x, also used in SMM:WE v3.3.x by Engine Kingdom Community.
+📡 The **Engine Tribe** project, formerly known as SMMWE Cloud, aims to create an open source, flexible, international and extensible SMM:WE online server.
 
 ---
 
