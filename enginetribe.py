@@ -132,7 +132,7 @@ def run():
         headers=[
             ("Server", "EngineTribe"),
             ("X-Powered-By", "EngineTribe"),
-            ("Access-Control-Allow-Origin", "www.enginetribe.gq"),
+            ("Access-Control-Allow-Origin", CORS_ALLOWED_DOMAIN),
         ]
     )
 
