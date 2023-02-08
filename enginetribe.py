@@ -6,6 +6,7 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, Form, Request, status, Depends
 from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from redis import asyncio as redis
 import asyncio
 
@@ -35,6 +36,14 @@ app = FastAPI()
 app.include_router(routers.stage.router)
 app.include_router(routers.user.router)
 app.include_router(routers.client.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ALLOWED_DOMAINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 start_time = datetime.datetime.now()
 
@@ -132,7 +141,6 @@ def run():
         headers=[
             ("Server", "EngineTribe"),
             ("X-Powered-By", "EngineTribe"),
-            ("Access-Control-Allow-Origin", CORS_ALLOWED_DOMAIN),
         ]
     )
 
