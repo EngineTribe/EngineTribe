@@ -16,7 +16,7 @@ ROWS_PERPAGE = _config["enginetribe"]["rows_perpage"]
 UPLOAD_LIMIT = _config["enginetribe"]["upload_limit"]
 BOOSTERS_EXTRA_LIMIT = _config["enginetribe"]["booster_extra_limit"]
 RECORD_CLEAR_USERS = _config["enginetribe"]["record_clear_users"]
-CORS_ALLOWED_DOMAINS = _config["enginetribe"]["cors_allowed_domains"]
+CORS_ALLOWED_ORIGINS = _config["enginetribe"]["cors_allowed_origins"]
 
 DATABASE_ADAPTER = _config['database']['adapter']
 DATABASE_HOST = _config['database']['host']
