@@ -9,9 +9,7 @@ enginetribe:
   upload_limit: 25  # Max levels per account
   booster_extra_limit: 10  # Privileges of boosters
   record_clear_users: true  # Record and display cleared users
-  cors_allowed_origins: # CORS allowed origins
-    - 'https://nmweb.enginetribe.gq'
-      'http://nmweb.enginetribe.gq'
+  cors_allowed_origins: [ 'https://nmweb.enginetribe.gq', 'http://nmweb.enginetribe.gq' ]  # CORS allowed origins
 
 database:
   adapter: 'mysql'  # Database adapter to use, mysql, postgresql and sqlite is supported
