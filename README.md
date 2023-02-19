@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/EngineTribe/Server/main/assets/enginetribe.png" width="180px">
+  <img src="https://github.com/CHNJohnHK/EngineTribe/blob/be3f354bd28f8134eaf8f9245a686e81f5b985f8/assets/EngineTribe_End.png" width="180px">
   <br>
 </div>
 
