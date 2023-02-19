@@ -3,7 +3,7 @@
   <br>
 </div>
 
-📡 The **Engine Tribe** project, formerly known as SMMWE Cloud, aims to create an open source, flexible, international and extensible SMM:WE online server.
+<div align="center">📡 The **Engine Tribe** project, aims to create an open source, flexible, international and extensible SMM:WE online server.</div>
 
 ---
 
