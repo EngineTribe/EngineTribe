@@ -3,7 +3,8 @@
   <br>
 </div>
 
-<div align="center">📡 The Engine Tribe project, aims to create an open source, flexible, international and extensible SMM:WE online server.</div>
+<div align="center">Engine Tribe</div>
+<div align="center">aims to create an open source, flexible, international and extensible SMM:WE online server.</div>
 
 ---
 
