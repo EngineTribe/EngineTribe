@@ -5,7 +5,7 @@ from fastapi import APIRouter as FastAPIRouter
 class APIRouter(FastAPIRouter):
     def add_api_route(
             self, path: str, endpoint: Callable[..., Any], *,
-            include_in_schema: bool = True, **kwargs: Any
+            include_in_schema: bool = False, **kwargs: Any
     ) -> None:
         if path.endswith("/"):
             alternate_path = path[:-1]
