@@ -6,7 +6,7 @@ from fastapi.types import DecoratedCallable
 
 class APIRouter(FastAPIRouter):
     def api_route(
-        self, path: str, *, include_in_schema: bool = False, **kwargs: Any
+        self, path: str, *, include_in_schema: bool = True, **kwargs: Any
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         if path.endswith("/"):
             path = path[:-1]
