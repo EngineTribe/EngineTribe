@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Form, Depends, Request
+from fastapi import Form, Depends, Request
+from routers import APIRouter
 
 from config import API_KEY
 from models import (
