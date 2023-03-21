@@ -1,5 +1,5 @@
 from fastapi import Form, Depends
-from routers import APIRouter
+from routers.api_router import APIRouter
 
 from config import API_KEY
 from models import (
