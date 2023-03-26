@@ -451,7 +451,7 @@ async def stages_upload_handler(
             non_latin=non_latin,
             testing_client=(True if client_type is ClientType.TESTING else False)
         )  # add new level to database
-    if ENABLE_DISCORD_WEBHOOK and ENABLE_DISCORD_ARRIVAL_WEBHOOK:
+    if ENABLE_DISCORD_WEBHOOK and ENABLE_DISCORD_ARRIVAL_WEBHOOK and storage.type != 'discord':
         await push_to_engine_bot_discord(
             f'📤 **{user.username}** subió un nuevo nivel: **{name}**\n'
             f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
