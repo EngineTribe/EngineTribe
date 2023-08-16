@@ -95,14 +95,11 @@ async def stages_detailed_search_handler(
         historial: Optional[str] = Form(None),
         dificultad: Optional[str] = Form(None),
         rows_perpage: Optional[str] = Form(None),
+        tags: Optional[str] = Form(None),
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
 ) -> ErrorMessage | DetailedSearchResults:  # Detailed search (level list)
-    # Fixes for Starlette
-    # https://github.com/encode/starlette/issues/425
-    if title:
-        title = title.encode("latin1").decode("utf-8")
     storage = request.app.state.storage
     client_type = ClientType(session.client_type)
     locale_model = get_locale_model(session.locale)
@@ -140,6 +137,7 @@ async def stages_detailed_search_handler(
 
     # detailed search
     if title:
+        title = title.encode("latin1").decode("utf-8")
         selection = selection.where(Level.name.contains(title))
     if author:
         _author = await dal.get_user_by_username(author)
@@ -200,6 +198,14 @@ async def stages_detailed_search_handler(
                 selection = selection.where((Level.clears / Level.plays).between(0.0, 0.01))  # Expert
             case _:
                 return ErrorMessage(error_type="030", message=locale_model.UNKNOWN_DIFFICULTY)
+    if tags:
+        tags = tags.encode("latin1").decode("utf-8")
+        tag_1, tag_2 = parse_tag_names(tags, session.locale)
+        if tag_2==16:
+            selection = selection.where(Level.tag_1 == tag_1)
+        else:
+            selection = selection.where((Level.tag_1 == tag_1) & (Level.tag_2 == tag_2))
+
     if historial:
         if not RECORD_CLEAR_USERS:
             return ErrorMessage(error_type="255", message=locale_model.NOT_IMPLEMENTED)
