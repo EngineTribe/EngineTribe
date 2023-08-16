@@ -20,7 +20,8 @@ class StorageProviderDiscord:
             level_name: str,
             level_author: str,
             level_author_im_id: int,
-            level_tags: str
+            level_tags: str,
+            level_description: str
     ):
         async with aiohttp.request(
                 method='POST',
@@ -31,7 +32,8 @@ class StorageProviderDiscord:
                     'level_name': level_name,
                     'level_author': level_author,
                     'level_author_im_id': level_author_im_id,
-                    'level_tags': level_tags
+                    'level_tags': level_tags,
+                    'level_description': level_description,
                 }
         ) as response:
             if response.status == 200:

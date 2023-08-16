@@ -13,7 +13,7 @@ class Session(PydanticModel):
 
     def serialize(self) -> str:
         return json.dumps(
-            self.dict(),
+            self.model_dump(),
             separators=(',', ':')
         )
 

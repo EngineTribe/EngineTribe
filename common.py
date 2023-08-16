@@ -52,6 +52,11 @@ def level_to_details(level_data: Level, locale: str, level_file_url: str, mobile
                   'time': level_data.record}
     else:
         record = {'record': 'no'}
+
+    desc = level_data.description
+    if desc == '' or desc is None:
+        desc = 'Sin descripción'
+
     return LevelDetails(
         name=name,
         likes=level_data.likes,
@@ -73,7 +78,7 @@ def level_to_details(level_data: Level, locale: str, level_file_url: str, mobile
         record=record,
         archivo=level_file_url,
         id=level_data.level_id,
-        descripcion='Sin descripción',
+        descripcion=desc,
     )
 
 

@@ -333,6 +333,7 @@ async def stages_upload_handler(
         aparience: str = Form(),
         entorno: str = Form(),
         tags: str = Form(),
+        desc: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
@@ -401,6 +402,10 @@ async def stages_upload_handler(
     user.uploads += 1
     await dal.update_user(user=user)
 
+    # description
+    if desc == "":
+        desc = 'Sin descripción'
+
     if storage.type == 'discord':
         tag_1, tag_2 = parse_tag_names(tags, session.locale)
         level = await dal.add_level(
@@ -412,7 +417,8 @@ async def stages_upload_handler(
             author_id=session.user_id,
             level_id=level_id,
             non_latin=non_latin,
-            testing_client=(True if client_type is ClientType.TESTING else False)
+            testing_client=(True if client_type is ClientType.TESTING else False),
+            description=desc
         )  # add new level to database
         level_author: User = await dal.get_user_by_id(session.user_id)
         try:
@@ -423,7 +429,8 @@ async def stages_upload_handler(
                 level_name=name,
                 level_author=level_author.username,
                 level_author_im_id=level_author.id,
-                level_tags=tags
+                level_tags=tags,
+                level_description=desc
             )
         except ConnectionError:
             return ErrorMessage(
@@ -449,12 +456,14 @@ async def stages_upload_handler(
             author_id=session.user_id,
             level_id=level_id,
             non_latin=non_latin,
-            testing_client=(True if client_type is ClientType.TESTING else False)
+            testing_client=(True if client_type is ClientType.TESTING else False),
+            description=desc
         )  # add new level to database
     if ENABLE_DISCORD_WEBHOOK and ENABLE_DISCORD_ARRIVAL_WEBHOOK and storage.type != 'discord':
         await push_to_engine_bot_discord(
             f'📤 **{user.username}** subió un nuevo nivel: **{name}**\n'
             f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
+            f'> Descripción: `{desc}`\n'
             f'> Descargar: {storage.generate_download_url(level_id=level_id)}'
         )
     if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK:

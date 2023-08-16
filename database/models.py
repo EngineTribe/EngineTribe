@@ -19,6 +19,7 @@ class Level(Base):
     environment = Column(SmallInteger)  # Level environment
     tag_1 = Column(SmallInteger)  # Tag 1
     tag_2 = Column(SmallInteger)  # Tag 2
+    description = Column(UnicodeText)  # Level description
     date = Column(Date)  # Upload date
     author_id = Column(Integer)  # Level maker's ID
     level_id = Column(String(19))  # Level ID

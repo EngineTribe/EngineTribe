@@ -10,13 +10,13 @@ class DBAccessLayer:
         self.session = session
 
     async def add_level(self, name: str, style: int, environment: int, tag_1: int, tag_2: int, author_id: int,
-                        level_id: str, non_latin: bool, testing_client: bool):
+                        level_id: str, non_latin: bool, testing_client: bool, description: str):
         # add level metadata into database
         level = Level(name=name, likes=0, dislikes=0, plays=0, deaths=0, clears=0,
                       style=style, environment=environment, tag_1=tag_1, tag_2=tag_2,
                       date=datetime.date.today(), author_id=author_id,
                       level_id=level_id, non_latin=non_latin, record_user_id=0, record=0,
-                      testing_client=testing_client, featured=False)
+                      testing_client=testing_client, featured=False, description=description)
         self.session.add(level)
         await self.session.flush()
         return level
