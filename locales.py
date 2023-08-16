@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-TAGS_CN: list[str] = ["标准", "解谜", "计时挑战", "自卷轴", "自动图", "一次通过", "对战", "机关", "音乐", "美术",
-                      "技巧", "射击", "BOSS战", "单人", "Link", "---"]
+TAGS_CN: list[str] = ["标准", "解谜", "计时挑战", "自动卷轴", "自动马力欧", "一次通过", "多人对战", "机关设计", "音乐", "美术",
+                      "技巧", "射击", "对战BOSS", "单打", "Link", "---"]
 TAGS_EN: list[str] = ["Standard", "Puzzle", "Speedrun", "Autoscroll", "Auto-mario", "Short and Sweet", "Multiplayer",
                       "Themed", "Music", "Art", "Technical", "Shooter", "Boss battle", "Singleplayer", "Link", "---"]
 TAGS_ES: list[str] = ["Tradicional", "Puzles", "Contrarreloj", "Autoavance", "Automatismos", "Corto pero intenso",

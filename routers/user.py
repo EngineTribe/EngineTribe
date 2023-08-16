@@ -166,7 +166,7 @@ async def user_register_handler(
         return UserErrorMessage(
             error_type="035",
             message="User ID already exists.",
-            im_id=im_id,
+            im_id=str(im_id),
             username=expected_user.username
         )
     expected_user = await dal.get_user_by_username(username=username)
@@ -174,7 +174,7 @@ async def user_register_handler(
         return UserErrorMessage(
             error_type="036",
             message="Username already exists.",
-            im_id=im_id,
+            im_id=str(im_id),
             username=expected_user.username
         )
     await dal.add_user(
@@ -186,7 +186,7 @@ async def user_register_handler(
     return UserSuccessMessage(
         success="Registration success.",
         username=username,
-        im_id=im_id,
+        im_id=str(im_id),
         type="register"
     )
 
@@ -304,7 +304,7 @@ async def user_update_password_handler(
             success="Update password success.",
             type="update",
             username=user.username,
-            user_id=user.im_id
+            im_id=str(user.im_id)
         )
     else:
         return ErrorMessage(error_type='006', message='User incorrect.')
