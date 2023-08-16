@@ -140,7 +140,7 @@ async def user_login_handler(
             booster=user.is_booster,
             goomba=True,
             alias=alias,
-            id=user.im_id,
+            id=str(user.im_id),
             uploads=user.uploads,
             mobile=client.mobile,
             auth_code=auth_code,
@@ -274,7 +274,7 @@ async def user_set_permission_handler(
         success="Permission updated.",
         type="update",
         username=user.username,
-        im_id=user.im_id,
+        im_id=str(user.im_id),
         permission=permission,
         value=value
     )

@@ -1,10 +1,17 @@
 from config import *
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    AsyncEngine,
+    AsyncAttrs,
+    create_async_engine,
+    async_sessionmaker
+)
+from sqlalchemy.orm import DeclarativeBase
 import ssl
 
-Base = declarative_base()
+
+class Base(AsyncAttrs, DeclarativeBase):
+    pass
 
 
 class Database:
@@ -33,7 +40,10 @@ class Database:
             connect_args=connect_args
         )
         # Base.metadata.create_all(self.engine)
-        self.async_session: sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+        self.async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(
+            self.engine,
+            expire_on_commit=False
+        )
 
         # Store the decoded level data and checksum separately to reduce database usage
 

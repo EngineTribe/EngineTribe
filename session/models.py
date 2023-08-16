@@ -19,6 +19,6 @@ class Session(PydanticModel):
 
 
 def deserialize_session(data: str) -> Session:
-    return Session.parse_obj(
+    return Session.model_validate(
         json.loads(data)
     )
