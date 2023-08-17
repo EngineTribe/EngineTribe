@@ -61,7 +61,8 @@ async def user_login_handler(
         token: str = Form(""),
         password: str = Form(""),
         dal: DBAccessLayer = Depends(create_dal)
-):  # User login
+) -> ErrorMessage | UserLoginProfile | LegacyUserLoginProfile:
+    # User login
     password = password.encode("latin1").decode("utf-8")
     # Fix for Starlette
     # https://github.com/encode/starlette/issues/425
@@ -158,7 +159,7 @@ async def user_register_handler(
         username: str = Form(),
         password_hash: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | UserSuccessMessage:
+) -> UserErrorMessage | ErrorMessage | UserSuccessMessage:
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     expected_user = await dal.get_user_by_im_id(im_id=im_id)
@@ -198,7 +199,7 @@ async def user_set_permission_handler(
         api_key: str = Form(),
         value: bool = Form(False),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | UserSuccessMessage:
+) -> ErrorMessage | UserPermissionSuccessMessage:
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     user: User | None = await get_user_from_identifier(user_identifier=user_identifier, dal=dal)
@@ -287,7 +288,7 @@ async def user_update_password_handler(
         password_hash: str = Form(),
         api_key: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | UserSuccessMessage:
+) -> UserErrorMessage | ErrorMessage | UserSuccessMessage:
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     user: User | None = await get_user_from_identifier(user_identifier=user_identifier, dal=dal)

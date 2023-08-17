@@ -343,7 +343,7 @@ async def stages_upload_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | StageSuccessMessage:
+) -> UserErrorMessage | ErrorMessage | StageSuccessMessage:
     storage = request.app.state.storage
     client_type = ClientType(session.client_type)
     locale_model = get_locale_model(session.locale)
@@ -637,7 +637,7 @@ async def stage_delete_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> StageSuccessMessage | ErrorMessage:  # Delete level
+) -> UserErrorMessage | StageSuccessMessage | ErrorMessage:  # Delete level
     storage = request.app.state.storage
     level: Level | None = await dal.get_level_by_level_id(level_id)
     if level is None:
@@ -673,7 +673,7 @@ async def switch_promising_handler(
         auth_code: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
         session: Session = Depends(verify_and_get_session)
-) -> StageSuccessMessage | ErrorMessage:
+) -> UserErrorMessage | StageSuccessMessage | ErrorMessage:
     # Switch featured (promising) level
     level: Level | None = await dal.get_level_by_level_id(level_id)
     user: User | None = await dal.get_user_by_id(session.user_id)
