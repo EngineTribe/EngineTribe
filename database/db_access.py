@@ -216,11 +216,9 @@ class DBAccessLayer:
         await self.session.flush()
 
     async def delete_level_data(self, level_id: str):
-        level_data_item = (await self.session.execute(
-            LevelData.where(LevelData.level_id == level_id)
-        )).scalars().first()
-        level_data_item.delete()
-        self.session.add(level_data_item)
+        await self.session.execute(
+            delete(LevelData).where(LevelData.level_id == level_id)
+        )
         await self.session.flush()
 
     async def set_featured(self, level: Level, is_featured: bool):

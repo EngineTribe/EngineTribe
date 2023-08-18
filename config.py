@@ -7,7 +7,17 @@ _config = yaml.safe_load(open("config.default.yml", "r"))
 config_path = os.getenv("ENGINETRIBE_CONFIG_PATH", "config.yml")
 _override_config = yaml.safe_load(open(config_path, "r"))
 
-_config.update(_override_config)
+
+def deep_update(config, override_config):
+    for key, value in override_config.items():
+        if isinstance(value, dict):
+            config[key] = deep_update(config.get(key, {}), value)
+        else:
+            config[key] = value
+    return config
+
+
+_config = deep_update(_config, _override_config)
 
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]

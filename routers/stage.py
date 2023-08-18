@@ -6,7 +6,7 @@ from fastapi import Form, Depends, Request
 from routers.api_router import APIRouter
 from fastapi.responses import RedirectResponse, Response
 from typing import Optional
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_, or_
 import aiohttp
 
 from config import (
@@ -204,9 +204,12 @@ async def stages_detailed_search_handler(
         tags = tags.encode("latin1").decode("utf-8")
         tag_1, tag_2 = parse_tag_names(tags, session.locale)
         if tag_2==16:
-            selection = selection.where(Level.tag_1 == tag_1)
+            selection = selection.where(or_(Level.tag_1 == tag_1, Level.tag_2 == tag_1))
         else:
-            selection = selection.where((Level.tag_1 == tag_1) & (Level.tag_2 == tag_2))
+            selection = selection.where(or_(
+                and_(Level.tag_1 == tag_1, Level.tag_2 == tag_2),
+                and_(Level.tag_1 == tag_2, Level.tag_2 == tag_1)
+            ))
 
     if historial:
         if not RECORD_CLEAR_USERS:
