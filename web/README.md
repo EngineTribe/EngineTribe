@@ -26,6 +26,6 @@ Congratulations, your **Engine Tribe** instance is working!
 
 ### 🫂 Join Our Community
 
-![QQChat:723483890](/static/qq_badge.svg) [![Telegram Channel](/static/telegram_badge.svg)
+![QQChat:723483890](/static/qq_badge.svg) [![Telegram Channel](/static/telegram_badge.svg)](https://t.me/s/EngineTribe_Channel)
 
 <div align="center">2022-2023 YidaozhanYa and Engine Tribe Team with 💗</div>

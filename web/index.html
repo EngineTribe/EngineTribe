@@ -26,8 +26,8 @@
 <body>
     <div id="markdown"></div>
     <script>
-        const xhr = new XMLHTTPRequest
-        xhr.open("GET", "./README.md", true)
+        const xhr = new XMLHttpRequest
+        xhr.open("GET", "/web/README.md", true)
         xhr.send()
         xhr.onload = () => {
             document.getElementById("markdown").innerHTML=marked.parse(xhr.responseText)
