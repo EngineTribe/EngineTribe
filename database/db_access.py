@@ -258,7 +258,8 @@ class DBAccessLayer:
             type=client_type,
             locale=locale,
             mobile=mobile,
-            proxied=proxied
+            proxied=proxied,
+            valid=True
         )
         self.session.add(client)
         await self.session.flush()
