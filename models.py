@@ -44,13 +44,18 @@ class UserPermissionSuccessMessage(UserSuccessMessage):
 
 
 class ClientSuccessMessage(SuccessMessage):
-    success: str
+    success: Optional[str | None]
     type: Optional[str] = "client"
     token: str
     client_type: Optional[str]
     locale: Optional[str]
     mobile: Optional[bool]
     proxied: Optional[bool]
+
+
+class ClientListMessage(PydanticModel):
+    type: Optional[str] = "client_list"
+    result: list[ClientSuccessMessage]
 
 
 class UserLoginProfile(PydanticModel):

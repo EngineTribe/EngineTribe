@@ -1,0 +1,38 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="static/enginetribe.min.css">
+    <script src="static/marked.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script>
+        const language = (navigator.language || navigator.browserLanguage).toLowerCase()
+        if (language.indexOf('zh') != -1) {
+            document.title = '引擎部落'
+        }
+        else if (language.indexOf('en') != -1) {
+            document.title = 'Engine Tribe'
+        }
+        else {
+            document.title = 'Engine Tribe'
+        }
+    </script>
+    <style>
+        #markdown {
+            margin: 1rem
+        }
+    </style>
+</head>
+
+<body>
+    <div id="markdown"></div>
+    <script>
+        const xhr = new XMLHTTPRequest
+        xhr.open("GET", "./README.md", true)
+        xhr.send()
+        xhr.onload = () => {
+            document.getElementById("markdown").innerHTML=marked.parse(xhr.responseText)
+        }
+    </script>
+</body>
+
+</html>

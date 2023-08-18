@@ -2,20 +2,23 @@
 
 import datetime
 import platform
-from typing import Optional
 import uvicorn
-from fastapi import FastAPI, Form, Request, status, Depends
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi import (
+    FastAPI, Request, status, Depends
+)
+from fastapi.responses import (
+    RedirectResponse, JSONResponse, FileResponse, Response
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from redis import asyncio as redis
 import asyncio
+import aiohttp
 
 from database.db_access import DBAccessLayer
 import routers
 from config import *
-from models import ErrorMessage, ErrorMessageException
-from common import *
+from models import ErrorMessageException
 import push
 from database.db import Database
 from storage.onedrive_cf import StorageProviderOneDriveCF
@@ -34,11 +37,55 @@ async def connection_per_minute_record():
     asyncio.create_task(connection_per_minute_record())
 
 
-app = FastAPI()
+app = FastAPI(
+    redoc_url="",
+    docs_url="/interactive_docs",
+)
 
 app.include_router(routers.stage.router)
 app.include_router(routers.user.router)
 app.include_router(routers.client.router)
+
+# web
+
+app.mount("/web", StaticFiles(directory="web", html=True), name="web")
+
+
+@app.get("/favicon.ico")
+async def favicon_handler() -> FileResponse:
+    return FileResponse("web/favicon.ico")
+
+
+_static_file_mimes: dict[str, str] = {}
+_static_file_cache: dict[str, bytes] = {}
+
+
+@app.get("/static/{filename}")
+async def static_file_proxy(filename: str) -> Response:
+    if filename not in _static_file_cache:
+        async with aiohttp.request(
+                method="GET",
+                url=f"http://www.enginetribe.gq/static/{filename}"
+        ) as response:
+            if response.status != 200:
+                return Response(status_code=404)
+            _static_file_mimes[filename] = response.content_type
+            _static_file_cache[filename] = await response.read()
+    return Response(
+        content=_static_file_cache[filename],
+        media_type=_static_file_mimes[filename]
+    )
+
+
+@app.get("/")
+async def readme_handler() -> FileResponse:
+    return FileResponse("web/index.html")
+
+
+@app.get("/docs")
+async def docs_handler() -> RedirectResponse:
+    return RedirectResponse("http://www.enginetribe.gq/docs")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,11 +140,6 @@ async def startup_event():
 async def shutdown_event():
     await app.state.redis.flushdb()
     await app.state.redis.close()
-
-
-@app.get("/")
-async def readme_handler() -> RedirectResponse:  # Redirect to Engine Tribe README
-    return RedirectResponse("https://www.enginetribe.gq/")
 
 
 # get server status

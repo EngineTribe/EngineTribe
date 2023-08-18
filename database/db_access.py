@@ -247,6 +247,11 @@ class DBAccessLayer:
             select(Client).where(Client.token == token)
         )).scalars().first()
 
+    async def get_all_clients(self) -> list[Client]:
+        return (await self.session.execute(
+            select(Client)
+        )).scalars().all()
+
     async def new_client(self, token: str, client_type: int, locale: str, mobile: bool, proxied: bool):
         client = Client(
             token=token,

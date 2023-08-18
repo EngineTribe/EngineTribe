@@ -5,7 +5,8 @@ from config import API_KEY
 from models import (
     ErrorMessage,
     APIKeyErrorMessage,
-    ClientSuccessMessage
+    ClientSuccessMessage,
+    ClientListMessage
 )
 from locales import get_locale_model
 from common import (
@@ -61,6 +62,28 @@ async def client_new_handler(
         locale=locale,
         mobile=mobile,
         proxied=proxied
+    )
+
+
+@router.post("/list")
+async def client_list_handler(
+        api_key: str = Form(),
+        dal: DBAccessLayer = Depends(create_dal)
+) -> ErrorMessage | ClientListMessage:
+    if api_key != API_KEY:
+        return APIKeyErrorMessage(api_key=api_key)
+    clients: list[Client] = await dal.get_all_clients()
+    return ClientListMessage(
+        result=[
+            ClientSuccessMessage(
+                success=None,
+                token=client.token,
+                client_type=ClientType(client.type).name,
+                locale=client.locale,
+                mobile=client.mobile,
+                proxied=client.proxied
+            ) for client in clients
+        ]
     )
 
 
