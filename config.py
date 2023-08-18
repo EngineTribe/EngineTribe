@@ -2,12 +2,6 @@ import os
 
 import yaml
 
-_config = yaml.safe_load(open("config.default.yml", "r"))
-
-config_path = os.getenv("ENGINETRIBE_CONFIG_PATH", "config.yml")
-_override_config = yaml.safe_load(open(config_path, "r"))
-
-
 def deep_update(config, override_config):
     for key, value in override_config.items():
         if isinstance(value, dict):
@@ -16,8 +10,15 @@ def deep_update(config, override_config):
             config[key] = value
     return config
 
+config_path = os.getenv("ENGINETRIBE_CONFIG_PATH", "config.yml")
 
-_config = deep_update(_config, _override_config)
+if os.path.exists("config.default.yml"):
+    _config = yaml.safe_load(open("config.default.yml", "r"))
+    _override_config = yaml.safe_load(open(config_path, "r"))
+    _config = deep_update(_config, _override_config)
+else:
+    _config = yaml.safe_load(open(config_path, "r"))
+
 
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]
