@@ -17,7 +17,9 @@ from locales import get_locale_model
 from common import (
     ClientType,
     calculate_password_hash,
-    push_to_engine_bot_qq,
+)
+from push import (
+    push_to_engine_bot,
     push_to_engine_bot_discord
 )
 from config import (
@@ -245,14 +247,14 @@ async def user_set_permission_handler(
     if key_permission_changed:
         if ENABLE_ENGINE_BOT_WEBHOOK:
             if permission == 'booster':
-                await push_to_engine_bot_qq({
+                await push_to_engine_bot({
                     'type': 'permission_change',
                     'permission': 'booster',
                     'username': user.username,
                     'value': value
                 })
             elif permission == 'mod':
-                await push_to_engine_bot_qq({
+                await push_to_engine_bot({
                     'type': 'permission_change',
                     'permission': 'mod',
                     'username': user.username,

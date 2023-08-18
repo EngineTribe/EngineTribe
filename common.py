@@ -2,19 +2,11 @@ import base64
 from dataclasses import dataclass
 from enum import Enum
 import hashlib
-import aiohttp
-import discord
 import re
 
 from xpinyin import Pinyin
 
 from locales import *
-
-from config import (
-    DISCORD_AVATAR_URL,
-    DISCORD_WEBHOOK_URLS,
-    ENGINE_BOT_WEBHOOK_URLS
-)
 
 from database.models import Level
 
@@ -120,24 +112,3 @@ def string_latinify(t):
     t2 = Pinyin().get_pinyin(t2).replace('-', ' ')
     t2 = re.sub(u'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]', u'', t2)
     return t2
-
-
-async def push_to_engine_bot_qq(data: dict):
-    # This function is used to push messages to general Engine Bots
-    # (Not limited to QQ)
-    # You can construct your own Engine Bot with this API for other IMs
-    for webhook_url in ENGINE_BOT_WEBHOOK_URLS:
-        async with aiohttp.request(
-                method="POST",
-                url=webhook_url,
-                json=data
-        ) as response:
-            response_text = await response.text()
-
-
-async def push_to_engine_bot_discord(message: str):
-    async with aiohttp.ClientSession() as session:
-        for webhook_url in DISCORD_WEBHOOK_URLS:
-            webhook = discord.Webhook.from_url(url=webhook_url, session=session)
-            message: str = message
-            await webhook.send(message, username="Engine-bot", avatar_url=DISCORD_AVATAR_URL)

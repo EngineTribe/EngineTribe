@@ -2,9 +2,12 @@ import os
 
 import yaml
 
-config_path = os.getenv("CONFIG_PATH", "config.yml")
+_config = yaml.safe_load(open("config.default.yml", "r"))
 
-_config = yaml.safe_load(open(config_path, "r"))
+config_path = os.getenv("ENGINETRIBE_CONFIG_PATH", "config.yml")
+_override_config = yaml.safe_load(open(config_path, "r"))
+
+_config.update(_override_config)
 
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]
@@ -47,3 +50,4 @@ ENABLE_DISCORD_WEBHOOK = _config['push']['discord']['enabled']
 ENABLE_DISCORD_ARRIVAL_WEBHOOK = _config['push']['discord']['enable_new_arrival']
 DISCORD_WEBHOOK_URLS = _config['push']['discord']['urls']
 DISCORD_AVATAR_URL = _config['push']['discord']['avatar']
+DISCORD_NICKNAME = _config['push']['discord']['nickname']

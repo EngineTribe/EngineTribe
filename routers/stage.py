@@ -41,10 +41,12 @@ from common import (
     gen_level_id_sha1,
     gen_level_id_sha256,
     level_to_details,
-    push_to_engine_bot_qq,
-    push_to_engine_bot_discord,
     ClientType,
     get_locale_model
+)
+from push import (
+    push_to_engine_bot,
+    push_to_engine_bot_discord
 )
 from database.db_access import DBAccessLayer
 from database.models import *
@@ -304,7 +306,7 @@ async def stats_likes_handler(
                     f"> ID: `{level_id}`"
                 )
             if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-                await push_to_engine_bot_qq({
+                await push_to_engine_bot({
                     "type": f"{level.likes}_likes",
                     "level_id": level_id,
                     "level_name": level.name,
@@ -473,7 +475,7 @@ async def stages_upload_handler(
             f'> Descargar: {storage.generate_download_url(level_id=level_id)}'
         )
     if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_ARRIVAL_WEBHOOK:
-        await push_to_engine_bot_qq({
+        await push_to_engine_bot({
             "type": "new_arrival",
             "level_id": level_id,
             "level_name": name,
@@ -702,7 +704,7 @@ async def switch_promising_handler(
                     f"> ID: `{level_id}`"
                 )
             if ENABLE_ENGINE_BOT_WEBHOOK:
-                await push_to_engine_bot_qq({
+                await push_to_engine_bot({
                     "type": "new_featured",
                     "level_id": level_id,
                     "level_name": level.name,
@@ -754,7 +756,7 @@ async def stats_intentos_handler(
                     f"> ID: `{level_id}`"
                 )
             if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-                await push_to_engine_bot_qq({
+                await push_to_engine_bot({
                     "type": f"{level.plays}_plays",
                     "level_id": level_id,
                     "level_name": level.name,
@@ -792,7 +794,7 @@ async def stats_victorias_handler(
                     f"> ID: `{level_id}`"
                 )
             if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
-                await push_to_engine_bot_qq({
+                await push_to_engine_bot({
                     "type": f"{level.clears}_clears",
                     "level_id": level_id,
                     "level_name": level.name,
@@ -820,7 +822,7 @@ async def stats_muertes_handler(
     if level.deaths == 100 or level.deaths == 1000:
         if ENABLE_ENGINE_BOT_WEBHOOK and ENABLE_ENGINE_BOT_COUNTER_WEBHOOK:
             author_name: str = await get_author_name_by_level(level, dal)
-            await push_to_engine_bot_qq({
+            await push_to_engine_bot({
                 "type": f"{level.deaths}_deaths",
                 "level_id": level_id,
                 "level_name": level.name,
