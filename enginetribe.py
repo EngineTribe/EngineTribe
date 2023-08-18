@@ -7,6 +7,7 @@ import uvicorn
 from fastapi import FastAPI, Form, Request, status, Depends
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from redis import asyncio as redis
 import asyncio
 
@@ -15,6 +16,7 @@ import routers
 from config import *
 from models import ErrorMessage, ErrorMessageException
 from common import *
+import push
 from database.db import Database
 from storage.onedrive_cf import StorageProviderOneDriveCF
 from storage.onemanager import StorageProviderOneManager
@@ -29,6 +31,7 @@ async def connection_per_minute_record():
     await asyncio.sleep(60)
     app.state.connection_per_minute = app.state.connection_count
     app.state.connection_count = 0
+    asyncio.create_task(connection_per_minute_record())
 
 
 app = FastAPI()
@@ -82,6 +85,8 @@ async def startup_event():
     app.state.connection_count = 0
     app.state.connection_per_minute = 0
     asyncio.create_task(connection_per_minute_record())
+    asyncio.create_task(push.push_to_engine_bot_sub())
+    asyncio.create_task(push.push_to_engine_bot_discord_sub())
 
 
 @app.on_event("shutdown")
