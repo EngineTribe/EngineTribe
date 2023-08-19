@@ -101,7 +101,7 @@ async def stages_detailed_search_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | DetailedSearchResults:  # Detailed search (level list)
+):  # Detailed search (level list)
     storage = request.app.state.storage
     client_type = ClientType(session.client_type)
     locale_model = get_locale_model(session.locale)
@@ -290,7 +290,7 @@ async def stats_likes_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> StageSuccessMessage | ErrorMessage:
+):
     locale_model = get_locale_model(session.locale)
     level: Level = await dal.get_level_by_level_id(level_id)
     if level is not None:
@@ -323,7 +323,7 @@ async def stats_dislikes_handler(
         level_id: str,
         dal: DBAccessLayer = Depends(create_dal),
         session: Session = Depends(verify_and_get_session)
-) -> StageSuccessMessage | ErrorMessage:
+):
     locale_model = get_locale_model(session.locale)
     level = await dal.get_level_by_level_id(level_id)
     if level is not None:
@@ -348,7 +348,7 @@ async def stages_upload_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> UserErrorMessage | ErrorMessage | StageSuccessMessage:
+):
     storage = request.app.state.storage
     client_type = ClientType(session.client_type)
     locale_model = get_locale_model(session.locale)
@@ -495,7 +495,7 @@ async def stage_id_random_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | SingleLevelDetails:  # Random level
+):  # Random level
     storage = request.app.state.storage
     locale_model = get_locale_model(session.locale)
     user_id: int = session.user_id
@@ -546,7 +546,7 @@ async def stage_id_search_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | SingleLevelDetails:  # Level ID search
+):  # Level ID search
     storage = request.app.state.storage
     locale_model = get_locale_model(session.locale)
     user_id: int = session.user_id
@@ -642,7 +642,7 @@ async def stage_delete_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> UserErrorMessage | StageSuccessMessage | ErrorMessage:  # Delete level
+):  # Delete level
     storage = request.app.state.storage
     level: Level | None = await dal.get_level_by_level_id(level_id)
     if level is None:
@@ -678,7 +678,7 @@ async def switch_promising_handler(
         auth_code: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
         session: Session = Depends(verify_and_get_session)
-) -> UserErrorMessage | StageSuccessMessage | ErrorMessage:
+):
     # Switch featured (promising) level
     level: Level | None = await dal.get_level_by_level_id(level_id)
     user: User | None = await dal.get_user_by_id(session.user_id)
@@ -732,7 +732,7 @@ async def switch_promising_330_handler(
         auth_code: str = Form(),
         dal: DBAccessLayer = Depends(create_dal),
         session: Session = Depends(verify_and_get_session)
-) -> StageSuccessMessage | ErrorMessage:
+):
     return await switch_promising_handler(request, level_id, auth_code, dal, session)
 
 
@@ -742,7 +742,7 @@ async def stats_intentos_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | StageSuccessMessage:
+):
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is None:
         return ErrorMessage(
@@ -777,7 +777,7 @@ async def stats_victorias_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | StageSuccessMessage:
+):
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is None:
         return ErrorMessage(
@@ -814,7 +814,7 @@ async def stats_muertes_handler(
         dal: DBAccessLayer = Depends(create_dal),
         auth_code: str = Form(),
         session: Session = Depends(verify_and_get_session)
-) -> ErrorMessage | StageSuccessMessage:
+):
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
     if level is None:
         return ErrorMessage(

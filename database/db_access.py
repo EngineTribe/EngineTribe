@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Level, LevelData, LevelDiscord, User, ClearedUsers, LikeUsers, DislikeUsers, Client
 import datetime
 from sqlalchemy import func, select, delete
+from sqlalchemy import or_, and_
 from config import RECORD_CLEAR_USERS
 
 
@@ -41,12 +42,12 @@ class DBAccessLayer:
     async def get_like_type(self, level: Level, user_id: int) -> str:
         # get user's like type (like or dislike or none) of a level
         like = (await self.session.execute(
-            select(LikeUsers).where(LikeUsers.parent_id == level.id,
-                                    LikeUsers.user_id == user_id)
+            select(LikeUsers).where(and_(LikeUsers.parent_id == level.id,
+                                    LikeUsers.user_id == user_id))
         )).scalars().first()
         dislike = (await self.session.execute(
-            select(DislikeUsers).where(DislikeUsers.parent_id == level.id,
-                                       DislikeUsers.user_id == user_id)
+            select(DislikeUsers).where(and_(DislikeUsers.parent_id == level.id,
+                                       DislikeUsers.user_id == user_id))
         )).scalars().first()
         if like is not None:
             return '0'  # like
@@ -85,8 +86,8 @@ class DBAccessLayer:
         # add clear to level
         if RECORD_CLEAR_USERS:
             if (await self.session.execute(
-                    select(ClearedUsers).where(ClearedUsers.parent_id == level.id,
-                                               ClearedUsers.user_id == user_id)
+                    select(ClearedUsers).where(and_(ClearedUsers.parent_id == level.id,
+                                               ClearedUsers.user_id == user_id))
             )).scalars().first() is None:
                 clear = ClearedUsers(parent_id=level.id, user_id=user_id)
                 self.session.add(clear)
@@ -133,8 +134,8 @@ class DBAccessLayer:
         # get user's clear type (yes or no) of a level
         if RECORD_CLEAR_USERS:
             clear = (await self.session.execute(
-                select(ClearedUsers).where(ClearedUsers.parent_id == level.id,
-                                           ClearedUsers.user_id == user_id)
+                select(ClearedUsers).where(and_(ClearedUsers.parent_id == level.id,
+                                           ClearedUsers.user_id == user_id))
             )).scalars().first()
             if clear is not None:
                 return 'yes'
@@ -263,6 +264,7 @@ class DBAccessLayer:
         )
         self.session.add(client)
         await self.session.flush()
+
 
     async def revoke_client(self, client: Client):
         client.valid = False

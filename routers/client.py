@@ -31,7 +31,7 @@ async def client_new_handler(
         mobile: bool = Form(),
         proxied: bool = Form(),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | ClientSuccessMessage:
+):
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     client_type: str = client_type.upper()
@@ -69,7 +69,7 @@ async def client_new_handler(
 async def client_list_handler(
         api_key: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | ClientListMessage:
+):
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     clients: list[Client] = await dal.get_all_clients()
@@ -92,7 +92,7 @@ async def client_revoke_handler(
         token: str,
         api_key: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | ClientSuccessMessage:
+):
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     client: Client | None = await dal.get_client_by_token(token=token)
@@ -114,7 +114,7 @@ async def client_delete_handler(
         token: str,
         api_key: str = Form(),
         dal: DBAccessLayer = Depends(create_dal)
-) -> ErrorMessage | ClientSuccessMessage:
+):
     if api_key != API_KEY:
         return APIKeyErrorMessage(api_key=api_key)
     client: Client | None = await dal.get_client_by_token(token=token)
