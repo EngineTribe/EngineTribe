@@ -62,3 +62,4 @@ ENABLE_DISCORD_ARRIVAL_WEBHOOK = _config['push']['discord']['enable_new_arrival'
 DISCORD_WEBHOOK_URLS = _config['push']['discord']['urls']
 DISCORD_AVATAR_URL = _config['push']['discord']['avatar']
 DISCORD_NICKNAME = _config['push']['discord']['nickname']
+DISCORD_SERVER_NAME = _config['push']['discord']['server_name']

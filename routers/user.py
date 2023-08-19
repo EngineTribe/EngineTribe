@@ -24,7 +24,8 @@ from push import (
 )
 from config import (
     ENABLE_DISCORD_WEBHOOK,
-    ENABLE_ENGINE_BOT_WEBHOOK
+    ENABLE_ENGINE_BOT_WEBHOOK,
+    DISCORD_SERVER_NAME
 )
 from database.db_access import DBAccessLayer
 from database.models import User, Client
@@ -265,13 +266,13 @@ async def user_set_permission_handler(
                 await push_to_engine_bot_discord(
                     f"{'🤗' if value else '😥'} "
                     f"**{user.username}** ahora {'sí' if value else 'no'} "
-                    f"tiene el rol **Booster** en Engine Kingdom!! "
+                    f"tiene el rol **Booster** en {DISCORD_SERVER_NAME}!! "
                 )
             elif permission == 'mod':
                 await push_to_engine_bot_discord(
                     f"{'🤗' if value else '😥'} "
                     f"**{user.username}** ahora {'sí' if value else 'no'} "
-                    f"tiene el rol **Stage Moderator** en Engine Kingdom!! "
+                    f"tiene el rol **Stage Moderator** en {DISCORD_SERVER_NAME}!! "
                 )
     return UserPermissionSuccessMessage(
         success="Permission updated.",

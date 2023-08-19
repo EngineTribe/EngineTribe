@@ -50,3 +50,4 @@ push:
     urls: [ 'https://discord.com/api/webhooks/my_awesome_webhook' ]  # Discord webhook url
     avatar: 'https://raw.githubusercontent.com/EngineTribe/EngineBotDiscord/main/assets/engine-bot.png'
     nickname: "Engine-bot"
+    server_name: "Engine Kingdom"
