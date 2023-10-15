@@ -6,6 +6,9 @@ import aiohttp
 class StorageProviderDiscord:
 
     def __init__(self, api_url: str, base_url: str, database: Database, attachment_channel: int):
+        print("WARNING: Deprecated storage backend")
+        print("Check: https://www.reddit.com/r/discordapp/comments/16uy0an/not_sure_if_this_is_real/")
+        exit(1)
         self.api_url = api_url
         self.base_url = base_url
         self.db = database
