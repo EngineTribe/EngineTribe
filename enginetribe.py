@@ -2,6 +2,7 @@
 
 import datetime
 import platform
+from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import (
     FastAPI, Request, status, Depends
@@ -37,16 +38,67 @@ async def connection_per_minute_record():
     asyncio.create_task(connection_per_minute_record())
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.start_time = datetime.datetime.now()
+    app.state.db = Database()
+    await app.state.db.create_columns()
+    app.state.connection_count = 0
+    app.state.storage = {
+        "onedrive-cf": StorageProviderOneDriveCF(
+            url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED
+        ),
+        "onemanager": StorageProviderOneManager(
+            url=STORAGE_URL, admin_password=STORAGE_AUTH_KEY
+        ),
+        "database": StorageProviderDatabase(
+            base_url=API_ROOT,
+            database=app.state.db
+        ),
+        "discord": StorageProviderDiscord(
+            api_url=STORAGE_URL,
+            base_url=API_ROOT,
+            database=app.state.db,
+            attachment_channel=STORAGE_ATTACHMENT_CHANNEL_ID
+        )
+    }[STORAGE_PROVIDER]
+    app.state.redis = redis.Redis(
+        connection_pool=redis.ConnectionPool(
+            host=SESSION_REDIS_HOST,
+            port=SESSION_REDIS_PORT,
+            db=SESSION_REDIS_DB,
+            password=SESSION_REDIS_PASS
+        )
+    )
+    app.state.connection_count = 0
+    app.state.connection_per_minute = 0
+    asyncio.create_task(connection_per_minute_record())
+    asyncio.create_task(push.push_to_engine_bot_sub())
+    asyncio.create_task(push.push_to_engine_bot_discord_sub())
+    yield
+    await app.state.redis.flushdb()
+    await app.state.redis.close()
+
+
 app = FastAPI(
     redoc_url="",
     docs_url="/interactive_docs",
+    lifespan=lifespan
 )
 
 app.include_router(routers.stage.router)
 app.include_router(routers.user.router)
 app.include_router(routers.client.router)
 
-# web
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# routes
 
 app.mount("/web", StaticFiles(directory="web", html=True), name="web")
 
@@ -87,73 +139,19 @@ async def docs_handler() -> RedirectResponse:
     return RedirectResponse("http://www.enginetribe.gq/docs")
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-start_time = datetime.datetime.now()
-
-
-@app.on_event("startup")
-async def startup_event():
-    app.state.db = Database()
-    await app.state.db.create_columns()
-    app.state.connection_count = 0
-    app.state.storage = {
-        "onedrive-cf": StorageProviderOneDriveCF(
-            url=STORAGE_URL, auth_key=STORAGE_AUTH_KEY, proxied=STORAGE_PROXIED
-        ),
-        "onemanager": StorageProviderOneManager(
-            url=STORAGE_URL, admin_password=STORAGE_AUTH_KEY
-        ),
-        "database": StorageProviderDatabase(
-            base_url=API_ROOT,
-            database=app.state.db
-        ),
-        "discord": StorageProviderDiscord(
-            api_url=STORAGE_URL,
-            base_url=API_ROOT,
-            database=app.state.db,
-            attachment_channel=STORAGE_ATTACHMENT_CHANNEL_ID
-        )
-    }[STORAGE_PROVIDER]
-    app.state.redis = redis.Redis(
-        connection_pool=redis.ConnectionPool(
-            host=SESSION_REDIS_HOST,
-            port=SESSION_REDIS_PORT,
-            db=SESSION_REDIS_DB,
-            password=SESSION_REDIS_PASS
-        )
-    )
-    app.state.connection_count = 0
-    app.state.connection_per_minute = 0
-    asyncio.create_task(connection_per_minute_record())
-    asyncio.create_task(push.push_to_engine_bot_sub())
-    asyncio.create_task(push.push_to_engine_bot_discord_sub())
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await app.state.redis.flushdb()
-    await app.state.redis.close()
-
-
 # get server status
 @app.get("/server_stats")
 async def server_stats(
-        dal: DBAccessLayer = Depends(create_dal)
+        dal: DBAccessLayer = Depends(create_dal),
+        request: Request
 ) -> dict:
     return {
         "os": platform.platform().replace('-', ' '),
         "python": platform.python_version(),
         "player_count": await dal.get_player_count(),
         "level_count": await dal.get_level_count(),
-        "uptime": (datetime.datetime.now() - start_time).seconds,
-        "connection_per_minute": app.state.connection_per_minute,
+        "uptime": (datetime.datetime.now() - request.app.state.start_time).seconds,
+        "connection_per_minute": request.app.state.connection_per_minute,
     }
 
 
