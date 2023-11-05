@@ -23,7 +23,6 @@ else:
 HOST = _config["enginetribe"]["host"]
 PORT = _config["enginetribe"]["port"]
 API_ROOT = _config["enginetribe"]["api_root"]
-WORKERS = _config["enginetribe"]["workers"]
 VERIFY_USER_AGENT = _config["enginetribe"]["verify_user_agent"]
 API_KEY = _config["enginetribe"]["api_key"]
 ROWS_PERPAGE = _config["enginetribe"]["rows_perpage"]

@@ -182,7 +182,6 @@ def run():
         app=app,
         host=HOST,
         port=PORT,
-        workers=WORKERS,
         headers=[
             ("Server", "EngineTribe"),
             ("X-Powered-By", "EngineTribe"),

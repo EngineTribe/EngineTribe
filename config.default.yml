@@ -1,7 +1,6 @@
 enginetribe:
   host: '127.0.0.1'  # Engine Tribe server host
   port: 30000  # Default port that SMM_WE uses
-  workers: 1  # Number of workers
   api_root: 'http://enginetribe.gq:30000/'  # Used in level links
   api_key: "Y0UR_AP1_k3Y"  # Engine Bot API key
   verify_user_agent: true  # Verify user agent
