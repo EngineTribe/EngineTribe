@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse, Response
 from typing import Optional
 from sqlalchemy import select, func, and_, or_
 import aiohttp
+from loguru import logger
 
 from config import (
     ENABLE_DISCORD_WEBHOOK,
@@ -262,7 +263,7 @@ async def stages_detailed_search_handler(
                 )
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
     await dal.commit()
     if len(results) == 0:
         return ErrorMessage(
@@ -369,7 +370,7 @@ async def stages_upload_handler(
     # Fixes for Starlette
     # https://github.com/encode/starlette/issues/425
 
-    print("Uploading level " + name)
+    logger.info(f"Uploading level {name}...")
 
     # check non-Latin
     non_latin: bool = False
@@ -387,19 +388,19 @@ async def stages_upload_handler(
     # generate level id and check if duplicate
     level_id: str = gen_level_id_md5(stripped_swe)
     if await dal.get_level_by_level_id(level_id) is None:
-        print("md5: not duplicated")
+        logger.info("md5: not duplicated")
     else:
-        print("md5: duplicated, fallback to sha1")
+        logger.info("md5: duplicated, fallback to sha1")
         level_id = gen_level_id_sha1(stripped_swe)
         if await dal.get_level_by_level_id(level_id) is None:
-            print("sha1: not duplicated")
+            logger.info("sha1: not duplicated")
         else:
-            print("sha1: duplicated, fallback to sha256")
+            logger.info("sha1: duplicated, fallback to sha256")
             level_id = gen_level_id_sha256(stripped_swe)
             if await dal.get_level_by_level_id(level_id) is None:
-                print("sha256: not duplicated")
+                logger.info("sha256: not duplicated")
             else:
-                print("sha256: duplicated, is a duplicated level")
+                logger.error("sha256: duplicated, is a duplicated level")
                 return ErrorMessage(
                     error_type="009", message=locale_model.LEVEL_ID_REPEAT
                 )
@@ -758,18 +759,3 @@ async def stats_muertes_handler(
     return StageSuccessMessage(
         success="Successfully updated deaths", id=level_id, type="stats"
     )
-
-
-'''
-@router.get("/{level_id}/file")
-async def legacy_stage_file(level_id: str) -> ErrorMessage | dict:
-    try:
-        async with aiohttp.request("GET", storage.generate_url(level_id)) as r:
-            text = await r.text()
-        return {"data": text}
-    except Exception as ex:
-        print(ex)
-        return ErrorMessage(
-            error_type="029", message=ES.LEVEL_NOT_FOUND
-        )  # No level found
-'''

@@ -2,6 +2,7 @@ import aiohttp
 from hashlib import md5
 from io import BytesIO
 from time import time
+from loguru import logger
 
 
 class StorageProviderOneManager:
@@ -12,7 +13,7 @@ class StorageProviderOneManager:
 
     # noinspection PyBroadException
     async def upload_file(self, level_data: str, level_id: str):
-        print('start uploading')
+        logger.info(f'start uploading level {level_id}...')
         postfields = aiohttp.FormData()
         postfields.add_field(name='file1',
                              value=BytesIO(bytes(level_data, 'ascii')),
@@ -42,7 +43,7 @@ class StorageProviderOneManager:
 
     @staticmethod
     def delete_level(name: str, level_id: str):
-        print(f"Delete level {name} {level_id}: stubbed")
+        logger.info(f"Delete level {name} {level_id}: stubbed")
         return
 
     @staticmethod

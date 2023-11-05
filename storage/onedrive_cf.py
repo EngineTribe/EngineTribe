@@ -1,5 +1,6 @@
 import aiohttp
 from urllib.parse import quote
+from loguru import logger
 
 
 class StorageProviderOneDriveCF:
@@ -39,5 +40,5 @@ class StorageProviderOneDriveCF:
 
     @staticmethod
     def delete_level(name: str, level_id: str):
-        print(f"Delete level {name} {level_id}: stubbed")
+        logger.info(f"Delete level {name} {level_id}: stubbed")
         return

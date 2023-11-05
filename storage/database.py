@@ -1,6 +1,7 @@
 from database.db import Database
 from database.db_access import DBAccessLayer
 from base64 import b64decode, b64encode
+from loguru import logger
 
 
 class StorageProviderDatabase:
@@ -32,7 +33,7 @@ class StorageProviderDatabase:
                 dal = DBAccessLayer(session)
                 await dal.delete_level_data(level_id=level_id)
                 await dal.commit()
-                print(f"Deleted level {level_id} from database")
+                logger.info(f"Deleted level {level_id} from database")
                 return
 
     async def dump_level_data(self, level_id: str) -> str | None:
