@@ -49,7 +49,6 @@ STORAGE_PROVIDER = _config['storage']['provider']
 STORAGE_URL = _config['storage']['url']
 STORAGE_AUTH_KEY = _config['storage']['auth_key']
 STORAGE_PROXIED = _config['storage']['proxied']
-STORAGE_ATTACHMENT_CHANNEL_ID = _config['storage']['attachment_channel_id']
 
 ENABLE_ENGINE_BOT_WEBHOOK = _config['push']['engine_bot']['enabled']
 ENABLE_ENGINE_BOT_COUNTER_WEBHOOK = _config['push']['engine_bot']['enable_counter']

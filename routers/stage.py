@@ -248,14 +248,7 @@ async def stages_detailed_search_handler(
         try:
             author_name: str = await get_author_name_by_level(level, dal)
             record_user_name: str = await get_record_user_name_by_level(level, dal)
-            if storage.type == 'discord':
-                level_file_url: str = await storage.generate_url(
-                    level_id=level.level_id,
-                    level_db_id=level.id,
-                    proxied=session.proxied
-                )
-            else:
-                level_file_url: str = storage.generate_url(level.level_id)
+            level_file_url: str = storage.generate_url(level.level_id)
             results.append(
                 level_to_details(
                     level_data=level,
@@ -417,60 +410,29 @@ async def stages_upload_handler(
     if desc == "":
         desc = 'Sin descripción'
 
-    if storage.type == 'discord':
-        tag_1, tag_2 = parse_tag_names(tags, session.locale)
-        level = await dal.add_level(
-            name=name,
-            style=int(aparience),
-            environment=int(entorno),
-            tag_1=tag_1,
-            tag_2=tag_2,
-            author_id=session.user_id,
-            level_id=level_id,
-            non_latin=non_latin,
-            testing_client=(True if client_type is ClientType.TESTING else False),
-            description=desc
-        )  # add new level to database
-        level_author: User = await dal.get_user_by_id(session.user_id)
-        try:
-            await storage.upload_file(
-                level_data=swe,
-                level_id=level_id,
-                level_db_id=level.id,
-                level_name=name,
-                level_author=level_author.username,
-                level_author_im_id=level_author.id,
-                level_tags=tags,
-                level_description=desc
-            )
-        except ConnectionError:
-            return ErrorMessage(
-                error_type="010", message=locale_model.UPLOAD_CONNECT_ERROR
-            )
-    else:
-        try:
-            await storage.upload_file(
-                level_data=swe, level_id=level_id
-            )  # Upload to storage provider
-        except ConnectionError:
-            return ErrorMessage(
-                error_type="010", message=locale_model.UPLOAD_CONNECT_ERROR
-            )
+    try:
+        await storage.upload_file(
+            level_data=swe, level_id=level_id
+        )  # Upload to storage provider
+    except ConnectionError:
+        return ErrorMessage(
+            error_type="010", message=locale_model.UPLOAD_CONNECT_ERROR
+        )
 
-        tag_1, tag_2 = parse_tag_names(tags, session.locale)
-        await dal.add_level(
-            name=name,
-            style=int(aparience),
-            environment=int(entorno),
-            tag_1=tag_1,
-            tag_2=tag_2,
-            author_id=session.user_id,
-            level_id=level_id,
-            non_latin=non_latin,
-            testing_client=(True if client_type is ClientType.TESTING else False),
-            description=desc
-        )  # add new level to database
-    if ENABLE_DISCORD_WEBHOOK and ENABLE_DISCORD_ARRIVAL_WEBHOOK and storage.type != 'discord':
+    tag_1, tag_2 = parse_tag_names(tags, session.locale)
+    await dal.add_level(
+        name=name,
+        style=int(aparience),
+        environment=int(entorno),
+        tag_1=tag_1,
+        tag_2=tag_2,
+        author_id=session.user_id,
+        level_id=level_id,
+        non_latin=non_latin,
+        testing_client=(True if client_type is ClientType.TESTING else False),
+        description=desc
+    )  # add new level to database
+    if ENABLE_DISCORD_WEBHOOK and ENABLE_DISCORD_ARRIVAL_WEBHOOK:
         await push_to_engine_bot_discord(
             f'📤 **{user.username}** subió un nuevo nivel: **{name}**\n'
             f'> ID: `{level_id}`  Tags: `{tags.split(",")[0].strip()}, {tags.split(",")[1].strip()}`\n'
@@ -516,14 +478,7 @@ async def stage_id_random_handler(
     level: Level = (await dal.execute_selection(selection))[0]
     author_name: str = await get_author_name_by_level(level, dal)
     record_user_name: str = await get_record_user_name_by_level(level, dal)
-    if storage.type == 'discord':
-        level_file_url: str = await storage.generate_url(
-            level_id=level.level_id,
-            level_db_id=level.id,
-            proxied=session.proxied
-        )
-    else:
-        level_file_url: str = storage.generate_url(level.level_id)
+    level_file_url: str = storage.generate_url(level.level_id)
     return SingleLevelDetails(
         type="random",
         result=level_to_details(
@@ -551,14 +506,7 @@ async def stage_id_search_handler(
     locale_model = get_locale_model(session.locale)
     user_id: int = session.user_id
     level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
-    if storage.type == 'discord':
-        level_file_url: str = await storage.generate_url(
-            level_id=level.level_id,
-            level_db_id=level.id,
-            proxied=session.proxied
-        )
-    else:
-        level_file_url: str = storage.generate_url(level.level_id)
+    level_file_url: str = storage.generate_url(level.level_id)
     if level is not None:
         author_name: str = await get_author_name_by_level(level, dal)
         record_user_name: str = await get_record_user_name_by_level(level, dal)
@@ -608,31 +556,6 @@ async def stage_file_handler(
                 },
                 media_type='text/plain'
             )
-        case 'discord':
-            level: Level | None = await dal.get_level_by_level_id(level_id=level_id)
-            if level is None:
-                return ErrorMessage(
-                    error_type="029", message="Level not found."
-                )
-            async with aiohttp.request(
-                    method='GET',
-                    url=await storage.generate_download_url(
-                        level_id=level.level_id,
-                        level_db_id=level.id,
-                        proxied=False
-                    ),
-                    headers={
-                        "User-Agent": "EngineTribe"
-                    }
-            ) as response:
-                return Response(
-                    content=await response.text(),
-                    headers={
-                        'Content-Disposition': f'attachment; '
-                                               f'filename="{level.name}.swe"'
-                    },
-                    media_type='text/plain'
-                )
 
 
 @router.post("/{level_id}/delete")

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.models import Level, LevelData, LevelDiscord, User, ClearedUsers, LikeUsers, DislikeUsers, Client
+from database.models import Level, LevelData, User, ClearedUsers, LikeUsers, DislikeUsers, Client
 import datetime
 from sqlalchemy import func, select, delete
 from sqlalchemy import or_, and_
@@ -186,23 +186,6 @@ class DBAccessLayer:
         )).scalars().first()
         if level_data_item is not None:
             return level_data_item
-        else:
-            return None
-
-    async def add_level_discord(self, level_db_id: int, attachment_id: int):
-        level_discord_item: LevelDiscord = LevelDiscord(
-            level_db_id=level_db_id,
-            attachment_id=attachment_id
-        )
-        self.session.add(level_discord_item)
-        await self.session.flush()
-
-    async def get_level_discord(self, level_db_id: int) -> LevelDiscord | None:
-        level_discord_item = (await self.session.execute(
-            select(LevelDiscord).where(LevelDiscord.level_db_id == level_db_id)
-        )).scalars().first()
-        if level_discord_item is not None:
-            return level_discord_item
         else:
             return None
 

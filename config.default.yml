@@ -31,11 +31,9 @@ storage:
   # database: use database to store levels  (recommended)
   # onedrive-cf: https://github.com/spencerwooo/onedrive-cf-index
   # onemanager: https://github.com/qkqpttgf/OneManager-php
-  # discord: send level attachments to Discord bot
   url: 'http://enginetribe.gq:30000/'  # Storage url with '/'
   auth_key: ''  # Storage auth key, onedrive-cf and onemanager only
   proxied: true  # Proxy levels via CloudFlare CDN, onedrive-cf only
-  attachment_channel_id: 0  # Channel ID to receive level attachments, discord only
 
 push:
   engine_bot:

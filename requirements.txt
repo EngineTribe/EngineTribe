@@ -11,3 +11,4 @@ sqlalchemy[asyncio]
 greenlet
 asyncmy
 redis>4.2.0
+loguru

@@ -25,7 +25,6 @@ from database.db import Database
 from storage.onedrive_cf import StorageProviderOneDriveCF
 from storage.onemanager import StorageProviderOneManager
 from storage.database import StorageProviderDatabase
-from storage.discord import StorageProviderDiscord
 from depends import (
     create_dal
 )
@@ -54,12 +53,6 @@ async def lifespan(app: FastAPI):
         "database": StorageProviderDatabase(
             base_url=API_ROOT,
             database=app.state.db
-        ),
-        "discord": StorageProviderDiscord(
-            api_url=STORAGE_URL,
-            base_url=API_ROOT,
-            database=app.state.db,
-            attachment_channel=STORAGE_ATTACHMENT_CHANNEL_ID
         )
     }[STORAGE_PROVIDER]
     app.state.redis = redis.Redis(
