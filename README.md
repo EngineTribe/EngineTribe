@@ -7,6 +7,10 @@
 
 ---
 
+### ⚠️ Maintenance Mode
+
+Currently, the project is in maintenance mode and will not receive any functional updates in the future.
+
 ### ✅ Features
 
 - 👥 All APIs in original Engine-bot
@@ -25,4 +29,4 @@
 
 ![QQChat:723483890](https://img.shields.io/badge/QQ%20Group-723483890-faad01?logo=tencentqq) [![Telegram Channel](https://img.shields.io/badge/Telegram-Channel-28a8ea?logo=telegram)](https://t.me/EngineTribe_Channel)
 
-<div align="center">2022-2023 Kirukaze Chiyuki and Engine Tribe Team with 💗</div>
+<div align="center">2022-2023 Kirikaze Chiyuki and Engine Tribe Team with 💗</div>
